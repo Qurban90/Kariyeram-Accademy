@@ -25,7 +25,7 @@ dist-ssr
 
 # Pillə
 # Real məzmun repoya yazılmır (repo public). Nümunə məzmun content-sample/ və src/content/sample.ts-dədir.
-content/
+/content/
 .env
 .env.*
 !.env.example
