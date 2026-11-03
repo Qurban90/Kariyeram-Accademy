@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "threshold": 16,
+  "scale": { "min": 2, "max": 5 },
+  "criteria": [
+    { "id": "bilik", "name": "Bilik səviyyəsi", "keywords": ["qanun", "maddə", "məcəllə", "konstitusiya", "qayda", "qərar"] },
+    { "id": "pese", "name": "Peşə hazırlığı", "keywords": ["təcrübə", "layihə", "iş", "vəzifə", "sənəd", "nəticə"] },
+    { "id": "dunya", "name": "Ümumi dünyagörüşü", "keywords": ["dövlət", "cəmiyyət", "vətəndaş", "təhsil", "xidmət", "ictimai"] },
+    { "id": "keyfiyyet", "name": "Vəzifə üçün keyfiyyətlər", "keywords": ["məsuliyyət", "komanda", "öyrən", "dürüst", "səbr", "plan"] }
+  ]
+}

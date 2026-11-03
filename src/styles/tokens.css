@@ -1,0 +1,76 @@
+/*
+  Pillə vizual sistemi: "alacakaranlıq qala".
+  Əsas mövzu gecədir (hekayə axşam saat ondadır), işıqlı mövzu gündüz qalasıdır.
+  Kənarlar kəskindir, kölgə sərtdir: yuvarlaq kart əvəzinə daş blok.
+*/
+:root {
+  --sky-top: #0a1620;
+  --sky-bot: #17323f;
+  --panel: #122430;
+  --panel-hi: #1a3342;
+  --edge: #3b5b6d;
+  --drop: #04090d;
+  --text: #ede8da;
+  --muted: #93a6b0;
+  --stone: #d2c8ae;
+  --stone-shade: #b3a98e;
+  --stone-ink: #2b2a24;
+  --lamp: #f4b942;
+  --lamp-ink: #2a1d05;
+  --crack: #ee6a80;
+  --good: #58c7b0;
+  --btn: #ede8da;
+  --btn-ink: #0a1620;
+  --window-off: #07111a;
+  --f-display: 'Unbounded', 'Onest', system-ui, sans-serif;
+  --f-ui: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-voice: 'Literata', Georgia, 'Times New Roman', serif;
+  --fs: 1;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --sky-top: #cfe1e8;
+    --sky-bot: #efe6cf;
+    --panel: #f8f5ec;
+    --panel-hi: #ffffff;
+    --edge: #10222b;
+    --drop: #10222b;
+    --text: #10222b;
+    --muted: #55696f;
+    --stone: #cabf9f;
+    --stone-shade: #a89c7c;
+    --stone-ink: #2b2a24;
+    --lamp: #e3a02b;
+    --lamp-ink: #2a1d05;
+    --crack: #b4233f;
+    --good: #0c7c84;
+    --btn: #10222b;
+    --btn-ink: #f8f5ec;
+    --window-off: #243b47;
+    color-scheme: light;
+  }
+}
+
+:root[data-theme='light'] {
+  --sky-top: #cfe1e8;
+  --sky-bot: #efe6cf;
+  --panel: #f8f5ec;
+  --panel-hi: #ffffff;
+  --edge: #10222b;
+  --drop: #10222b;
+  --text: #10222b;
+  --muted: #55696f;
+  --stone: #cabf9f;
+  --stone-shade: #a89c7c;
+  --stone-ink: #2b2a24;
+  --lamp: #e3a02b;
+  --lamp-ink: #2a1d05;
+  --crack: #b4233f;
+  --good: #0c7c84;
+  --btn: #10222b;
+  --btn-ink: #f8f5ec;
+  --window-off: #243b47;
+  color-scheme: light;
+}
