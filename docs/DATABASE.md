@@ -30,3 +30,29 @@ Migrasiyalar (`supabase/migrations`), ardıcıllıqla:
 Real sual bankı repoya yazılmır (`/content/`, `supabase/seed.private.sql` gitignore-dadır). `supabase/seed.sql` yalnız `[DEMO]` etiketli nümunə suallar və məkanlardır.
 
 Sual formatı: `options` (2–6 sətir massivi), `answer_index`, `option_explanations` (hər variant üçün izah), `explanation`, `level` (1–3), `trap`, `law_ref`, `status` (`draft → review → published → retired`).
+
+## Sual idxalı (CSV)
+
+Şablon: [templates/suallar-sablon.csv](templates/suallar-sablon.csv) (Excel-də açın, doldurun, "CSV UTF-8" kimi saxlayın; ayırıcı `;` və ya `,` ola bilər).
+
+| Sütun | Məcburi | Qayda |
+| --- | --- | --- |
+| Fənn | bəli | Mövcud fənn kodu (`informatika`, `az-dili`, `qanun`) |
+| Mövzu | bəli | Yoxdursa yaradılır (pulsuz deyil) |
+| Sual | bəli | ≤ 4000 simvol |
+| A … F | A, B məcburi | Ardıcıl, boşluqsuz, təkrarsız |
+| Düzgün | bəli | Mövcud variantın hərfi |
+| İzah, İzah A … İzah F | xeyr | Boşdursa xəbərdarlıq verilir |
+| Çətinlik | xeyr | 1/2/3 və ya asan/orta/çətin (defolt orta) |
+| Tələ | xeyr | bəli/xeyr |
+| İstinad | xeyr | Qanun maddəsi və s. |
+
+```bash
+npm run import:questions -- suallar.csv --dry-run
+```
+
+```bash
+npm run import:questions -- suallar.csv --db "$DATABASE_URL"
+```
+
+Hər hansı sətirdə xəta varsa heç nə yazılmır (sətir nömrəsi ilə siyahı çıxır). Eyni mövzuda eyni mətnli sual təkrar yazılmır, ona görə yenidən işə salmaq təhlükəsizdir. Defolt status `review` (tələbə görmür); pilot üçün `--status published`. Dərc etmə ekranı hələ yoxdur (plan).

@@ -12,7 +12,8 @@
     "typecheck": "tsc -p packages/core --noEmit && tsc -p apps/app --noEmit",
     "db:test": "bash supabase/tests/run.sh",
     "test:int": "bash tests/integration/run.sh",
-    "test:e2e": "bash tests/e2e/run.sh"
+    "test:e2e": "bash tests/e2e/run.sh",
+    "import:questions": "node scripts/import-questions.mts"
   },
   "devDependencies": {
     "supabase": "^3.0.0",

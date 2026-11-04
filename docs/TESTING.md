@@ -4,7 +4,7 @@ Nəticələr uydurulmur: aşağıdakı rəqəmlər son işə salınmanın çıx�
 
 | Qat | Əmr | Nəyi yoxlayır | Son nəticə |
 | --- | --- | --- | --- |
-| Vahid (Vitest) | `npm test` | Alqoritmlər, API handler-ləri, router validasiyası, JWT/LiveKit/webhook, IDOR, telefon, canlı zal modeli | 48/48 keçdi |
+| Vahid (Vitest) | `npm test` | Alqoritmlər, API handler-ləri, router validasiyası, JWT/LiveKit/webhook, IDOR, telefon, canlı zal modeli, sual idxalı (CSV) | 53/53 keçdi |
 | Tip yoxlaması | `npm run typecheck` | `packages/core` və `apps/app` (native fayllar daxil) | Xətasız |
 | DB (psql) | `npm run db:test` | Sxem, RLS, bütün RPC-lər, limitlər, canlı dərs qaydaları, silinmə | 4 fayl, hamısı keçdi (139 yoxlama) |
 | İnteqrasiya | `npm run test:int` | Real Supabase (GoTrue, PostgREST, Edge Runtime), real LiveKit, Mailpit | 8/8 keçdi |

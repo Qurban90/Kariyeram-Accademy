@@ -1,0 +1,3 @@
+Fənn;Mövzu;Sual;A;B;C;D;E;Düzgün;İzah;İzah A;İzah B;İzah C;İzah D;İzah E;Çətinlik;Tələ;İstinad
+informatika;Say sistemləri (DEMO);[DEMO] 2 bayt neçə bitdir?;8;16;32;4;;B;1 bayt 8 bitdir, 2 bayt 16 bit.;Bu 1 baytdır.;Düzdür.;Bu 4 baytdır.;Yarım bayt.;;asan;xeyr;
+informatika;Say sistemləri (DEMO);"[DEMO] İkilik 111 onluqda neçədir?";5;6;7;111;;C;"4 + 2 + 1 = 7";101₂ = 5;110₂ = 6;Düzdür.;"Bu ikilik yazılışdır; onluq deyil.";;orta;bəli;
