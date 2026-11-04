@@ -1,3 +1,4 @@
+import { t } from '../src/i18n/az'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Stack, router, useSegments } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
@@ -41,7 +42,7 @@ function Gate() {
   if (session && !profile) {
     return (
       <Screen>
-        {profileError ? <ErrorBox message="Profil yüklənmədi. İnterneti yoxlayın." onRetry={refreshProfile} /> : <Loading />}
+        {profileError ? <ErrorBox message={t.system.profileFailed} onRetry={refreshProfile} /> : <Loading />}
       </Screen>
     )
   }
@@ -52,7 +53,7 @@ export default function RootLayout() {
   if (configError) {
     return (
       <SafeAreaProvider>
-        <Screen><ErrorBox message={configError} /><P dim>apps/app/.env.example faylına baxın.</P></Screen>
+        <Screen><ErrorBox message={configError} /><P dim>{t.system.seeEnvExample}</P></Screen>
       </SafeAreaProvider>
     )
   }

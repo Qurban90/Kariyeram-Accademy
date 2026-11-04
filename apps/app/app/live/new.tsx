@@ -34,8 +34,8 @@ export default function NewLive() {
     if (!v) { setErr(t.live.form.venue + '?'); return }
     if (title.trim().length < 1) { setErr(t.live.form.title + '?'); return }
     if (!s) { setErr(t.live.form.start); return }
-    if (!Number.isInteger(minutes) || minutes < 10 || minutes > 720) { setErr('Müddət 10–720 dəqiqə olmalıdır.'); return }
-    if (access === 'enrolled' && !v.subject_id) { setErr('Bu məkan fənnə bağlı deyil: "Fənnə yazılanlar" seçilə bilməz.'); return }
+    if (!Number.isInteger(minutes) || minutes < 10 || minutes > 720) { setErr(t.live.durationBad); return }
+    if (access === 'enrolled' && !v.subject_id) { setErr(t.live.venueNoSubject); return }
     setBusy(true)
     try {
       const r = await api.create({

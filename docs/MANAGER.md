@@ -31,9 +31,19 @@
 - Həftədə 1 saat: demo və qərarlar.
 - İstəyə bağlı: 3D dizayner (müəllim avatarı, sinif modelləri) üçün büdcə.
 
+## Xidmətlər (giriş və canlı dərs üçün qoşulmalıdır)
+
+| Xidmət | Nə üçün | Vəziyyət |
+| --- | --- | --- |
+| SMS provayderi (Twilio, Vonage və ya MessageBird; Azərbaycan nömrələrinə çatdırılma yoxlanmalı) | Telefonla giriş kodu | Kod hazırdır, hesab lazımdır |
+| SMTP (məs. Resend, Postmark, şirkət poçtu) + domen SPF/DKIM | E-poçtla giriş kodu | Şablon hazırdır, hesab lazımdır |
+| Supabase (Pro) | Baza, giriş, API | Lokal işləyir, layihə açılmalıdır |
+| LiveKit Cloud (və ya öz server) | Canlı dərs | Lokal işləyir, hesab lazımdır |
+| Apple Developer, Google Play | Mağazalar | Lazımdır |
+
 ## Gözlənilən qərarlar
 
-1. Giriş üsulu: telefon + SMS kodu, yoxsa e-poçt?
+1. ~~Giriş üsulu~~ — qərar verildi: həm telefon (SMS kodu), həm e-poçt (kod). Hər ikisi hazırdır.
 2. Məlumatın saxlanma yeri tələbi varmı?
 3. Qiymət və paketlər (yalnız test, test + canlı dərs).
 4. Ad: "Accademy" qəsdəndirmi?

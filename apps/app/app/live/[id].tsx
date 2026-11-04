@@ -188,8 +188,8 @@ export default function LiveRoom() {
         <Text style={st.count}>{peers.length} 👤</Text>
       </View>
       {lk.state.status === 'reconnecting' && <Banner text={t.live.reconnecting} />}
-      {state === 'scheduled' && !amHost && <Banner text="Dərs hələ başlamayıb. Müəllim başladanda səs və görüntü gələcək." />}
-      {lk.state.audioBlocked && <Pressable onPress={lk.startAudio} accessibilityRole="button" style={st.audioBtn}><Text style={{ color: colors.ink, fontWeight: '800' }}>🔊 Səsi aç</Text></Pressable>}
+      {state === 'scheduled' && !amHost && <Banner text={t.live.notStarted} />}
+      {lk.state.audioBlocked && <Pressable onPress={lk.startAudio} accessibilityRole="button" style={st.audioBtn}><Text style={{ color: colors.ink, fontWeight: '800' }}>{t.live.unmute}</Text></Pressable>}
       {notice && <Banner text={notice} tone="ok" />}
       {(err || lk.state.error) && <View style={{ paddingHorizontal: space.md }}><ErrorBox message={err || lk.state.error} onRetry={err ? undefined : lk.clearError} /></View>}
 
@@ -277,7 +277,7 @@ function HostPanel({ state, isMainHost, onlyHost, chatOn, hands, peers, onState,
         <Button testID="host-onlyhost" small variant={onlyHost ? 'primary' : 'quiet'} label={`${t.live.onlyHost}: ${onlyHost ? t.common.yes : t.common.no}`} onPress={() => onSettings({ onlyHostAudio: !onlyHost })} />
         <Button small variant={chatOn ? 'primary' : 'quiet'} label={`${t.live.chatOn}: ${chatOn ? t.common.yes : t.common.no}`} onPress={() => onSettings({ chatEnabled: !chatOn })} />
       </View>
-      {onlyHost && <P dim small>"Yalnız host danışır" açıq olanda söz verilmiş tələbə də danışa bilmir. Söz vermək üçün əvvəlcə bunu söndürün.</P>}
+      {onlyHost && <P dim small>{t.live.onlyHostNote}</P>}
 
       <Text style={st.panelH}>{t.live.hands} ({hands.length})</Text>
       {hands.length === 0 && <P dim small>{t.live.noHands}</P>}
@@ -294,7 +294,7 @@ function HostPanel({ state, isMainHost, onlyHost, chatOn, hands, peers, onState,
         <View key={p.identity} style={st.row}>
           <Text style={st.rowTxt} numberOfLines={1}>{p.name}{p.seat ? ` · ${p.seat}` : ''}{p.role !== 'audience' ? ` · ${p.role}` : ''}</Text>
           {p.role === 'speaker' && <Button small variant="quiet" label={t.live.revoke} onPress={() => onRole(p.identity, 'audience')} />}
-          {isMainHost && p.role !== 'cohost' && <Button small variant="quiet" label="Köməkçi" onPress={() => onRole(p.identity, 'cohost')} />}
+          {isMainHost && p.role !== 'cohost' && <Button small variant="quiet" label={t.live.cohost} onPress={() => onRole(p.identity, 'cohost')} />}
           {p.role !== 'host' && <Button small variant="danger" label={t.live.remove} onPress={() => onBan(p.identity)} />}
         </View>
       ))}
@@ -348,7 +348,7 @@ function ChatPanel({ session, enabled, peers, me }: { session: string; enabled: 
         data={msgs} keyExtractor={(m) => String(m.id)} contentContainerStyle={{ padding: space.md, gap: space.sm }}
         renderItem={({ item }) => (
           <View>
-            <Text style={{ color: colors.brass, fontSize: font.tiny, fontWeight: '700' }}>{(item.user_id && names.get(item.user_id)) || 'İştirakçı'}</Text>
+            <Text style={{ color: colors.brass, fontSize: font.tiny, fontWeight: '700' }}>{(item.user_id && names.get(item.user_id)) || t.system.participant}</Text>
             <Text style={{ color: colors.chalk, fontSize: font.small }}>{item.body}</Text>
           </View>
         )}

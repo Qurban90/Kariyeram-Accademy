@@ -1,6 +1,6 @@
 # Karyeram Academy — Tələblər spesifikasiyası (SRS)
 
-Versiya 0.2 · 2026-11-04. Status sütunu: **Hazır** (kod + test var), **Qismən**, **Plan** (hələ yoxdur). Status yalnız repoda yoxlanıla bilən koda əsaslanır.
+Versiya 0.3 · 2026-11-04. Status sütunu: **Hazır** (kod + test var), **Qismən**, **Plan** (hələ yoxdur). Status yalnız repoda yoxlanıla bilən koda əsaslanır.
 
 ## 1. Biznes məqsədi və problem
 
@@ -38,57 +38,57 @@ Prioritet: M (Must), S (Should), C (Could).
 
 | ID | Tələb | P | Qəbul meyarı | Status |
 | --- | --- | --- | --- | --- |
-| FR-001 | E-poçtla 6 rəqəmli OTP ilə qeydiyyat/giriş | M | Kod 1 dəfəlik, müddətli; yanlış kod rədd edilir | Qismən (konfiq + klient) |
-| FR-002 | Telefonla SMS OTP qeydiyyat/giriş | M | +994 formatı yoxlanır, kod 1 dəfəlik | Qismən |
+| FR-001 | E-poçtla 6 rəqəmli OTP ilə qeydiyyat/giriş | M | Kod 1 dəfəlik, müddətli; yanlış kod rədd edilir | Hazır (lokal GoTrue + Mailpit inteqrasiya testi; real SMTP yoxlanmayıb) |
+| FR-002 | Telefonla SMS OTP qeydiyyat/giriş | M | +994 formatı yoxlanır, kod 1 dəfəlik | Qismən (klient + lokal test nömrəsi; SMS provayderi qoşulmayıb) |
 | FR-003 | Hesaba ikinci identifikator (telefon/e-poçt) bağlamaq | S | Təsdiqdən sonra hər ikisi ilə giriş | Plan |
-| FR-004 | Qeydiyyatda şərtlər və məxfilik siyasətinə razılıq, yaş təsdiqi (18+) | M | Razılıq versiyası və vaxtı bazada | Hazır (DB) |
+| FR-004 | Qeydiyyatda şərtlər və məxfilik siyasətinə razılıq, yaş təsdiqi (18+) | M | Razılıq versiyası və vaxtı bazada | Hazır (DB + UI); hüquqi mətnlər yazılmayıb (R-02) |
 | FR-005 | Profil avtomatik yaradılır, tələbə nömrəsi (su nişanı) verilir | M | auth istifadəçisi yarananda profil var | Hazır |
-| FR-006 | Hesab silmə (real backend prosesi) | M | Şəxsi məlumat silinir/anonimləşir, audit qalır | Hazır (DB) |
-| FR-007 | Məlumat ixracı (JSON) | S | Tələbə öz məlumatını yükləyir | Hazır (DB) |
-| FR-008 | Tək aktiv cihaz, cihaz dəyişimi audit | M | Köhnə cihaz bloklanır | Hazır |
+| FR-006 | Hesab silmə (real backend prosesi) | M | Şəxsi məlumat silinir/anonimləşir, audit qalır | Hazır (DB + API + UI, E2E) |
+| FR-007 | Məlumat ixracı (JSON) | S | Tələbə öz məlumatını yükləyir | Hazır (DB + API + UI, E2E) |
+| FR-008 | Tək aktiv cihaz, cihaz dəyişimi audit | M | Köhnə cihaz bloklanır | Hazır (DB + UI) |
 | FR-009 | Bütün cihazlardan çıxış | S | Sessiyalar ləğv | Plan |
 
 ### Özünü öyrənmə
 
 | ID | Tələb | P | Qəbul meyarı | Status |
 | --- | --- | --- | --- | --- |
-| FR-020 | Fənn və mövzu seçimi, mövzu testi | M | Yalnız icazəli suallar | Hazır (API) |
-| FR-021 | 10/20/30/50/100 qarışıq sual | M | Zəif mövzular daha çox pay alır | Hazır |
-| FR-022 | Nəticə: düz, səhv, boş, faiz, mövzu üzrə | M | Server hesablayır | Hazır |
-| FR-023 | Hər sual üçün seçilən, düzgün variant, hər variantın izahı | M | Yalnız görülmüş suallar | Hazır |
-| FR-024 | Tələli sualların rənglə seçilməsi (imtahanda gizli) | S | `trap` bayrağı | Hazır |
-| FR-025 | "Yalnız səhvlərimi təkrar işlə" | M | Son cavabı səhv olanlar | Hazır |
+| FR-020 | Fənn və mövzu seçimi, mövzu testi | M | Yalnız icazəli suallar | Hazır (API + UI, E2E) |
+| FR-021 | 10/20/30/50/100 qarışıq sual | M | Zəif mövzular daha çox pay alır | Hazır (API + UI) |
+| FR-022 | Nəticə: düz, səhv, boş, faiz, mövzu üzrə | M | Server hesablayır | Hazır (API + UI) |
+| FR-023 | Hər sual üçün seçilən, düzgün variant, hər variantın izahı | M | Yalnız görülmüş suallar | Hazır (API + UI, E2E) |
+| FR-024 | Tələli sualların rənglə seçilməsi (imtahanda gizli) | S | `trap` bayrağı | Hazır (API + UI) |
+| FR-025 | "Yalnız səhvlərimi təkrar işlə" | M | Son cavabı səhv olanlar | Hazır (API + UI) |
 | FR-026 | FSRS aralıqlı təkrar | S | Hər cavabdan sonra kart yenilənir | Hazır |
-| FR-027 | Gündəlik: test nəticələri, müəllim qiymətləri, qeydlər | M | Test bitəndə avtomatik | Qismən |
-| FR-028 | "Səhvlərim harada çoxdur" | S | Mövzu üzrə səhv payı | Hazır (core) |
-| FR-029 | Pulsuz sınaq mövzusu | M | Abunəsiz yalnız `free` mövzular | Hazır |
-| FR-030 | Kodla abunə aktivləşdirmə | M | Kod bir dəfəlik, hash | Hazır |
+| FR-027 | Gündəlik: test nəticələri, müəllim qiymətləri, qeydlər | M | Test bitəndə avtomatik | Qismən (test nəticələri avtomatik; müəllim qiyməti/qeydi UI-si yoxdur) |
+| FR-028 | "Səhvlərim harada çoxdur" | S | Mövzu üzrə səhv payı | Hazır (core + UI) |
+| FR-029 | Pulsuz sınaq mövzusu | M | Abunəsiz yalnız `free` mövzular | Hazır (DB + UI, E2E) |
+| FR-030 | Kodla abunə aktivləşdirmə | M | Kod bir dəfəlik, hash | Hazır (DB + UI) |
 | FR-031 | Konspekt kitabxanası (şkaf) | S | İcazəli PDF/mətn | Plan |
-| FR-032 | İmtahan zalı: vaxtlı DİM formatlı sınaq | S | Server vaxtı, sonda nəticə | Hazır (API) |
+| FR-032 | İmtahan zalı: vaxtlı DİM formatlı sınaq | S | Server vaxtı, sonda nəticə | Hazır (API + UI, taymer) |
 
 ### Oxu zalı (canlı)
 
 | ID | Tələb | P | Qəbul meyarı | Status |
 | --- | --- | --- | --- | --- |
 | FR-040 | Məkanlar: sinif (məktəb) və zal (seminar), tutum | M | Məkan tipi və sahibi | Hazır (DB) |
-| FR-041 | Canlı sessiya planlaşdırma: başlıq, vaxt, host, giriş qaydası | M | Host və ya admin yaradır | Hazır (DB/API) |
-| FR-042 | Qoşulma: icazə yoxlanır, LiveKit token server tərəfindən | M | Abunəsiz/dəvətsiz qoşula bilmir | Hazır (API) |
-| FR-043 | Host: video, səs, ekran paylaşma | M | Token icazəsi | Hazır (token) |
-| FR-044 | İştirakçı əvvəlcə yalnız dinləyir | M | `canPublish=false` | Hazır |
-| FR-045 | Əl qaldırma növbəsi, host söz verir/alır | M | İcazə serverdə dəyişir | Hazır (DB/API) |
-| FR-046 | "Yalnız host danışır" rejimi | M | Bütün iştirakçıların səsi bağlanır | Hazır (API) |
-| FR-047 | Chat | S | Uzunluq limiti, rate limit | Hazır (DB) |
-| FR-048 | Davamiyyət: qoşulma/ayrılma, dəqiqə | S | Webhook əsasında | Hazır (API/DB) |
+| FR-041 | Canlı sessiya planlaşdırma: başlıq, vaxt, host, giriş qaydası | M | Host və ya admin yaradır | Hazır (API + UI forması, E2E) |
+| FR-042 | Qoşulma: icazə yoxlanır, LiveKit token server tərəfindən | M | Abunəsiz/dəvətsiz qoşula bilmir | Hazır (API + UI, real LiveKit E2E) |
+| FR-043 | Host: video, səs, ekran paylaşma | M | Token icazəsi | Qismən (kamera E2E-də yoxlanıb; ekran paylaşma yalnız vebdə, avtomat yoxlanmayıb) |
+| FR-044 | İştirakçı əvvəlcə yalnız dinləyir | M | `canPublish=false` | Hazır (E2E) |
+| FR-045 | Əl qaldırma növbəsi, host söz verir/alır | M | İcazə serverdə dəyişir | Hazır (API + UI, E2E) |
+| FR-046 | "Yalnız host danışır" rejimi | M | Bütün iştirakçıların səsi bağlanır | Hazır (API + UI, E2E) |
+| FR-047 | Chat | S | Uzunluq limiti, rate limit | Hazır (API + Realtime + UI, E2E) |
+| FR-048 | Davamiyyət: qoşulma/ayrılma, dəqiqə | S | Webhook əsasında | Qismən (API/DB var; UI yoxdur) |
 | FR-049 | Dərsin yazılması və şkafa düşməsi | C | Razılıqla | Plan |
-| FR-050 | 3D zal/sinif: iştirakçılar oturacaqlarda, host səhnədə | S | Zəif cihazda 2D | Plan (klient) |
-| FR-051 | İştirakçını çıxarmaq/bloklamaq | M | Host/admin | Hazır (API) |
+| FR-050 | 3D zal/sinif: iştirakçılar oturacaqlarda, host səhnədə | S | Zəif cihazda 2D | Qismən (2D sinif: lövhə + partalar; 3D yoxdur) |
+| FR-051 | İştirakçını çıxarmaq/bloklamaq | M | Host/admin | Hazır (API + UI) |
 
 ### Müəllim və admin
 
 | ID | Tələb | P | Qəbul meyarı | Status |
 | --- | --- | --- | --- | --- |
-| FR-060 | Kod yaratma (toplu), ləğv | M | Yalnız müəllim/admin | Qismən (yaratma var) |
-| FR-061 | Sual analizi: tələli, şübhəli açar, asan/çətin | S | Min 30 cavab | Hazır (core) |
+| FR-060 | Kod yaratma (toplu), ləğv | M | Yalnız müəllim/admin | Qismən (yaratma RPC-si var; UI yoxdur) |
+| FR-061 | Sual analizi: tələli, şübhəli açar, asan/çətin | S | Min 30 cavab | Hazır (core; UI yoxdur) |
 | FR-062 | Sual statusu: qaralama, yoxlama, dərc, köhnəlmiş | M | Tələbə yalnız dərc olunanı görür | Hazır |
 | FR-063 | Qiymət və qeyd gündəliyə | S | Dərhal tələbədə görünür | Plan |
 | FR-064 | Admin: istifadəçi dayandırma, audit | M | Hər əməliyyat audit-ə | Qismən |
@@ -97,9 +97,9 @@ Prioritet: M (Must), S (Should), C (Could).
 
 | ID | Tələb | Ölçü | Status |
 | --- | --- | --- | --- |
-| NFR-001 | Platformalar: Android, iOS, veb bir kod bazası | Expo | Qismən |
-| NFR-002 | Dil: Azərbaycan (i18n strukturu ilə) | Bütün mətnlər bir yerdə | Plan |
-| NFR-003 | Zəif cihaz dəstəyi: 3D söndürülə bilir | 2D rejim | Plan |
+| NFR-001 | Platformalar: Android, iOS, veb bir kod bazası | Expo | Qismən (veb build + E2E; native build yoxlanmayıb) |
+| NFR-002 | Dil: Azərbaycan (i18n strukturu ilə) | Bütün mətnlər bir yerdə | Hazır (apps/app/src/i18n/az.ts; yalnız konfiqurasiya xətası mətni config.ts-dədir) |
+| NFR-003 | Zəif cihaz dəstəyi: 3D söndürülə bilir | 2D rejim | Hazır (hazırda yalnız 2D var) |
 | PERF-001 | API p95 < 400 ms (normal yük) | k6 ilə ölçüləcək | Ölçülməyib |
 | PERF-002 | 500 eyni vaxtlı istifadəçi (test və gündəlik) | k6 yük testi | Ölçülməyib |
 | PERF-003 | Canlı sinifdə 30–50 iştirakçı | LiveKit SFU | Ölçülməyib |
@@ -109,14 +109,17 @@ Prioritet: M (Must), S (Should), C (Could).
 | SEC-004 | Gündəlik sual limiti, sürət aşkarlama | DB testi | Hazır |
 | SEC-005 | LiveKit icazələri yalnız serverdə | Vitest | Hazır |
 | SEC-006 | Webhook imzası və təkrar qorunması | Vitest | Hazır |
-| SEC-007 | Sirlər repoda yoxdur, CI-də secret scanning | gitleaks | Plan |
-| SEC-008 | Android ekran şəkli qadağası, iOS aşkarlama | expo-screen-capture | Plan (klient) |
+| SEC-007 | Sirlər repoda yoxdur, CI-də secret scanning | gitleaks | Qismən (gitignore; CI-də gitleaks konfiqurasiya olunub, hələ işləməyib) |
+| SEC-008 | Android ekran şəkli qadağası, iOS aşkarlama | expo-screen-capture | Qismən (kod var; native cihazda yoxlanmayıb) |
 | PRIV-001 | Minimal məlumat: ad, e-poçt və/və ya telefon | Sxem | Hazır |
 | PRIV-002 | Silinmə və ixrac | DB testi | Hazır |
 | PRIV-003 | Razılıq versiyaları saxlanılır | DB | Hazır |
 | TEST-001 | Alqoritm vahid testləri | Vitest | Hazır |
 | TEST-002 | DB/RLS testləri real Postgres-də | psql | Hazır |
-| TEST-003 | Lokal Supabase ilə end-to-end API testi | supabase start | Qismən |
+| TEST-003 | Lokal Supabase ilə end-to-end API testi | supabase start | Hazır (8 inteqrasiya testi) |
+| TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (18 addım) |
+| TEST-005 | Native cihazlarda E2E | Maestro/Detox | Plan |
+| NFR-004 | Əlçatanlıq: toxunma sahəsi ≥ 44, ARIA rolları və vəziyyətləri, azaldılmış hərəkət | Ekran oxuyucu ilə yoxlama | Qismən (kod; ekran oxuyucu ilə yoxlanmayıb) |
 
 ## 6. Kritik ssenarilər və istisnalar
 

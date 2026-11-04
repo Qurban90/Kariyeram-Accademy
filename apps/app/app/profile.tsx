@@ -45,7 +45,7 @@ export default function Profile() {
   const redeem = async () => {
     setCodeErr(null); setCodeMsg(null)
     const c = code.trim().toUpperCase()
-    if (!/^[A-Z0-9]{4}-?[A-Z0-9]{4}-?[A-Z0-9]{4}$/.test(c)) { setCodeErr('Kod XXXX-XXXX-XXXX formatında olmalıdır.'); return }
+    if (!/^[A-Z0-9]{4}-?[A-Z0-9]{4}-?[A-Z0-9]{4}$/.test(c)) { setCodeErr(t.profile.codeFormat); return }
     setBusy('code')
     try {
       const r = await api.redeem(c)

@@ -2,6 +2,7 @@
  * LiveKit otağına qoşulma və vəziyyətin React-ə ötürülməsi. livekit-client həm vebdə, həm native-də işləyir
  * (native-də əvvəlcə registerGlobals çağırılır). İcazələr serverdə verilir: klient yalnız tokenin icazə verdiyini edə bilər.
  */
+import { t } from '../i18n/az'
 import {
   ConnectionState, DisconnectReason, Room, RoomEvent, Track,
   type Participant, type RemoteAudioTrack, type RemoteTrack, type VideoTrack,
@@ -56,7 +57,7 @@ export function useLiveRoom() {
       const meta = parseMeta(p.metadata, metaCache.current.get(p.identity))
       metaCache.current.set(p.identity, meta)
       return {
-        identity: p.identity, name: p.name || 'İştirakçı', role: meta.role, seat: meta.seat,
+        identity: p.identity, name: p.name || t.system.participant, role: meta.role, seat: meta.seat,
         isLocal: p === room.localParticipant, speaking: speaking.has(p.identity), micOn: p.isMicrophoneEnabled,
         camera: videoOf(p, Track.Source.Camera), screen: videoOf(p, Track.Source.ScreenShare),
       }
@@ -102,7 +103,7 @@ export function useLiveRoom() {
         const status: Status = reason === DisconnectReason.PARTICIPANT_REMOVED ? 'removed'
           : reason === DisconnectReason.ROOM_DELETED ? 'ended'
           : reason === DisconnectReason.CLIENT_INITIATED ? 'idle' : 'error'
-        setState((s) => ({ ...s, status, error: status === 'error' ? 'Bağlantı kəsildi.' : null }))
+        setState((s) => ({ ...s, status, error: status === 'error' ? t.system.disconnected : null }))
       })
     try {
       await startAudioSession()
@@ -111,7 +112,7 @@ export function useLiveRoom() {
     } catch (e) {
       roomRef.current = null
       await stopAudioSession().catch(() => {})
-      setState({ ...initial, status: 'error', error: `Canlı serverə qoşulmaq olmadı: ${(e as Error).message}` })
+      setState({ ...initial, status: 'error', error: t.system.liveConnectFailed((e as Error).message) })
     }
   }, [snapshot])
 

@@ -20,8 +20,8 @@ function authErrorText(e: { status?: number; code?: string; message?: string }):
   if (code === 'phone_provider_disabled' || code === 'sms_send_failed') return t.auth.smsDisabled
   if (code === 'otp_expired' || code === 'invalid_credentials' || code === 'otp_disabled') return t.auth.badCode
   if (code === 'validation_failed') return t.auth.phoneFormat
-  if (e.message?.toLowerCase().includes('network') || e.message?.toLowerCase().includes('fetch')) return 'İnternet bağlantısı yoxdur.'
-  return e.message || 'Xəta baş verdi.'
+  if (e.message?.toLowerCase().includes('network') || e.message?.toLowerCase().includes('fetch')) return t.system.noInternet
+  return e.message || t.system.genericError
 }
 
 export default function SignIn() {

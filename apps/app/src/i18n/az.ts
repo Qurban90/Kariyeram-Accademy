@@ -68,6 +68,12 @@ export function errorText(code: string | undefined | null): string {
 
 export const t = {
   brand: 'Karyeram Academy',
+  system: {
+    notFound: 'Bu otaq tapılmadı', notFoundSub: 'Ünvan səhvdir və ya otaq bağlanıb.', backToSchool: 'Məktəbə qayıt',
+    profileFailed: 'Profil yüklənmədi. İnterneti yoxlayın.', seeEnvExample: 'apps/app/.env.example faylına baxın.',
+    noInternet: 'İnternet bağlantısı yoxdur.', genericError: 'Xəta baş verdi.', participant: 'İştirakçı', disconnected: 'Bağlantı kəsildi.',
+    liveConnectFailed: (m: string) => `Canlı serverə qoşulmaq olmadı: ${m}`,
+  },
   common: {
     retry: 'Yenidən cəhd et', cancel: 'Ləğv et', back: 'Geri', next: 'Növbəti', save: 'Yadda saxla',
     loading: 'Yüklənir…', close: 'Bağla', continue: 'Davam et', yes: 'Bəli', no: 'Xeyr',
@@ -150,12 +156,15 @@ export const t = {
     ended: 'Dərs bitdi.', removed: 'Dərsdən çıxarıldınız.', reconnecting: 'Bağlantı bərpa olunur…',
     chatPh: 'Mesaj yazın…', send: 'Göndər', seat: (n: number) => `Yer ${n}`,
     screenNativeNote: 'Ekran paylaşma bu versiyada yalnız veb brauzerdə işləyir.',
+    notStarted: 'Dərs hələ başlamayıb. Müəllim başladanda səs və görüntü gələcək.', unmute: '🔊 Səsi aç',
+    onlyHostNote: '"Yalnız host danışır" açıq olanda söz verilmiş tələbə də danışa bilmir. Söz vermək üçün əvvəlcə bunu söndürün.',
+    cohost: 'Köməkçi', durationBad: 'Müddət 10–720 dəqiqə olmalıdır.', venueNoSubject: 'Bu məkan fənnə bağlı deyil: "Fənnə yazılanlar" seçilə bilməz.',
     form: { title: 'Mövzu', venue: 'Məkan', start: 'Başlama (YYYY-AA-GG SS:DD)', duration: 'Müddət (dəq)', access: 'Kimlər qoşula bilər' },
     access: { enrolled: 'Fənnə yazılanlar', public: 'Hamı', invite: 'Dəvətlilər' },
   },
   profile: {
     title: 'Kabinet', role: { student: 'Tələbə', teacher: 'Müəllim', admin: 'Admin' } as Record<string, string>,
-    redeem: 'Abunə kodu', redeemPh: 'XXXX-XXXX-XXXX', redeemBtn: 'Aktivləşdir', redeemed: (s: string, d: string) => `${s} fənninə giriş ${d} tarixinədək açıldı.`,
+    redeem: 'Abunə kodu', codeFormat: 'Kod XXXX-XXXX-XXXX formatında olmalıdır.', redeemPh: 'XXXX-XXXX-XXXX', redeemBtn: 'Aktivləşdir', redeemed: (s: string, d: string) => `${s} fənninə giriş ${d} tarixinədək açıldı.`,
     subscriptions: 'Abunələr', noSubs: 'Aktiv abunə yoxdur. Pulsuz mövzular açıqdır.',
     privacy: 'Məxfilik', export: 'Məlumatlarımı yüklə (JSON)', exportDone: 'Məlumatlar hazırlandı.',
     marketing: 'Xəbər bülleteni', recording: 'Dərs yazısına razılıq',
