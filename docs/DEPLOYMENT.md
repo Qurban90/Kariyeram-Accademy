@@ -28,10 +28,11 @@ npx supabase db push
    - E-poçt: OTP uzunluğu 6, şablonlar `supabase/templates/otp.html` ilə eyni (`{{ .Token }}`), xüsusi SMTP (göndərən domeni SPF/DKIM ilə).
    - Telefon: provayder (Twilio/Vonage/MessageBird...), şablon `Karyeram Academy giriş kodu: {{ .Code }}`. **Test OTP nömrələri istehsalda olmamalıdır.**
    - Rate limitlər: SMS və e-poçt üçün saatlıq limitləri büdcəyə görə təyin edin.
-   - Staff hesabları üçün MFA (plan).
+   - **MFA (TOTP)**: Authentication → Multi-Factor → TOTP: enroll və verify **aktiv** (lokalda `supabase/config.toml` `[auth.mfa.totp]`). Admin otağı MFA olmadan açılmır.
 4. Realtime: `live_chat` nəşrə migrasiya ilə əlavə olunur; panelədə yoxlayın.
 5. İlk admin (yalnız SQL ilə, API admin təyin etmir): panel → SQL Editor:
    `update public.profiles set role = 'admin' where id = (select id from auth.users where email = '<e-poçt>');`
+   Sonra admin tətbiqdə Kabinet → İki mərhələli qoruma (hesabda e-poçt olmalıdır). Telefon itərsə: `delete from auth.mfa_factors where user_id = '<id>';` (yalnız şəxsiyyət yoxlanandan sonra, audit üçün qeyd edin).
 6. pg_cron: migrasiya `karyeram-cleanup` işini planlayır (`select * from cron.job;` ilə yoxlayın). Panelda Integrations → Cron aktiv olmalıdır.
 7. Hər yeni mağaza buraxılışında: köhnə versiyalar artıq işləməməlidirsə, Admin otağı → Tətbiq → minimum versiya. `APP_CONFIG_TTL_MS` istehsalda **təyin etməyin** (defolt 30 s).
 

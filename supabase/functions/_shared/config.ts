@@ -5,7 +5,7 @@
  */
 import { ApiError } from './errors.ts'
 
-export interface AppConfig { minVersion: string; maintenance: boolean; message: string | null }
+export interface AppConfig { minVersion: string; maintenance: boolean; message: string | null; staffMfaRequired?: boolean }
 export const OPEN: AppConfig = { minVersion: '0.0.0', maintenance: false, message: null }
 
 export function cachedConfig(load: () => Promise<AppConfig>, ttlMs = 30_000, now: () => number = Date.now) {

@@ -9,6 +9,8 @@ import { createServer } from 'node:http'
 import { extname, join, resolve } from 'node:path'
 import { createRequire } from 'node:module'
 
+import { totp } from '../util/totp.mjs'
+
 const require = createRequire(import.meta.url)
 const { chromium } = require('playwright')
 
@@ -341,6 +343,48 @@ try {
     await sp.goto(`http://127.0.0.1:${PORT}/diary`)
     await sp.getByText('Şifahi sorğu: say sistemləri').waitFor({ timeout: 15000 })
     await sp.close()
+  })
+
+  await step('iki mərhələli qoruma: admin MFA olmadan admin otağına girə bilmir, TOTP qoşur, yeni girişdə kod soruşulur', async () => {
+    const mp = await hctx.newPage()
+    await mp.goto(`http://127.0.0.1:${PORT}/admin`)
+    await mp.getByTestId('admin-q').fill('Test')
+    await mp.getByTestId('admin-search').click()
+    await mp.getByText(/iki mərhələli qoruma lazımdır/).waitFor({ timeout: 15000 })
+    await mp.goto(`http://127.0.0.1:${PORT}/profile`)
+    // Yalnız telefonlu hesabda TOTP qoşulmur (GoTrue e-poçt adı tələb edir): əvvəl e-poçt bağlanır.
+    await mp.getByText(/Əvvəlcə yuxarıdakı bölmədən hesabınıza e-poçt bağlayın/).waitFor({ timeout: 15000 })
+    const hostMail = `e2e-host-${Date.now()}@karyeram.test`
+    await mp.getByTestId('link-email').click()
+    await mp.getByTestId('link-value').fill(hostMail)
+    await mp.getByTestId('link-send').click()
+    await mp.getByTestId('link-code').fill(await mailCode(hostMail))
+    await mp.getByTestId('link-verify').click()
+    await mp.getByTestId('mfa-enroll').click()
+    const secret = (await mp.getByTestId('mfa-secret').innerText({ timeout: 15000 })).trim()
+    expect(/^[A-Z2-7]{16,}$/.test(secret), 'gizli açar formatı: ' + secret)
+    await mp.getByTestId('mfa-enroll-code').fill(totp(secret))
+    await mp.getByTestId('mfa-confirm').click()
+    await mp.getByText('İki mərhələli qoruma qoşuldu.').waitFor({ timeout: 15000 })
+    await mp.screenshot({ path: join(SHOTS, '16-mfa-qosuldu.png') })
+    await mp.close()
+    expect(sql(`select count(*) from auth.mfa_factors f join auth.users u on u.id = f.user_id where u.phone = '${HOST_DB}' and f.status = 'verified'`) === '1', 'faktor təsdiqlənmədi')
+    // Yeni cihazda giriş: telefon OTP-dən sonra autentifikator kodu soruşulur.
+    const c2 = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'az-AZ' })
+    const p2 = await c2.newPage()
+    await p2.goto(`http://127.0.0.1:${PORT}/sign-in`)
+    await p2.getByTestId('phone').fill(HOST_LOCAL)
+    await p2.getByTestId('send-code').click()
+    await p2.getByTestId('otp').fill('123456')
+    await p2.getByTestId('verify').click()
+    await p2.getByTestId('mfa-code').waitFor({ timeout: 20000 })
+    await p2.getByTestId('mfa-code').fill(totp(secret) === '000000' ? '111111' : '000000')
+    await p2.getByTestId('mfa-verify').click()
+    await p2.getByText(/Kod yanlışdır/).waitFor({ timeout: 15000 })
+    await p2.getByTestId('mfa-code').fill(totp(secret))
+    await p2.getByTestId('mfa-verify').click()
+    await p2.getByTestId('door-live').waitFor({ timeout: 20000 })
+    await c2.close()
   })
 
   await step('admin otağı: tələbəni № ilə tapır, səbəblə dayandırır (GoTrue qadağası), audit-də görür, bərpa edir', async () => {

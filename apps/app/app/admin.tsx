@@ -152,9 +152,9 @@ function AppConfig() {
   const q = useQuery({
     queryKey: ['app-config'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('app_config').select('min_version, maintenance, message').limit(1).single()
+      const { data, error } = await supabase.from('app_config').select('min_version, maintenance, message, staff_mfa_required').limit(1).single()
       if (error) throw new Error(error.message)
-      return data as { min_version: string; maintenance: boolean; message: string | null }
+      return data as { min_version: string; maintenance: boolean; message: string | null; staff_mfa_required: boolean }
     },
   })
   const [minV, setMinV] = useState<string | null>(null)
@@ -164,7 +164,7 @@ function AppConfig() {
   const [ok, setOk] = useState(false)
   if (q.isLoading) return <Loading />
   const cur = q.data
-  const save = async (b: { maintenance?: boolean }) => {
+  const save = async (b: { maintenance?: boolean; staffMfaRequired?: boolean }) => {
     const v = (minV ?? cur?.min_version ?? '').trim()
     if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(v)) { setErr(t.admin.versionBad); return }
     setBusy(true); setErr(null); setOk(false)
@@ -185,6 +185,11 @@ function AppConfig() {
       <Button testID="cfg-maint" variant={cur?.maintenance ? 'primary' : 'danger'} loading={busy}
         label={cur?.maintenance ? `${t.admin.maintenance}: ${t.admin.off}` : `${t.admin.maintenance}: ${t.admin.on}`}
         onPress={() => save({ maintenance: !cur?.maintenance })} />
+      <H level={3}>{t.admin.staffMfa}: {cur?.staff_mfa_required ? t.admin.on : t.admin.off}</H>
+      <P dim small>{t.admin.staffMfaWarn}</P>
+      <Button testID="cfg-staff-mfa" variant={cur?.staff_mfa_required ? 'quiet' : 'ghost'} loading={busy}
+        label={`${t.admin.staffMfa}: ${cur?.staff_mfa_required ? t.admin.off : t.admin.on}`}
+        onPress={() => save({ staffMfaRequired: !cur?.staff_mfa_required })} />
       {ok ? <P small style={{ color: colors.ok }}>{t.admin.saved}</P> : null}
     </View>
   )

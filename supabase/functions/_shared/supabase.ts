@@ -1,5 +1,6 @@
 /** Asılılıqsız Supabase klienti (REST): RPC, istifadəçi yoxlaması, admin silmə. Timeout ilə. */
 import type { Db } from './handlers.ts'
+import { jwtClaims } from './mfa.ts'
 
 export interface SupaConfig {
   url: string
@@ -43,7 +44,7 @@ export function restDb(cfg: SupaConfig): Db {
   }
 }
 
-export interface AuthUser { id: string; bannedUntil: string | null }
+export interface AuthUser { id: string; bannedUntil: string | null; aal: string; hasMfa: boolean }
 
 /**
  * İstifadəçi JWT-sini GoTrue-da yoxlayır (imza, müddət, silinmiş istifadəçi, ləğv olunmuş sessiya).
@@ -52,18 +53,26 @@ export interface AuthUser { id: string; bannedUntil: string | null }
 export async function getUser(cfg: SupaConfig, jwt: string): Promise<AuthUser | null> {
   const r = await call(cfg, '/auth/v1/user', { method: 'GET', headers: { authorization: `Bearer ${jwt}` } })
   if (!r.ok) return null
-  const u = (await r.json()) as { id?: string; banned_until?: string | null }
-  return typeof u.id === 'string' ? { id: u.id, bannedUntil: typeof u.banned_until === 'string' ? u.banned_until : null } : null
+  const u = (await r.json()) as { id?: string; banned_until?: string | null; factors?: { status?: string }[] | null }
+  if (typeof u.id !== 'string') return null
+  // Token GoTrue-da yoxlandı; aal (autentifikasiya səviyyəsi) onun claim-indədir.
+  const aal = jwtClaims(jwt).aal
+  return {
+    id: u.id,
+    bannedUntil: typeof u.banned_until === 'string' ? u.banned_until : null,
+    aal: typeof aal === 'string' ? aal : 'aal1',
+    hasMfa: Array.isArray(u.factors) && u.factors.some((f) => f?.status === 'verified'),
+  }
 }
 
 /** Tətbiq konfiqurasiyası (tək sətir). */
-export async function getAppConfig(cfg: SupaConfig): Promise<{ minVersion: string; maintenance: boolean; message: string | null }> {
-  const r = await call(cfg, '/rest/v1/app_config?select=min_version,maintenance,message&limit=1', { method: 'GET' })
+export async function getAppConfig(cfg: SupaConfig): Promise<{ minVersion: string; maintenance: boolean; message: string | null; staffMfaRequired: boolean }> {
+  const r = await call(cfg, '/rest/v1/app_config?select=min_version,maintenance,message,staff_mfa_required&limit=1', { method: 'GET' })
   if (!r.ok) throw new Error(`app_config: ${r.status}`)
-  const rows = (await r.json()) as { min_version: string; maintenance: boolean; message: string | null }[]
+  const rows = (await r.json()) as { min_version: string; maintenance: boolean; message: string | null; staff_mfa_required: boolean }[]
   const c = rows[0]
   if (!c) throw new Error('app_config: empty')
-  return { minVersion: c.min_version, maintenance: c.maintenance, message: c.message }
+  return { minVersion: c.min_version, maintenance: c.maintenance, message: c.message, staffMfaRequired: c.staff_mfa_required === true }
 }
 
 /** GoTrue qadağası: yeni giriş və token yeniləmə bloklanır. hours = null qadağanı götürür. */

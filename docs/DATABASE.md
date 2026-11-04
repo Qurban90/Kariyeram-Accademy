@@ -17,6 +17,8 @@ Migrasiyalar (`supabase/migrations`), ardıcıllıqla:
 | `20261104000011_library.sql` | Konspekt şkafı: `library_items`, `library_bodies` (klientə bağlı), `library_open`, `staff_library_add/delete`, şəxsi `library` bucket-i |
 | `20261104000006_honor_board.sql` | `profiles.show_on_board`, `set_board_visibility`, `board_rows`, `_short_name` |
 | `20261104000012_admin.sql` | `is_admin`, dayandırılmış müəllim `is_staff` deyil; `admin_find_users` (maskalı əlaqə), `admin_suspend/unsuspend`, `admin_set_role` (yalnız tələbə ↔ müəllim), `admin_audit` (açar-dəst səhifələmə) |
+| `20261104000014_pdf_stamp.sql` | PDF limiti 15 MB (bucket), `library_open`-a tələbə üçün gündə 200 açılış limiti |
+| `20261104000015_staff_mfa.sql` | `app_config.staff_mfa_required`, `_staff_aal_ok()`, sual bankında məhdudlaşdırıcı RLS siyasəti (aal2), `admin_set_config` yeni parametrlə |
 | `20261104000013_scale.sql` | Çatışmayan xarici açar indeksləri, `maintenance_cleanup` (saxlama siyasəti, pg_cron ilə gündəlik), `app_config` (minimum versiya, texniki iş), `admin_set_config` |
 
 ## Prinsiplər

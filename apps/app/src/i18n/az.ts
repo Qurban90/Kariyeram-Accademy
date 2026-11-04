@@ -14,6 +14,9 @@ export const errors: Record<string, string> = {
   not_found: 'Tapılmadı.',
   forbidden: 'Bu əməliyyat üçün icazəniz yoxdur.',
   rate_limited: 'Çox tez-tez göndərirsiniz. Bir neçə saniyə gözləyin.',
+  mfa_required: 'Bu bölmə üçün iki mərhələli qoruma lazımdır: Kabinet → İki mərhələli qoruma.',
+  pdf_unreadable: 'Bu PDF faylı açıla bilmir (şifrəli və ya zədəli). Müəllimə bildirin.',
+  not_pdf: 'Bu material PDF deyil.',
   maintenance: 'Məktəbdə texniki iş gedir. Bir az sonra yenidən cəhd edin.',
   upgrade_required: 'Tətbiqin yeni versiyası lazımdır. Zəhmət olmasa, tətbiqi yeniləyin.',
   // Hesab
@@ -216,6 +219,16 @@ export const t = {
     saved: (n: string) => `${n || 'Tələbə'} gündəliyinə yazıldı.`, studentNoBad: 'Tələbə nömrəsini yazın.',
     copy: 'Hamısını kopyala', copied: 'Kopyalandı', countBad: 'Say 1–200 arasında olmalıdır.', pickSubject: 'Fənn seçin.',
   },
+  mfa: {
+    title: 'İki mərhələli qoruma', on: 'Qoşulub: girişdə autentifikator kodu soruşulur.', off: 'Qoşulmayıb.',
+    why: 'Müəllim və admin hesabı ələ keçirilsə, sual bankı və tələbə məlumatları risk altındadır. Admin otağı bu qoruma olmadan açılmır.',
+    enroll: 'Qoşmaq', step1: '1. Google Authenticator, Microsoft Authenticator və ya oxşar tətbiqdə QR-i skan edin, ya da açarı əl ilə yazın.',
+    secretLabel: 'Gizli açar (heç kimə göstərməyin):', step2: '2. Tətbiqin göstərdiyi 6 rəqəmli kodu yazın.',
+    code: '6 rəqəmli kod', confirm: 'Təsdiqlə', verify: 'Daxil ol', enabled: 'İki mərhələli qoruma qoşuldu.',
+    needEmail: 'Əvvəlcə yuxarıdakı bölmədən hesabınıza e-poçt bağlayın: autentifikator qeydi e-poçt adı ilə yaradılır.',
+    codeBad: 'Kod 6 rəqəmdən ibarətdir.', wrong: 'Kod yanlışdır və ya vaxtı keçib. Tətbiqdəki yeni kodu yazın.', noFactor: 'Qoşulmuş autentifikator tapılmadı.',
+    challengeTitle: 'Autentifikator kodu', challengeSub: 'Hesabınızda iki mərhələli qoruma qoşulub. Autentifikator tətbiqindəki 6 rəqəmli kodu yazın.',
+  },
   admin: {
     title: 'Admin otağı', open: 'Admin otağı', users: 'İstifadəçilər', audit: 'Audit jurnalı',
     searchPh: 'Tələbə №, telefonun son rəqəmləri, e-poçt və ya ad', search: 'Axtar', none: 'Heç kim tapılmadı.',
@@ -230,6 +243,7 @@ export const t = {
     message: 'İstifadəçilərə mesaj (istəyə bağlı)', saveConfig: 'Yadda saxla', saved: 'Saxlanıldı.',
     versionBad: 'Versiya 1.2.0 formatında olmalıdır.', thisVersion: (v: string) => `Bu tətbiqin versiyası: ${v}`,
     maintenanceWarn: 'Texniki iş açıq olanda tələbə və müəllimlər heç bir əməliyyat edə bilmir.',
+    staffMfa: 'Bütün müəllimlər üçün iki mərhələli qoruma məcburidir', staffMfaWarn: 'Açmazdan əvvəl müəllimlərin qoruma qoşduğuna əmin olun: qoşmayan müəllim müəllim otağına girə bilməyəcək.',
     kinds: {
       admin_config: 'Tətbiq ayarı dəyişdi', admin_suspended: 'Admin dayandırdı', admin_unsuspended: 'Admin bərpa etdi', admin_role: 'Rol dəyişdi',
       suspended_pace: 'Avtomatik dayandırma (sürət)', device_replaced: 'Cihaz dəyişdi', code_revoked: 'Kod ləğv olundu',

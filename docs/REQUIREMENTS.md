@@ -117,6 +117,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | SEC-005 | LiveKit icazələri yalnız serverdə | Vitest | Hazır |
 | SEC-006 | Webhook imzası və təkrar qorunması | Vitest | Hazır |
 | SEC-007 | Sirlər repoda yoxdur, CI-də secret scanning | gitleaks | Qismən (gitignore; CI-də gitleaks konfiqurasiya olunub, hələ işləməyib — GitHub-da Actions işləyəndə yoxlanacaq) |
+| SEC-009 | Müəllim/admin üçün iki mərhələli qoruma (TOTP) | Supabase Auth MFA, aal2 | Hazır (admin/* məcburi; müəllim üçün qoşubsa və ya admin məcburi edibsə; API + RLS + UI; inteqrasiya + E2E) |
 | SEC-008 | Android ekran şəkli qadağası, iOS aşkarlama | expo-screen-capture | Qismən (kod var; native cihazda yoxlanmayıb) |
 | PRIV-001 | Minimal məlumat: ad, e-poçt və/və ya telefon | Sxem | Hazır |
 | PRIV-002 | Silinmə və ixrac | DB testi | Hazır |

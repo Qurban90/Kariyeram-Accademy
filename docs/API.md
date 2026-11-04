@@ -55,14 +55,15 @@
 | `admin/users/unsuspend` | `user` | `{ok, authBan}` | Audit |
 | `admin/users/role` | `user, role: student\|teacher` | `{ok, unchanged?}` | Admin təyinatı yalnız DB sahibi tərəfindən |
 | `admin/audit` | `kind?, user?, before?` | `{events[]: id, at, kind, detail, student_no, display_name}` | 50-lik səhifə, `before` = son görülən id |
-| `admin/config` | `minVersion?, maintenance?, message?` | `{min_version, maintenance, message}` | Texniki iş rejimi və minimum klient versiyası; audit |
+| `admin/config` | `minVersion?, maintenance?, message?, staffMfaRequired?` | `{min_version, maintenance, message, staff_mfa_required}` | Texniki iş, minimum klient versiyası, müəllimlər üçün məcburi MFA; audit |
 
 ### Hər sorğuda ümumi yoxlamalar (marşrutdan əvvəl)
 
 1. **Texniki iş rejimi** (`app_config.maintenance`): `503 maintenance` (+ `message`). İstisna: `admin/*`, `account/export`, `account/delete`.
 2. **Minimum versiya**: klient `x-app-version` başlığı göndərir (app.json `version`). `app_config.min_version`-dan köhnədirsə və ya başlıq yoxdursa `426 upgrade_required`. İstisna: `account/export`, `account/delete`.
 3. **JWT**: GoTrue `/auth/v1/user` (silinmiş, çıxış etmiş və ya **qadağan olunmuş** istifadəçi `401`).
-4. Konfiqurasiya izolyatda 30 saniyə keşlənir; oxuna bilməsə son məlum dəyər, o da yoxdursa bloklanmır.
+4. **MFA** (aal JWT claim-dən): `admin/*` həmişə `aal2`; `staff/*` və `live/create` — istifadəçi TOTP qoşubsa və ya `app_config.staff_mfa_required` açıqdırsa `aal2`. Əks halda `403 mfa_required`.
+5. Konfiqurasiya izolyatda 30 saniyə keşlənir; oxuna bilməsə son məlum dəyər, o da yoxdursa bloklanmır.
 
 ## Xəta kodları və HTTP statusu
 
@@ -70,7 +71,7 @@
 | --- | --- |
 | 400 | `bad_*`, `invalid_code`, `not_viewed`, `not_finished`, `bad_json`, `confirm_required` və s. |
 | 401 | `unauthorized` (token yoxdur və ya etibarsızdır) |
-| 403 | `forbidden`, `suspended`, `device_not_active`, `banned`, `consent_required`, `self` (admin özünə) |
+| 403 | `forbidden`, `suspended`, `device_not_active`, `banned`, `consent_required`, `self` (admin özünə), `mfa_required` |
 | 404 | `not_found`, `no_profile`, `no_questions`, `no_mistakes`, `no_venue` |
 | 405 | `method` |
 | 409 | `session_closed`, `out_of_order`, `full`, `too_early`, `code_used`, `bad_transition`, `time_up` |

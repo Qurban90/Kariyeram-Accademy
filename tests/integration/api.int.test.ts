@@ -6,6 +6,7 @@ import { execFileSync } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { signHS256 } from '../../supabase/functions/_shared/jwt.ts'
+import { totp } from '../util/totp.mjs'
 
 const URL_ = process.env.SUPABASE_URL!
 const ANON = process.env.SUPABASE_ANON_KEY!
@@ -54,6 +55,17 @@ async function emailLogin(email: string) {
   const v = await http('/auth/v1/verify', { body: { type: 'email', email, token: code } })
   expect(v.status, JSON.stringify(v.json)).toBe(200)
   return { token: v.json.access_token as string, id: v.json.user.id as string }
+}
+
+/** TOTP faktoru qoşur və təsdiqləyir (real GoTrue); aal2 tokeni qaytarır. Admin marşrutları bunu tələb edir. */
+async function mfaUp(token: string): Promise<{ token: string; factor: string; secret: string }> {
+  const f = await http('/auth/v1/factors', { token, body: { factor_type: 'totp', friendly_name: `itest-${randomUUID().slice(0, 8)}` } })
+  expect(f.status, JSON.stringify(f.json)).toBe(200)
+  const secret = f.json.totp.secret as string
+  const c = await http(`/auth/v1/factors/${f.json.id}/challenge`, { token, body: {} })
+  const v = await http(`/auth/v1/factors/${f.json.id}/verify`, { token, body: { challenge_id: c.json.id, code: totp(secret) } })
+  expect(v.status, JSON.stringify(v.json)).toBe(200)
+  return { token: v.json.access_token as string, factor: f.json.id as string, secret }
 }
 
 const DOCS = ['terms', 'privacy', 'age18']
@@ -203,15 +215,17 @@ describe('e-poçt OTP, kodla abunə, canlı dərs, ixrac və silmə', () => {
 
 describe('admin: dayandırma real GoTrue qadağası ilə', () => {
   it('admin tələbəni tapır, dayandırır (API dərhal bağlanır, token yenilənmir), sonra bərpa edir', async () => {
-    const admin = await emailLogin(`itest-admin-${run}@karyeram.test`)
-    sql(`update public.profiles set role = 'admin' where id = '${admin.id}'`)
+    const admin0 = await emailLogin(`itest-admin-${run}@karyeram.test`)
+    sql(`update public.profiles set role = 'admin' where id = '${admin0.id}'`)
+    const admin = { ...admin0, token: (await mfaUp(admin0.token)).token }
     const o = await http('/auth/v1/otp', { body: { phone: '+994500000003', data: { display_name: 'Dayandırılan Test' } } })
     expect(o.status).toBe(200)
     const v = await http('/auth/v1/verify', { body: { type: 'sms', phone: '+994500000003', token: '123456' } })
     const student = { token: v.json.access_token as string, id: v.json.user.id as string, refresh: v.json.refresh_token as string }
     const no = sql(`select student_no from public.profiles where id = '${student.id}'`)
 
-    expect((await api(student.token, 'admin/users/find', { query: no })).json.error).toBe('forbidden')
+    // Tələbə: MFA qapısı (aal1) DB yoxlamasından əvvəl bloklayır; hər iki halda 403.
+    expect((await api(student.token, 'admin/users/find', { query: no })).status).toBe(403)
     const f = await api(admin.token, 'admin/users/find', { query: no })
     expect(f.status, JSON.stringify(f.json)).toBe(200)
     expect(f.json.users.map((u: { id: string }) => u.id)).toContain(student.id)
@@ -240,12 +254,13 @@ describe('admin: dayandırma real GoTrue qadağası ilə', () => {
 
 describe('texniki iş rejimi və minimum versiya (server tərəfində)', () => {
   it('admin texniki işi açır → tələbə 503, admin və ixrac işləyir; minimum versiya → köhnə klient 426', async () => {
-    const admin = await emailLogin(`itest-cfg-${run}@karyeram.test`)
-    sql(`update public.profiles set role = 'admin' where id = '${admin.id}'`)
+    const admin0 = await emailLogin(`itest-cfg-${run}@karyeram.test`)
+    sql(`update public.profiles set role = 'admin' where id = '${admin0.id}'`)
+    const admin = { ...admin0, token: (await mfaUp(admin0.token)).token }
     const student = await emailLogin(`itest-cfgs-${run}@karyeram.test`)
     const wait = () => new Promise((r) => setTimeout(r, 1300)) // APP_CONFIG_TTL_MS=1000 (lokal)
     try {
-      expect((await api(student.token, 'admin/config', { maintenance: true })).json.error).toBe('forbidden')
+      expect((await api(student.token, 'admin/config', { maintenance: true })).status).toBe(403)
       const on = await api(admin.token, 'admin/config', { maintenance: true, message: 'Saat 03:00-a qədər' })
       expect(on.json, JSON.stringify(on.json)).toMatchObject({ maintenance: true })
       await wait()
@@ -272,5 +287,34 @@ describe('texniki iş rejimi və minimum versiya (server tərəfində)', () => {
       sql(`update public.app_config set maintenance = false, min_version = '0.0.0', message = null`)
       await wait()
     }
+  })
+})
+
+describe('müəllim/admin iki mərhələli qoruma (real GoTrue TOTP)', () => {
+  it('admin aal1 ilə bloklanır; TOTP-dan sonra aal2 işləyir; MFA qoşmuş müəllim sual bankını aal1 ilə görmür', async () => {
+    const t0 = await emailLogin(`itest-mfa-${run}@karyeram.test`)
+    sql(`update public.profiles set role = 'admin' where id = '${t0.id}'`)
+    const consent = await api(t0.token, 'account/consent', { docs: DOCS, displayName: 'MFA Admin' })
+    expect(consent.status, JSON.stringify(consent.json)).toBe(200)
+    const denied = await api(t0.token, 'admin/audit', {})
+    expect(denied.status).toBe(403)
+    expect(denied.json.error).toBe('mfa_required')
+    // Müəllim marşrutu: MFA qoşulmayıb və məcburi deyil → aal1 kifayətdir.
+    expect((await api(t0.token, 'staff/codes/list', {})).status).toBe(200)
+    const before = await http('/rest/v1/questions?select=id&limit=1', { method: 'GET', token: t0.token })
+    expect(before.json.length).toBe(1)
+
+    const up = await mfaUp(t0.token)
+    expect((await api(up.token, 'admin/audit', {})).status).toBe(200)
+    // Köhnə aal1 token: MFA artıq qoşulub → müəllim marşrutları və sual bankı bağlı.
+    expect((await api(t0.token, 'staff/codes/list', {})).json.error).toBe('mfa_required')
+    const after = await http('/rest/v1/questions?select=id&limit=1', { method: 'GET', token: t0.token })
+    expect(after.json).toEqual([])
+    const withAal2 = await http('/rest/v1/questions?select=id&limit=1', { method: 'GET', token: up.token })
+    expect(withAal2.json.length).toBe(1)
+    // Yanlış kod qəbul olunmur.
+    const c = await http(`/auth/v1/factors/${up.factor}/challenge`, { token: up.token, body: {} })
+    const bad = await http(`/auth/v1/factors/${up.factor}/verify`, { token: up.token, body: { challenge_id: c.json.id, code: totp(up.secret) === '000000' ? '111111' : '000000' } })
+    expect(bad.status).toBeGreaterThanOrEqual(400)
   })
 })

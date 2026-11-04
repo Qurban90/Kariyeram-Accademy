@@ -52,6 +52,7 @@ Versiya 0.1 · 2026-11-04. Bu sənəd heç bir şeyin "100% təhlükəsiz" oldu�
 | E | Müəllim cavab açarını REST ilə iz qoymadan dəyişir | Müəllimə `questions` yalnız oxumaq üçün açıqdır; status dəyişikliyi audit ilə RPC-dən | DB testi |
 | T | İmtahan vaxtı bitəndən sonra cavab | `submit_answer` vaxtı yoxlayır (+5 san.), sessiyanı bağlayır | DB testi |
 | E | Müəllim başqasının məkanında dərs yaradır | Məkan sahibi və ya admin | DB testi |
+| S | Oğurlanmış OTP/sessiya ilə müəllim və ya admin kimi işləmək | TOTP MFA: admin/* həmişə aal2, MFA qoşmuş müəllimin staff/* və sual bankı (RLS, məhdudlaşdırıcı siyasət) aal2 | İnteqrasiya (real GoTrue) + E2E + DB testi |
 | E | Ələ keçirilmiş admin digər adminləri bloklayır və ya özünə admin yaradır | Admin özünə və başqa adminə toxuna bilmir; admin rolu API ilə verilmir (yalnız DB sahibi) | DB testi |
 | E | Dayandırılmış müəllim kod yaradır, sual dərc edir | `is_staff` dayandırılmışı istisna edir | DB testi |
 | S | Dayandırılmış istifadəçi köhnə tokenlə davam edir | GoTrue qadağası: köhnə access token dərhal 401, refresh və yeni giriş bloklanır (`user_banned`) | İnteqrasiya testi (real GoTrue) |
@@ -75,7 +76,7 @@ Versiya 0.1 · 2026-11-04. Bu sənəd heç bir şeyin "100% təhlükəsiz" oldu�
 | R-10 | Asılılıq zəiflikləri (npm) | Orta | Orta | Orta | 2026-11-04 `npm audit --omit=dev`: 6 orta (glob/minimatch, Expo build alətlərində, işləyən tətbiqdə deyil). Avtomatik düzəliş Expo-nu köhnə versiyaya endirir, ona görə Expo yeniləmələri izlənir. Dependabot (plan) |
 | R-12 | Vebdə sessiya tokeni `localStorage`-dadır (XSS olarsa oğurlana bilər) | Aşağı | Yüksək | Orta | Üçüncü tərəf skript yoxdur; istehsalda CSP başlığı; native-də SecureStore |
 | R-13 | PDF konspekt endirilib yayıla bilər | Orta | Orta | Aşağı | **Azaldılıb (2026-11-04):** fayla birbaşa ünvan verilmir; server hər açılışda hər səhifəyə və metadataya tələbə nömrəsi və tarixi yazır (sızan nüsxənin mənbəyi görünür). Qalan risk: su nişanını PDF redaktoru ilə silmək mümkündür (gizli, görünməz nişan — plan) |
-| R-11 | Müəllim/admin hesabının ələ keçirilməsi | Aşağı | Yüksək | Orta | Staff üçün MFA (Supabase Auth MFA) — plan. Zərər məhdudlaşdırılıb: admin digər adminlərə toxuna bilmir, hər əməliyyat audit-dədir |
+| R-11 | Müəllim/admin hesabının ələ keçirilməsi | Aşağı | Yüksək | Aşağı | **Azaldılıb (2026-11-04):** TOTP MFA. `admin/*` həmişə aal2; MFA qoşmuş müəllimin `staff/*` marşrutları və sual bankının birbaşa oxunması (RLS) aal2; admin hamı üçün məcburi edə bilər. Admin digər adminlərə toxuna bilmir, hər əməliyyat audit-dədir. Qalan: bərpa kodları yoxdur (telefon itərsə admin faktoru DB-dən silməlidir) |
 | R-14 | Dayandırılmış istifadəçi PostgREST ilə öz məlumatını oxumağa davam edir (JWT yerli yoxlanır, ≤ 1 saat) | Orta | Aşağı | Aşağı | Yazma əməliyyatlarının hamısı Edge API-dən keçir və dərhal bağlanır; yalnız öz məlumatı oxunur |
 
 ## 5. Sirlər

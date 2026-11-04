@@ -5,6 +5,7 @@ import { RoomService, type LiveKitConfig } from '../_shared/livekit.ts'
 import { dispatch, type Ctx } from '../_shared/router.ts'
 import { suspendedGate } from '../_shared/admin.ts'
 import { cachedConfig, configGate } from '../_shared/config.ts'
+import { mfaGate } from '../_shared/mfa.ts'
 import { deleteAuthUser, getAppConfig, getUser, restDb, restStorage, setAuthBan } from '../_shared/supabase.ts'
 
 const env = (k: string) => Deno.env.get(k) ?? ''
@@ -57,6 +58,9 @@ Deno.serve(async (req) => {
   const userId = user.id
   // Admin tərəfindən dayandırılmış hesab: yalnız ixrac və silinmə (DB də öz yoxlamasını edir, bu birinci qatdır).
   if (suspendedGate(route, user.bannedUntil)) return reply({ error: 'suspended', requestId: rid }, 403)
+  // Müəllim/admin iki mərhələli qoruma (R-11).
+  const mfa = mfaGate(route, user, cfg.staffMfaRequired === true)
+  if (mfa) return reply({ error: mfa.code, requestId: rid }, mfa.status)
 
   const started = Date.now()
   try {

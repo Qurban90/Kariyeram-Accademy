@@ -176,8 +176,8 @@ export const api = {
   adminSuspend: (user: string, hours: number, reason: string) => call<{ ok: boolean; until: string; authBan: boolean }>('admin/users/suspend', { user, hours, reason }),
   adminUnsuspend: (user: string) => call<{ ok: boolean; authBan: boolean }>('admin/users/unsuspend', { user }),
   adminSetRole: (user: string, role: 'student' | 'teacher') => call<{ ok: boolean }>('admin/users/role', { user, role }),
-  adminConfig: (b: { minVersion?: string; maintenance?: boolean; message?: string }) =>
-    call<{ min_version: string; maintenance: boolean; message: string | null }>('admin/config', b),
+  adminConfig: (b: { minVersion?: string; maintenance?: boolean; message?: string; staffMfaRequired?: boolean }) =>
+    call<{ min_version: string; maintenance: boolean; message: string | null; staff_mfa_required: boolean }>('admin/config', b),
   adminAudit: (f: { kind?: string; user?: string; before?: number }) => call<{ events: AuditEvent[] }>('admin/audit', f),
   clientEvent: (kind: 'screenshot' | 'screen_recording', context?: string) => call('client/event', context ? { kind, context } : { kind }),
 

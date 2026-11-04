@@ -83,6 +83,7 @@ export const routes: Record<string, Handler> = {
   'admin/config': async (c, b) => unwrap(await c.db.rpc<Record<string, unknown>>('admin_set_config', {
     p_admin: c.userId, p_min_version: str(b, 'minVersion', 5, 11, true) ?? null,
     p_maintenance: bool(b, 'maintenance', true) ?? null, p_message: typeof b.message === 'string' ? str(b, 'message', 0, 500)! : null,
+    p_staff_mfa: bool(b, 'staffMfaRequired', true) ?? null,
   })),
   'admin/audit': (c, b) => adminOps.audit(c.db, c.userId, {
     kind: str(b, 'kind', 1, 40, true), target: b.user ? uuid(b, 'user') : undefined, before: int(b, 'before', 1, Number.MAX_SAFE_INTEGER, true),

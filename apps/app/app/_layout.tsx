@@ -10,6 +10,7 @@ import { configError } from '../src/config'
 import { AuthProvider, useAuth } from '../src/lib/auth'
 import { ApiFailure } from '../src/lib/api'
 import { checkAppConfig, useAppStatus } from '../src/lib/appStatus'
+import { MfaChallenge, useMfaState } from '../src/components/Mfa'
 import { colors } from '../src/theme'
 
 const queryClient = new QueryClient({
@@ -26,7 +27,9 @@ const PUBLIC = new Set(['sign-in'])
 
 /** Marşrut qoruyucusu: sessiya → razılıq → məktəb. */
 function Gate() {
-  const { ready, session, profile, profileError, refreshProfile } = useAuth()
+  const { ready, session, profile, profileError, refreshProfile, signOut } = useAuth()
+  // Sessiya dəyişəndə (giriş, token yenilənməsi) MFA səviyyəsi yenidən yoxlanır.
+  const mfa = useMfaState(session ? `${session.user.id}:${session.access_token.slice(-16)}` : null)
   const segments = useSegments()
   const first = segments[0] ?? ''
   const app = useAppStatus()
@@ -58,6 +61,9 @@ function Gate() {
     )
   }
   if (!ready) return <Loading />
+  if (session && mfa.ready && mfa.needsStepUp) {
+    return <MfaChallenge onDone={() => { void mfa.recheck() }} onSignOut={() => { void signOut().then(() => router.replace('/sign-in')) }} />
+  }
   if (session && !profile) {
     return (
       <Screen>
