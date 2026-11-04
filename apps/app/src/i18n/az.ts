@@ -113,6 +113,7 @@ export const t = {
     profile: 'Kabinet', profileSub: 'Profil, kod, cihaz',
     locked: 'Pulsuz mövzular açıqdır', open: 'Açıqdır',
     studentNo: (n: string) => `Tələbə № ${n}`,
+    resume: 'Yarımçıq test', resumeSub: (subject: string, done: number, total: number) => `${subject} · ${done}/${total} cavablandırılıb`, resumeBtn: 'Davam et',
   },
   room: {
     topics: 'Mövzular', free: 'Pulsuz', locked: 'Kod tələb olunur',

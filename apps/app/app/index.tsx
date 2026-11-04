@@ -1,11 +1,12 @@
 /** Məktəb zalı: dəhlizdə fənn qapıları, oxu zalının ikiqat qapısı, gündəlik və kabinet. */
-import { router } from 'expo-router'
+import { router, useFocusEffect } from 'expo-router'
+import { useCallback } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { Door } from '../src/components/Door'
-import { Card, ErrorBox, H, Loading, P, Screen } from '../src/components/ui'
+import { Button, Card, ErrorBox, H, Loading, P, Screen } from '../src/components/ui'
 import { t } from '../src/i18n/az'
 import { useAuth } from '../src/lib/auth'
-import { hasAccess, useEnrollments, useLiveSessions, useSubjects, useTopics } from '../src/lib/queries'
+import { hasAccess, useActiveSession, useEnrollments, useLiveSessions, useSubjects, useTopics } from '../src/lib/queries'
 import { colors, font, space } from '../src/theme'
 
 export default function Hall() {
@@ -14,6 +15,8 @@ export default function Hall() {
   const topics = useTopics()
   const enr = useEnrollments()
   const live = useLiveSessions()
+  const active = useActiveSession()
+  useFocusEffect(useCallback(() => { void active.refetch() }, [active.refetch]))
 
   if (subjects.isLoading) return <Screen><Loading /></Screen>
   const liveNow = (live.data ?? []).filter((s) => s.state === 'live').length
@@ -30,6 +33,15 @@ export default function Hall() {
         {profile && <P dim small>{t.hall.studentNo(String(profile.student_no))}</P>}
       </View>
       <ErrorBox message={subjects.error ? (subjects.error as Error).message : null} onRetry={() => subjects.refetch()} />
+
+      {active.data && (
+        <Card testID="resume-card" style={{ borderColor: colors.brass }}>
+          <H level={3}>{t.hall.resume}</H>
+          <P dim small>{t.hall.resumeSub(subjects.data?.find((s) => s.id === active.data!.subject_id)?.name ?? active.data.subject_id, active.data.cursor, active.data.question_ids.length)}</P>
+          <Button testID="resume-test" label={t.hall.resumeBtn}
+            onPress={() => router.push({ pathname: '/test/[session]', params: { session: active.data!.id, subject: active.data!.subject_id } })} />
+        </Card>
+      )}
 
       <H level={2}>{t.hall.rooms}</H>
       <View style={st.corridor}>

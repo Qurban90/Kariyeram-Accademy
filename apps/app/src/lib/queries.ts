@@ -67,3 +67,17 @@ export const useVenues = () => useQuery({
   queryKey: ['venues'],
   queryFn: () => rows<Venue[]>(supabase.from('venues').select('id, name, kind, subject_id, capacity, door_label, owner_id').order('sort')),
 })
+
+export interface ActiveSession { id: string; subject_id: string; mode: string; cursor: number; question_ids: string[]; started_at: string; time_limit_s: number | null }
+
+/** Yarımçıq test (tətbiq bağlanıbsa belə kursor serverdədir). Server eyni anda yalnız bir aktiv sessiya saxlayır. */
+export const useActiveSession = () => useQuery({
+  queryKey: ['active-session'],
+  queryFn: async () => {
+    const { data, error } = await supabase.from('test_sessions')
+      .select('id, subject_id, mode, cursor, question_ids, started_at, time_limit_s')
+      .eq('state', 'active').order('started_at', { ascending: false }).limit(1)
+    if (error) throw new Error(error.message)
+    return ((data ?? [])[0] as ActiveSession | undefined) ?? null
+  },
+})

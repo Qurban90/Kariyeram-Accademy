@@ -160,6 +160,20 @@ try {
     await shot('08-gundelik')
   })
 
+  await step('yarımçıq test: zalda "Davam et" kartı, eyni yerdən davam edir', async () => {
+    await page.goto(`http://127.0.0.1:${PORT}/room/informatika`)
+    await tid('mode-mixed').click()
+    await tid('size-10').click()
+    await tid('start-test').click()
+    await tid('stem').waitFor({ timeout: 15000 })
+    await tid('opt-0').click(); await tid('confirm').click(); await tid('feedback').waitFor({ timeout: 15000 })
+    await page.goto(`http://127.0.0.1:${PORT}/`)  // tətbiq "bağlandı"
+    await tid('resume-card').waitFor({ timeout: 15000 })
+    expect((await tid('resume-card').innerText()).includes('1/'), 'kartda irəliləyiş yoxdur')
+    await tid('resume-test').click()
+    await page.getByText(/^Sual 2 \/ \d+$/).waitFor({ timeout: 15000 })
+  })
+
   await step('kabinet: yanlış kod rədd olunur, ixrac faylı endirilir', async () => {
     await page.goto(`http://127.0.0.1:${PORT}/profile`)
     await tid('code').fill('AAAA-BBBB-CCCC')
