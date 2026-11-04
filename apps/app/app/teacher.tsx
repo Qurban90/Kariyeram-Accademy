@@ -17,14 +17,15 @@ interface StaffQuestion {
 const msg = (e: unknown) => (e instanceof ApiFailure ? e.message : e instanceof Error ? e.message : String(e))
 
 export default function Teacher() {
-  const [tab, setTab] = useState<'questions' | 'codes'>('questions')
+  const [tab, setTab] = useState<'questions' | 'codes' | 'analysis'>('questions')
   return (
     <Screen back title={t.teacher.title}>
-      <View style={{ flexDirection: 'row', gap: space.sm }}>
+      <View style={{ flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' }}>
         <Chip testID="tab-questions" label={t.teacher.questions} selected={tab === 'questions'} onPress={() => setTab('questions')} />
         <Chip testID="tab-codes" label={t.teacher.codes} selected={tab === 'codes'} onPress={() => setTab('codes')} />
+        <Chip testID="tab-analysis" label={t.teacher.analysis} selected={tab === 'analysis'} onPress={() => setTab('analysis')} />
       </View>
-      {tab === 'questions' ? <ReviewQueue /> : <CodeMaker />}
+      {tab === 'questions' ? <ReviewQueue /> : tab === 'codes' ? <CodeMaker /> : <Analysis />}
     </Screen>
   )
 }
@@ -120,6 +121,44 @@ function CodeMaker() {
           {Platform.OS === 'web' && <Button small variant="ghost" label={copied ? t.teacher.copied : t.teacher.copy} onPress={copy} />}
         </Card>
       )}
+    </View>
+  )
+}
+
+const FLAG_COLOR: Record<string, string> = {
+  suspect_key: colors.bad, non_discriminating: colors.warn, too_hard: colors.warn, too_easy: colors.warn, trap: colors.trap, insufficient_data: colors.chalkDim,
+}
+
+function Analysis() {
+  const subjects = useSubjects()
+  const [subject, setSubject] = useState<string | null>(null)
+  const q = useQuery({ queryKey: ['analysis', subject], enabled: !!subject, queryFn: () => api.analysis(subject!) })
+  return (
+    <View style={{ gap: space.md }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
+        {(subjects.data ?? []).map((s) => <Chip key={s.id} testID={`an-${s.id}`} label={s.name} selected={subject === s.id} onPress={() => setSubject(s.id)} />)}
+      </View>
+      <P dim small>{t.teacher.analysisNote}</P>
+      {q.isLoading && subject ? <Loading /> : null}
+      <ErrorBox message={q.error ? msg(q.error) : null} onRetry={() => q.refetch()} />
+      {subject && q.data && q.data.items.length === 0 && <P dim>{t.teacher.analysisEmpty}</P>}
+      {(q.data?.items ?? []).map((it, n) => (
+        <Card key={it.questionId} testID={`an-item-${n}`}>
+          <P dim small>{it.topic} · {it.n} {t.teacher.nLabel}</P>
+          <Text style={{ color: colors.chalk, fontSize: font.small }} numberOfLines={3}>{it.stem}</Text>
+          <View style={{ flexDirection: 'row', gap: space.lg, flexWrap: 'wrap' }}>
+            <P small>{t.teacher.pLabel}: {Math.round(it.p * 100)}%</P>
+            <P small>{t.teacher.discLabel}: {it.discrimination.toFixed(2)}</P>
+          </View>
+          <View style={{ flexDirection: 'row', gap: space.xs, flexWrap: 'wrap' }}>
+            {it.flags.map((f) => (
+              <Text key={f} style={{ color: FLAG_COLOR[f] ?? colors.chalk, borderColor: FLAG_COLOR[f] ?? colors.chalk, borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 2, fontSize: font.tiny, fontWeight: '700' }}>
+                {t.teacher.flags[f] ?? f}
+              </Text>
+            ))}
+          </View>
+        </Card>
+      ))}
     </View>
   )
 }

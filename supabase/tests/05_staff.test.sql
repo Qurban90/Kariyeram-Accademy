@@ -37,5 +37,22 @@ begin
   perform tests.ok(not has_function_privilege('authenticated', 'public.staff_create_codes(uuid,text,int,int)', 'execute'), 'authenticated birbaşa çağıra bilmir');
 end $$;
 
+-- ============ Sual analizi üçün xam məlumat ============
+do $$
+declare t uuid := '00000000-0000-0000-0000-0000000005a1'; s uuid := '00000000-0000-0000-0000-0000000005a2';
+        q uuid := '50000000-0000-0000-0000-0000000000f1'; v_sess uuid; r jsonb;
+begin
+  insert into public.test_sessions (student_id, mode, subject_id, question_ids, state, result)
+  values (s, 'topic', 'st5', array[q], 'finished', '{"percent": 80}') returning id into v_sess;
+  insert into public.answers (session_id, question_id, position, chosen, correct, ms) values (v_sess, q, 1, 0, true, 5000);
+  insert into public.test_sessions (student_id, mode, subject_id, question_ids, state) values (s, 'topic', 'st5', array[q], 'abandoned') returning id into v_sess;
+  insert into public.answers (session_id, question_id, position, chosen, correct, ms) values (v_sess, q, 1, 1, false, 5000);
+  perform tests.ok(public.staff_item_responses(s, 'st5')->>'error' = 'forbidden', 'tələbə analizi görə bilmir');
+  r := public.staff_item_responses(t, 'st5');
+  perform tests.ok(jsonb_array_length(r->'items') = 1 and (r->'items'->0->>'answer_index')::int = 0 and (r->'items'->0->>'option_count')::int = 2, 'analiz: dərc olunmuş sual qaytarılır');
+  perform tests.ok(jsonb_array_length(r->'items'->0->'responses') = 1, 'yalnız bitmiş sessiyaların cavabları sayılır');
+  perform tests.ok(r::text not like '%' || s::text || '%', 'tələbə kimliyi qaytarılmır');
+end $$;
+
 rollback;
 \echo 'BÜTÜN DB TESTLƏRİ KEÇDİ'

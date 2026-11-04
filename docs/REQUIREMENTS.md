@@ -88,7 +88,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | ID | Tələb | P | Qəbul meyarı | Status |
 | --- | --- | --- | --- | --- |
 | FR-060 | Kod yaratma (toplu), ləğv | M | Yalnız müəllim/admin | Qismən (toplu yaratma: DB + API + UI, E2E; ləğv etmə yoxdur) |
-| FR-061 | Sual analizi: tələli, şübhəli açar, asan/çətin | S | Min 30 cavab | Hazır (core; UI yoxdur) |
+| FR-061 | Sual analizi: tələli, şübhəli açar, asan/çətin | S | Min 30 cavab | Hazır (core + API + müəllim otağı UI, E2E) |
 | FR-062 | Sual statusu: qaralama, yoxlama, dərc, köhnəlmiş | M | Tələbə yalnız dərc olunanı görür | Hazır (DB + müəllim otağı UI, E2E) |
 | FR-063 | Qiymət və qeyd gündəliyə | S | Dərhal tələbədə görünür | Plan |
 | FR-064 | Admin: istifadəçi dayandırma, audit | M | Hər əməliyyat audit-ə | Qismən |

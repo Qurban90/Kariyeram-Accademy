@@ -247,7 +247,7 @@ try {
   })
 
   let teacherCode = ''
-  await step('müəllim otağı: toplu abunə kodu yaradır', async () => {
+  await step('müəllim otağı: toplu abunə kodu və sual analizi', async () => {
     const lp = await hctx.newPage()
     await lp.goto(`http://127.0.0.1:${PORT}/teacher`)
     await lp.getByTestId('tab-codes').click()
@@ -258,6 +258,11 @@ try {
     expect(out.length === 2 && out.every((c) => /^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(c)), 'kod formatı')
     teacherCode = out[0]
     await lp.screenshot({ path: join(SHOTS, '13-muellim-otagi-kodlar.png') })
+    // Sual analizi: tələbənin bitirdiyi testin cavabları görünür (30-dan az: "Az məlumat")
+    await lp.getByTestId('tab-analysis').click()
+    await lp.getByTestId('an-informatika').click()
+    await lp.getByTestId('an-item-0').waitFor({ timeout: 15000 })
+    expect(await lp.getByText('Az məlumat').count() > 0, 'az məlumat bayrağı yoxdur')
     await lp.close()
   })
 

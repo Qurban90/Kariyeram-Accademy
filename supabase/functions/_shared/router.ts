@@ -4,6 +4,7 @@ import type { AdminDeps } from './account.ts'
 import { ApiError, unwrap } from './errors.ts'
 import { answer, claimDevice, finish, nextQuestion, redeemCode, reviewSession, startSession, type Db } from './handlers.ts'
 import * as live from './live.ts'
+import { itemAnalysis } from './staff.ts'
 import type { LiveDeps } from './live.ts'
 import { bool, device, int, obj, oneOf, str, uuid, uuids } from './validate.ts'
 
@@ -38,6 +39,7 @@ export const routes: Record<string, Handler> = {
   'staff/codes': async (c, b) => unwrap(await c.db.rpc<Record<string, unknown>>('staff_create_codes', {
     p_staff: c.userId, p_subject: str(b, 'subject', 1, 40)!, p_count: int(b, 'count', 1, 200)!, p_days: int(b, 'days', 1, 730)!,
   })),
+  'staff/analysis': (c, b) => itemAnalysis(c.db, c.userId, str(b, 'subject', 1, 40)!),
   'staff/question/status': async (c, b) => unwrap(await c.db.rpc<Record<string, unknown>>('staff_set_question_status', {
     p_staff: c.userId, p_question: uuid(b, 'question'), p_status: oneOf(b, 'status', ['draft', 'review', 'published', 'retired'])!,
   })),

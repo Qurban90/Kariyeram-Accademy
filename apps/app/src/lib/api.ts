@@ -108,6 +108,12 @@ export interface LiveJoin {
 }
 export interface Hand { user_id: string; name: string; seat: number | null; raised_at: string }
 
+export interface ItemStat {
+  questionId: string; stem: string; topic: string; trapMarked: boolean; answerIndex: number
+  n: number; p: number; discrimination: number; pointBiserial: number
+  distractors: { index: number; share: number; upperShare: number }[]; flags: string[]
+}
+
 export const api = {
   claimDevice: () => call<{ replaced: boolean }>('device/claim', {}, { device: true }),
   redeem: (code: string) => call<{ subject_id: string; access_until?: string; already?: boolean }>('code/redeem', { code }),
@@ -117,6 +123,7 @@ export const api = {
   deleteAccount: (confirm: string) => call('account/delete', { confirm }),
   staffCodes: (subject: string, count: number, days: number) => call<{ codes: string[]; subject: string; days: number }>('staff/codes', { subject, count, days }),
   setQuestionStatus: (question: string, status: 'draft' | 'review' | 'published' | 'retired') => call<{ status: string; changed: boolean }>('staff/question/status', { question, status }),
+  analysis: (subject: string) => call<{ items: ItemStat[] }>('staff/analysis', { subject }),
   clientEvent: (kind: 'screenshot' | 'screen_recording', context?: string) => call('client/event', context ? { kind, context } : { kind }),
 
   start: (b: { subject: string; mode: Mode; topicIds?: string[]; size?: number }) =>

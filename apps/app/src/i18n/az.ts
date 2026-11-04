@@ -170,6 +170,13 @@ export const t = {
     status: { draft: 'Qaralama', review: 'Yoxlamada', published: 'Dərc olunub', retired: 'Köhnəlmiş' } as Record<string, string>,
     subject: 'Fənn', count: 'Kod sayı (1–200)', days: 'Giriş müddəti (gün)', create: 'Kodları yarat',
     onceWarn: 'Kodlar yalnız indi görünür: bazada yalnız hash saxlanılır. Kopyalayıb təhlükəsiz yerdə saxlayın.',
+    analysis: 'Sual analizi', analysisNote: 'Hər dərc olunmuş sualın son 500 cavabı. Etibarlı nəticə üçün ən azı 30 cavab lazımdır.',
+    analysisEmpty: 'Bu fənndə hələ cavablandırılmış dərc olunmuş sual yoxdur.',
+    pLabel: 'Düz cavab', discLabel: 'Fərqləndirmə', nLabel: 'cavab',
+    flags: {
+      suspect_key: 'Cavab açarı şübhəlidir', non_discriminating: 'Güclü və zəifi ayırmır', too_hard: 'Çox çətin',
+      too_easy: 'Çox asan', trap: 'Tələ kimi işləyir', insufficient_data: 'Az məlumat',
+    } as Record<string, string>,
     copy: 'Hamısını kopyala', copied: 'Kopyalandı', countBad: 'Say 1–200 arasında olmalıdır.', pickSubject: 'Fənn seçin.',
   },
   profile: {
