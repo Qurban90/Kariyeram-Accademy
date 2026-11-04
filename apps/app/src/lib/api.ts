@@ -2,6 +2,7 @@
  * Edge API klienti. Bütün tələbə əməliyyatları buradan keçir: server JWT-ni yoxlayır və istifadəçini
  * tokendən götürür (gövdədəki ID-yə inanmır).
  */
+import { router } from 'expo-router'
 import { config } from '../config'
 import { errorText } from '../i18n/az'
 import { getDeviceId } from './device'
@@ -40,6 +41,8 @@ async function once<T>(route: string, body: Record<string, unknown>): Promise<T>
   try { json = (await res.json()) as Record<string, unknown> } catch { /* boş cavab */ }
   if (!res.ok) {
     const code = typeof json.error === 'string' ? json.error : res.status === 401 ? 'unauthorized' : 'internal'
+    // Yeni şərt versiyası dərc olunubsa, istənilən ekrandan razılıq səhifəsinə yönləndiririk.
+    if (code === 'consent_required') setTimeout(() => router.replace('/onboarding'), 0)
     throw new ApiFailure(code, res.status, typeof json.requestId === 'string' ? json.requestId : undefined)
   }
   return json as T

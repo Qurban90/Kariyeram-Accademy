@@ -193,7 +193,7 @@ export default function LiveRoom() {
       {state === 'scheduled' && !amHost && <Banner text={t.live.notStarted} />}
       {lk.state.audioBlocked && <Pressable onPress={lk.startAudio} accessibilityRole="button" style={st.audioBtn}><Text style={{ color: colors.ink, fontWeight: '800' }}>{t.live.unmute}</Text></Pressable>}
       {notice && <Banner text={notice} tone="ok" />}
-      {(err || lk.state.error) && <View style={{ paddingHorizontal: space.md }}><ErrorBox message={err || lk.state.error} onRetry={err ? undefined : lk.clearError} /></View>}
+      {(err || lk.state.error) && <View style={{ paddingHorizontal: space.md }}><ErrorBox message={err || lk.state.error} onRetry={err ? undefined : lk.state.status === 'error' ? doJoin : lk.clearError} /></View>}
 
       <View style={{ flex: 1, flexDirection: wide ? 'row' : 'column' }}>
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: space.md, gap: space.md }}>

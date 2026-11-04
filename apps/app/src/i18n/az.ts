@@ -34,6 +34,7 @@ export const errors: Record<string, string> = {
   no_questions: 'Bu seçim üçün sual yoxdur və ya fənnə girişiniz yoxdur.',
   no_mistakes: 'Təkrar ediləcək səhviniz yoxdur. Əla!',
   session_closed: 'Bu test artıq bitib.',
+  time_up: 'İmtahan vaxtı bitdi.',
   out_of_order: 'Cavab artıq qəbul olunub, növbəti suala keçirik.',
   not_viewed: 'Sual hələ açılmayıb.',
   bad_choice: 'Variant düzgün deyil.',

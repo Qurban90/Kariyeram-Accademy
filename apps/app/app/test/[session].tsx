@@ -85,6 +85,7 @@ export default function TestRunner() {
     } catch (e) {
       const f = e as ApiFailure
       if (f.code === 'out_of_order') { await load(); return } // cavab artıq qəbul olunub (təkrar göndəriş)
+      if (f.code === 'time_up' || f.code === 'session_closed') { await finish(); return } // imtahan vaxtı bitib: server sessiyanı bağlayıb
       setErr(f); setPhase(f.code === 'network' || f.code === 'timeout' ? 'asking' : 'blocked')
     }
   }

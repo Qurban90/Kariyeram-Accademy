@@ -9,7 +9,7 @@ export function statusFor(code: string): number {
   if (['suspended', 'device_not_active', 'forbidden', 'banned', 'consent_required'].includes(code)) return 403
   if (['daily_limit', 'rate_limited', 'too_many_attempts'].includes(code)) return 429
   if (['not_found', 'no_profile', 'no_questions', 'no_mistakes', 'no_venue'].includes(code)) return 404
-  if (['session_closed', 'out_of_order', 'full', 'too_early', 'code_used', 'bad_transition'].includes(code)) return 409
+  if (['session_closed', 'out_of_order', 'full', 'too_early', 'code_used', 'bad_transition', 'time_up'].includes(code)) return 409
   return 400
 }
 

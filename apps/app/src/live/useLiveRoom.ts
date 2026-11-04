@@ -100,6 +100,8 @@ export function useLiveRoom() {
         else if (cs === ConnectionState.Connected) snapshot('connected')
       })
       .on(RoomEvent.Disconnected, (reason?: DisconnectReason) => {
+        if (roomRef.current === room) roomRef.current = null // yenidən qoşulmağa imkan ver
+        room.removeAllListeners()
         const status: Status = reason === DisconnectReason.PARTICIPANT_REMOVED ? 'removed'
           : reason === DisconnectReason.ROOM_DELETED ? 'ended'
           : reason === DisconnectReason.CLIENT_INITIATED ? 'idle' : 'error'

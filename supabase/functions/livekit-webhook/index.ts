@@ -5,7 +5,7 @@ import { restDb } from '../_shared/supabase.ts'
 const env = (k: string) => Deno.env.get(k) ?? ''
 const db = restDb({ url: env('SUPABASE_URL'), serviceKey: env('SUPABASE_SERVICE_ROLE_KEY') })
 const cfg = { url: env('LIVEKIT_URL'), apiKey: env('LIVEKIT_API_KEY'), apiSecret: env('LIVEKIT_API_SECRET') }
-const UUID = /^[0-9a-f-]{36}$/i
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return new Response('method', { status: 405 })
@@ -17,6 +17,7 @@ Deno.serve(async (req) => {
     console.log(JSON.stringify({ level: 'warn', msg: 'webhook_rejected', reason: String(e) }))
     return new Response('unauthorized', { status: 401 })
   }
+  if (!ev.id || !ev.event) return new Response('bad event', { status: 400 }) // təkrar göndərməyə dəyməz
   const identity = ev.participant?.identity && UUID.test(ev.participant.identity) ? ev.participant.identity : null
   const at = ev.createdAt ? new Date(Number(ev.createdAt) * 1000).toISOString() : new Date().toISOString()
   try {
