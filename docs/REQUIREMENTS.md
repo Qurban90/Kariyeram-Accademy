@@ -80,7 +80,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | FR-047 | Chat | S | Uzunluq limiti, rate limit | Hazır (API + Realtime + UI, E2E) |
 | FR-048 | Davamiyyət: qoşulma/ayrılma, dəqiqə | S | Webhook əsasında | Hazır (API/DB + host panelində UI, E2E) |
 | FR-049 | Dərsin yazılması və şkafa düşməsi | C | Razılıqla | Plan |
-| FR-050 | 3D zal/sinif: iştirakçılar oturacaqlarda, host səhnədə | S | Zəif cihazda 2D | Qismən (3D dəhliz: veb E2E-də WebGL ilə; native-də yoxlanmayıb; 3D sinif yoxdur, oxu zalı 2D) |
+| FR-050 | 3D zal/sinif: iştirakçılar oturacaqlarda, host səhnədə | S | Zəif cihazda 2D | Qismən (3D dəhliz və 3D sinif vebdə E2E ilə; lövhədə müəllim videosu yalnız vebdə; native-də yoxlanmayıb) |
 | FR-051 | İştirakçını çıxarmaq/bloklamaq | M | Host/admin | Hazır (API + UI) |
 
 ### Motivasiya

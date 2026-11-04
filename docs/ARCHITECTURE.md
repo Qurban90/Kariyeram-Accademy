@@ -171,7 +171,7 @@ Chat: göndərmə `live/chat` (rate limit, uzunluq), oxuma RLS ilə `live_chat`,
 
 ## 8. Plan (hələ yoxdur)
 
-- 3D sinif (oxu zalı) — 3D dəhliz hazırdır (`src/school3d`, react-three-fiber, istəyə bağlı, defolt 2D).
+- Native-də 3D lövhəyə video teksturası (expo-gl + WebRTC kadrları). 3D dəhliz və 3D sinif vebdə hazırdır (`src/school3d`, istəyə bağlı, defolt 2D).
 - Dərs yazısı (LiveKit Egress). Konspekt şkafı hazırdır.
 - Native ekran paylaşma (iOS broadcast extension, Android foreground service).
 - Ödəniş.

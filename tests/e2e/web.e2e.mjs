@@ -395,12 +395,26 @@ try {
     await tid('ctl-hand').waitFor({ timeout: 30000 })
     await page.waitForFunction(() => { const v = document.querySelector('video'); return !!v && v.readyState >= 2 && v.videoWidth > 0 }, null, { timeout: 30000 })
     expect(await tid('ctl-mic').count() === 0, 'tələbədə əvvəldən mikrofon düyməsi var')
+    // Tələbə 3D sinifdə: müəllimin kamerası 3D lövhəyə tekstura kimi çəkilir
+    await tid('toggle-3d-class').click()
+    await page.waitForFunction(() => { const c = document.querySelector('[data-testid="classroom-3d"] canvas'); return !!c && c.width > 0 }, null, { timeout: 30000 })
+    // Lövhə teksturasının mənbəyi: müəllimin uzaq video treki həqiqətən kadr verir (adaptiveStream onu dayandırmır)
+    await page.waitForFunction(() => [...document.querySelectorAll('video[aria-hidden="true"]')].some((v) => v.videoWidth > 0 && !v.paused && v.currentTime > 0), null, { timeout: 20000 })
+    await page.waitForTimeout(1500)
+    await shot('12a-3d-sinif-telebe')
+    await tid('toggle-3d-class').click()
   })
 
   await step('tələbə əl qaldırır → müəllim növbədə görür → söz verir → tələbə mikrofonu açır', async () => {
     await tid('ctl-hand').click()
     await htid('hand-0').waitFor({ timeout: 15000 })
     await host.screenshot({ path: join(SHOTS, '11-muellim-paneli.png') })
+    // Müəllim 3D sinifdə: tələbənin avatarı partada, əli qaldırılıb
+    await htid('toggle-3d-class').click()
+    await host.waitForFunction(() => { const c = document.querySelector('[data-testid="classroom-3d"] canvas'); return !!c && c.width > 0 }, null, { timeout: 30000 })
+    await host.waitForTimeout(2000)
+    await host.screenshot({ path: join(SHOTS, '11b-3d-sinif-muellim.png') })
+    await htid('toggle-3d-class').click()
     await htid('host-attendance').click()
     await host.getByTestId('attendance').getByText(/Test Tələbə · [\d.]+ dəq/).waitFor({ timeout: 15000 })
     await htid('host-onlyhost').click() // "yalnız host danışır" söndürülür

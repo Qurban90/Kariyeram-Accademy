@@ -156,6 +156,7 @@ export const t = {
     chat: 'Chat', leave: 'Çıx', start: 'Dərsi başlat', end: 'Dərsi bitir',
     onlyHost: 'Yalnız host danışır', chatOn: 'Chat açıq', hands: 'Əl qaldıranlar', noHands: 'Əl qaldıran yoxdur',
     attendance: 'Davamiyyət', attendanceLoad: 'Davamiyyəti göstər', minutes: 'dəq',
+    view3d: '3D sinif', view2d: '2D', gl3dFailed: '3D açılmadı, sadə görünüş göstərilir.',
     grant: 'Söz ver', dismiss: 'Rədd et', revoke: 'Sözü al', remove: 'Çıxar', participants: 'İştirakçılar',
     youCanSpeak: 'Sizə söz verildi: mikrofonu aça bilərsiniz.', handRaised: 'Əliniz qaldırılıb. Növbədəsiniz.',
     ended: 'Dərs bitdi.', removed: 'Dərsdən çıxarıldınız.', reconnecting: 'Bağlantı bərpa olunur…',

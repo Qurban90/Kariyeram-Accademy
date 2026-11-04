@@ -36,3 +36,19 @@ export function angleDelta(from: number, to: number): number {
   if (d < -Math.PI) d += 2 * Math.PI
   return d
 }
+
+/** Sinif: lövhə -Z tərəfdə (z = -4.5), partalar sıra-sıra arxaya. Yer nömrəsi 1-dən: ön sıra soldan sağa. */
+export const CLASS_PER_ROW = 6
+export function classroomSeat(seat: number, perRow = CLASS_PER_ROW): { x: number; z: number } {
+  const i = Math.max(0, seat - 1)
+  const row = Math.floor(i / perRow), col = i % perRow
+  const gap = 1.3
+  return { x: (col - (perRow - 1) / 2) * gap, z: -1.5 + row * 1.5 }
+}
+
+/** İştirakçı rəngi: identity-dən sabit (eyni tələbə hər dəfə eyni rəngdə). */
+export function colorFor(id: string): string {
+  let h = 0
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0
+  return `hsl(${h % 360}, 45%, 55%)`
+}

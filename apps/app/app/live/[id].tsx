@@ -5,7 +5,7 @@
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { router, useLocalSearchParams } from 'expo-router'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Button, ErrorBox, Loading, P } from '../../src/components/ui'
@@ -18,6 +18,14 @@ import { api, ApiFailure, type Hand, type LiveJoin } from '../../src/lib/api'
 import { useAuth } from '../../src/lib/auth'
 import { supabase } from '../../src/lib/supabase'
 import { colors, font, radius, space, touch } from '../../src/theme'
+
+const Classroom3D = lazy(() => import('../../src/school3d/Classroom3D').then((m) => ({ default: m.Classroom3D })))
+class GLBoundary extends Component<{ onFail: () => void; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false }
+  static getDerivedStateFromError() { return { failed: true } }
+  componentDidCatch() { this.props.onFail() }
+  render() { return this.state.failed ? null : this.props.children }
+}
 
 interface ChatMsg { id: number; user_id: string | null; body: string; created_at: string }
 
@@ -38,6 +46,7 @@ export default function LiveRoom() {
   const [panel, setPanel] = useState<'none' | 'chat' | 'host'>('none')
   const [onlyHost, setOnlyHost] = useState(true)
   const [chatOn, setChatOn] = useState(true)
+  const [view3d, setView3d] = useState(false)
 
   const info = useQuery({
     queryKey: ['live-session', id],
@@ -187,6 +196,9 @@ export default function LiveRoom() {
     <SafeAreaView style={st.screen} edges={['top', 'left', 'right', 'bottom']}>
       <View style={st.top}>
         <Text style={st.title} numberOfLines={1}>{join.title}</Text>
+        <Pressable testID="toggle-3d-class" accessibilityRole="button" onPress={() => setView3d(!view3d)} style={st.viewBtn}>
+          <Text style={{ color: colors.chalk, fontWeight: '700', fontSize: font.tiny }}>{view3d ? t.live.view2d : t.live.view3d}</Text>
+        </Pressable>
         <Text style={st.count}>{peers.length} 👤</Text>
       </View>
       {lk.state.status === 'reconnecting' && <Banner text={t.live.reconnecting} />}
@@ -197,8 +209,18 @@ export default function LiveRoom() {
 
       <View style={{ flex: 1, flexDirection: wide ? 'row' : 'column' }}>
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: space.md, gap: space.md }}>
-          {stage}
-          {seats}
+          {view3d ? (
+            <View style={st.class3d} testID="classroom-3d">
+              <GLBoundary onFail={() => { setView3d(false); setErr(t.live.gl3dFailed) }}>
+                <Suspense fallback={<Loading />}>
+                  <Classroom3D peers={peers} raised={raised} capacity={capacity} />
+                </Suspense>
+              </GLBoundary>
+            </View>
+          ) : (<>
+            {stage}
+            {seats}
+          </>)}
         </ScrollView>
         {panel !== 'none' && (
           <View style={[st.side, wide ? { width: 360, borderLeftWidth: 1 } : { height: 320, borderTopWidth: 1 }]}>
@@ -386,6 +408,8 @@ const st = StyleSheet.create({
   top: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: space.md, minHeight: 48, gap: space.sm },
   title: { flex: 1, color: colors.chalk, fontWeight: '800', fontSize: font.h3 },
   count: { color: colors.chalkDim, fontWeight: '700' },
+  viewBtn: { minHeight: 36, paddingHorizontal: space.md, justifyContent: 'center', borderRadius: radius.pill, borderWidth: 1, borderColor: colors.brassDeep },
+  class3d: { height: 460, width: '100%', maxWidth: 1100, alignSelf: 'center', borderRadius: radius.md, overflow: 'hidden', borderWidth: 1, borderColor: colors.boardLine },
   banner: { marginHorizontal: space.md, marginBottom: space.sm, padding: space.sm, borderRadius: radius.md, borderWidth: 1, backgroundColor: colors.panel },
   audioBtn: { alignSelf: 'center', backgroundColor: colors.brass, paddingHorizontal: space.lg, minHeight: touch, justifyContent: 'center', borderRadius: radius.pill, marginBottom: space.sm },
   board: { aspectRatio: 16 / 9, width: '100%', maxWidth: 1100, alignSelf: 'center', backgroundColor: '#1d3b2f', borderWidth: 10, borderColor: colors.woodLight, borderRadius: radius.sm, overflow: 'hidden' },

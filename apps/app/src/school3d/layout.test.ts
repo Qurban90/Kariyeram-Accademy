@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { angleDelta, approach, corridorLength, doorSpots, standBefore } from './layout'
+import { angleDelta, approach, classroomSeat, colorFor, corridorLength, doorSpots, standBefore } from './layout'
 
 describe('3D dəhliz həndəsəsi', () => {
   it('qapılar növbə ilə iki tərəfdə, cüt-cüt irəli', () => {
@@ -24,5 +24,13 @@ describe('3D dəhliz həndəsəsi', () => {
     expect(approach(0, 10, 10)).toBeCloseTo(10, 5)
     expect(angleDelta(0.1, -0.1)).toBeCloseTo(-0.2)
     expect(angleDelta(3, -3)).toBeCloseTo(2 * Math.PI - 6)
+  })
+  it('sinif: ön sıra lövhəyə yaxın, sıra simmetrik, rəng sabit', () => {
+    const a = classroomSeat(1), b = classroomSeat(6), c = classroomSeat(7)
+    expect(a.z).toBe(b.z)
+    expect(a.x).toBeCloseTo(-b.x)
+    expect(c.z).toBeGreaterThan(a.z)
+    expect(colorFor('u1')).toBe(colorFor('u1'))
+    expect(colorFor('u1')).not.toBe(colorFor('u2'))
   })
 })
