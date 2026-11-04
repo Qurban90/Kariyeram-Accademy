@@ -171,9 +171,7 @@ Chat: göndərmə `live/chat` (rate limit, uzunluq), oxuma RLS ilə `live_chat`,
 
 ## 8. Plan (hələ yoxdur)
 
-- 3D məktəb (react-three-fiber), zəif cihazda 2D rejim.
-- Konspekt şkafı (Storage + imzalı URL), dərs yazısı (LiveKit Egress).
-- Müəllim paneli: sual idxalı, sual analizi (alqoritm `packages/core`-da hazırdır), kod idarəsi, qiymət və qeyd.
-- Şərəf lövhəsi və medallar UI-da (alqoritmlər hazırdır).
+- 3D sinif (oxu zalı) — 3D dəhliz hazırdır (`src/school3d`, react-three-fiber, istəyə bağlı, defolt 2D).
+- Dərs yazısı (LiveKit Egress). Konspekt şkafı hazırdır.
 - Native ekran paylaşma (iOS broadcast extension, Android foreground service).
 - Ödəniş.

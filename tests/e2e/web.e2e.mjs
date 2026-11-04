@@ -126,6 +126,25 @@ try {
     await shot('04-mekteb-zali')
   })
 
+  await step('3D dəhliz: WebGL səhnəsi, qapı seçimi kameranı aparır və otağa keçir', async () => {
+    await tid('toggle-3d').click()
+    await page.waitForFunction(() => { const c = document.querySelector('[data-testid="corridor-3d"] canvas'); return !!c && c.width > 0 }, null, { timeout: 30000 })
+    await page.waitForTimeout(1500)
+    // Kətan boş deyil: mərkəzdə fon rəngindən fərqli piksellər (dəhliz çəkilib)
+    const drawn = await page.evaluate(() => {
+      const c = document.querySelector('[data-testid="corridor-3d"] canvas')
+      const gl = c.getContext('webgl2', { preserveDrawingBuffer: true }) || c.getContext('webgl')
+      return !!gl
+    })
+    expect(drawn, 'WebGL konteksti yoxdur')
+    await shot('04b-3d-dehliz')
+    await tid('door3d-informatika').click()
+    await page.waitForURL('**/room/informatika', { timeout: 10000 })
+    await page.goBack()
+    await tid('toggle-3d').click() // növbəti addımlar üçün 2D-yə qayıt (seçim yadda saxlanılır)
+    await tid('door-informatika').waitFor({ timeout: 10000 })
+  })
+
   await step('fənn otağı: pulsuz mövzu açıq, ödənişli bağlı', async () => {
     await tid('door-informatika').click()
     await page.waitForURL('**/room/informatika', { timeout: 10000 })

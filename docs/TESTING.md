@@ -4,11 +4,11 @@ Nəticələr uydurulmur: aşağıdakı rəqəmlər son işə salınmanın çıx�
 
 | Qat | Əmr | Nəyi yoxlayır | Son nəticə |
 | --- | --- | --- | --- |
-| Vahid (Vitest) | `npm test` | Alqoritmlər, API handler-ləri, router validasiyası, JWT/LiveKit/webhook, IDOR, telefon, canlı zal modeli, sual idxalı (CSV), medallar | 65/65 keçdi |
+| Vahid (Vitest) | `npm test` | Alqoritmlər, API handler-ləri, router validasiyası, JWT/LiveKit/webhook, IDOR, telefon, canlı zal modeli, sual idxalı (CSV), medallar | 71/71 keçdi |
 | Tip yoxlaması | `npm run typecheck` | `packages/core` və `apps/app` (native fayllar daxil) | Xətasız |
 | DB (psql) | `npm run db:test` | Sxem, RLS, bütün RPC-lər, limitlər, canlı dərs qaydaları, silinmə | 10 fayl, hamısı keçdi (209 yoxlama) |
 | İnteqrasiya | `npm run test:int` | Real Supabase (GoTrue, PostgREST, Edge Runtime), real LiveKit, Mailpit | 8/8 keçdi |
-| Veb E2E (Playwright) | `npm run test:e2e` | Build olunmuş tətbiq brauzerdə, real stekə qarşı: telefon OTP, razılıq, test, gündəlik, kabinet, şərəf lövhəsi, yarımçıq testə qayıtma, konspekt şkafı (mətn + PDF, imzalı URL, imzasız giriş rədd), ikinci giriş üsulu (e-poçt bağlama və onunla giriş), müəllim otağı (dərc, kod yaratma və ləğvi, gündəliyə qiymət, sual analizi, davamiyyət, bütün cihazlardan çıxış → tələbədə aktivləşmə), canlı zal (müəllim + tələbə), Realtime chat, hesab silmə | 28/28 addım keçdi |
+| Veb E2E (Playwright) | `npm run test:e2e` | Build olunmuş tətbiq brauzerdə, real stekə qarşı: telefon OTP, razılıq, test, gündəlik, kabinet, şərəf lövhəsi, yarımçıq testə qayıtma, 3D dəhliz (WebGL, qapıdan otağa keçid), konspekt şkafı (mətn + PDF, imzalı URL, imzasız giriş rədd), ikinci giriş üsulu (e-poçt bağlama və onunla giriş), müəllim otağı (dərc, kod yaratma və ləğvi, gündəliyə qiymət, sual analizi, davamiyyət, bütün cihazlardan çıxış → tələbədə aktivləşmə), canlı zal (müəllim + tələbə), Realtime chat, hesab silmə | 29/29 addım keçdi |
 | Native (iOS/Android) | — | — | **İşə salınmayıb** (bu mühitdə SDK yoxdur) |
 | Yük testi (lokal) | `node tests/load/load.mjs` | Real axın, 20–150 virtual tələbə | 100 tələbə: 100/100; 150 eyni anda: 100/150 (bax PERFORMANCE.md) |
 

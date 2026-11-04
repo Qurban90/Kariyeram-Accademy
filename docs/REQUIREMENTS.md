@@ -80,7 +80,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | FR-047 | Chat | S | Uzunluq limiti, rate limit | Hazır (API + Realtime + UI, E2E) |
 | FR-048 | Davamiyyət: qoşulma/ayrılma, dəqiqə | S | Webhook əsasında | Hazır (API/DB + host panelində UI, E2E) |
 | FR-049 | Dərsin yazılması və şkafa düşməsi | C | Razılıqla | Plan |
-| FR-050 | 3D zal/sinif: iştirakçılar oturacaqlarda, host səhnədə | S | Zəif cihazda 2D | Qismən (2D sinif: lövhə + partalar; 3D yoxdur) |
+| FR-050 | 3D zal/sinif: iştirakçılar oturacaqlarda, host səhnədə | S | Zəif cihazda 2D | Qismən (3D dəhliz: veb E2E-də WebGL ilə; native-də yoxlanmayıb; 3D sinif yoxdur, oxu zalı 2D) |
 | FR-051 | İştirakçını çıxarmaq/bloklamaq | M | Host/admin | Hazır (API + UI) |
 
 ### Motivasiya
@@ -106,7 +106,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | --- | --- | --- | --- |
 | NFR-001 | Platformalar: Android, iOS, veb bir kod bazası | Expo | Qismən (veb build + E2E; native build yoxlanmayıb) |
 | NFR-002 | Dil: Azərbaycan (i18n strukturu ilə) | Bütün mətnlər bir yerdə | Hazır (apps/app/src/i18n/az.ts; yalnız konfiqurasiya xətası mətni config.ts-dədir) |
-| NFR-003 | Zəif cihaz dəstəyi: 3D söndürülə bilir | 2D rejim | Hazır (hazırda yalnız 2D var) |
+| NFR-003 | Zəif cihaz dəstəyi: 3D söndürülə bilir | 2D rejim | Hazır (3D istəyə bağlıdır, defolt 2D; WebGL xətasında avtomatik 2D) |
 | PERF-001 | API p95 < 400 ms (normal yük) | Yük skripti | Lokal ölçülüb: 50 tələbəyə qədər qarşılanır, 100-də yox (PERFORMANCE.md); istehsalda ölçülməyib |
 | PERF-002 | 500 eyni vaxtlı istifadəçi (test və gündəlik) | Yük skripti | Lokal tavan ~140 sorğu/san (100 tələbə tam uğurlu); 500 istehsalda ölçülməlidir |
 | PERF-003 | Canlı sinifdə 30–50 iştirakçı | LiveKit SFU | Ölçülməyib |
@@ -124,7 +124,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | TEST-001 | Alqoritm vahid testləri | Vitest | Hazır |
 | TEST-002 | DB/RLS testləri real Postgres-də | psql | Hazır |
 | TEST-003 | Lokal Supabase ilə end-to-end API testi | supabase start | Hazır (8 inteqrasiya testi) |
-| TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (28 addım) |
+| TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (29 addım) |
 | TEST-005 | Native cihazlarda E2E | Maestro/Detox | Plan |
 | NFR-004 | Əlçatanlıq: toxunma sahəsi ≥ 44, ARIA rolları və vəziyyətləri, azaldılmış hərəkət | Ekran oxuyucu ilə yoxlama | Qismən (kod; ekran oxuyucu ilə yoxlanmayıb) |
 

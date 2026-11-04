@@ -1,9 +1,11 @@
 /** Məktəb zalı: dəhlizdə fənn qapıları, oxu zalının ikiqat qapısı, gündəlik və kabinet. */
 import { router, useFocusEffect } from 'expo-router'
-import { useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { Door } from '../src/components/Door'
-import { Button, Card, ErrorBox, H, Loading, P, Screen } from '../src/components/ui'
+import { Corridor3D } from '../src/school3d/Corridor3D'
+import { secureStorage } from '../src/lib/storage'
+import { Button, Card, Chip, ErrorBox, H, Loading, P, Screen } from '../src/components/ui'
 import { t } from '../src/i18n/az'
 import { useAuth } from '../src/lib/auth'
 import { hasAccess, useActiveSession, useEnrollments, useLiveSessions, useSubjects, useTopics } from '../src/lib/queries'
@@ -16,6 +18,10 @@ export default function Hall() {
   const enr = useEnrollments()
   const live = useLiveSessions()
   const active = useActiveSession()
+  const [view3d, setView3d] = useState(false)
+  const [glErr, setGlErr] = useState<string | null>(null)
+  useEffect(() => { secureStorage.getItem('karyeram.view3d').then((v) => setView3d(v === '1')).catch(() => {}) }, [])
+  const setView = (v: boolean) => { setView3d(v); setGlErr(null); secureStorage.setItem('karyeram.view3d', v ? '1' : '0').catch(() => {}) }
   useFocusEffect(useCallback(() => { void active.refetch() }, [active.refetch]))
 
   if (subjects.isLoading) return <Screen><Loading /></Screen>
@@ -43,7 +49,19 @@ export default function Hall() {
         </Card>
       )}
 
-      <H level={2}>{t.hall.rooms}</H>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space.sm, flexWrap: 'wrap' }}>
+        <H level={2}>{t.hall.rooms}</H>
+        <Chip testID="toggle-3d" label={view3d ? t.hall.view2d : t.hall.view3d} selected={view3d} onPress={() => setView(!view3d)} />
+      </View>
+      {glErr ? <P dim small>{glErr}</P> : null}
+      {view3d ? (
+        <Corridor3D
+          doors={(subjects.data ?? []).map((s, i) => ({ key: s.id, number: String(101 + i), title: s.name }))}
+          hallLive={liveNow > 0}
+          onEnter={(k) => (k === 'hall' ? router.push('/live') : router.push({ pathname: '/room/[subject]', params: { subject: k } }))}
+          onFail={() => { setView3d(false); setGlErr(t.hall.gl3dFailed) }}
+        />
+      ) : (<>
       <View style={st.corridor}>
         {(subjects.data ?? []).map((s, i) => {
           const acc = hasAccess(enr.data, s.id)
@@ -59,6 +77,7 @@ export default function Hall() {
       <Door wide testID="door-live" number="ZAL" title={t.hall.live}
         status={liveNow ? `${liveNow} ${t.live.liveNow}` : t.hall.liveSub} statusTone={liveNow ? 'live' : 'dim'}
         onOpen={() => router.push('/live')} />
+      </>)}
 
       <View style={{ flexDirection: 'row', gap: space.md, flexWrap: 'wrap' }}>
         <Card style={{ flex: 1, minWidth: 150 }} onPress={() => router.push('/diary')} label={t.hall.diary} testID="go-diary">
