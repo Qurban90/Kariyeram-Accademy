@@ -24,7 +24,8 @@ export class ApiFailure extends Error {
 const RETRY_ONCE = new Set(['answer', 'session/start'])
 const IDEMPOTENT = new Set(['question/next', 'session/finish', 'session/review', 'live/hands', 'live/attendance', 'account/export', 'account/consent', 'device/claim', 'board', 'staff/analysis'])
 
-async function once<T>(route: string, body: Record<string, unknown>): Promise<T> {
+/** Sorğu: auth başlıqları, vaxt limiti, xəta kodunun ApiFailure-a çevrilməsi. Uğurlu cavabı (Response) qaytarır. */
+async function request(route: string, body: Record<string, unknown>): Promise<Response> {
   const { data } = await supabase.auth.getSession()
   const token = data.session?.access_token
   if (!token) throw new ApiFailure('unauthorized', 401)
@@ -43,9 +44,9 @@ async function once<T>(route: string, body: Record<string, unknown>): Promise<T>
   } finally {
     clearTimeout(timer)
   }
-  let json: Record<string, unknown> = {}
-  try { json = (await res.json()) as Record<string, unknown> } catch { /* boş cavab */ }
   if (!res.ok) {
+    let json: Record<string, unknown> = {}
+    try { json = (await res.json()) as Record<string, unknown> } catch { /* boş cavab */ }
     const code = typeof json.error === 'string' ? json.error : res.status === 401 ? 'unauthorized' : 'internal'
     // Yeni şərt versiyası dərc olunubsa, istənilən ekrandan razılıq səhifəsinə yönləndiririk.
     if (code === 'consent_required') setTimeout(() => router.replace('/onboarding'), 0)
@@ -53,7 +54,18 @@ async function once<T>(route: string, body: Record<string, unknown>): Promise<T>
     if (code === 'maintenance' || code === 'upgrade_required') setAppStatus({ kind: code, message: typeof json.message === 'string' ? json.message : null })
     throw new ApiFailure(code, res.status, typeof json.requestId === 'string' ? json.requestId : undefined)
   }
-  return json as T
+  return res
+}
+
+async function once<T>(route: string, body: Record<string, unknown>): Promise<T> {
+  const res = await request(route, body)
+  try { return (await res.json()) as T } catch { return {} as T }
+}
+
+/** Fayl cavabı (su nişanlı PDF). Təkrar cəhd yoxdur: hər çağırış audit-ə yazılır. */
+export async function callFile(route: string, body: Record<string, unknown>): Promise<ArrayBuffer> {
+  const res = await request(route, body)
+  try { return await res.arrayBuffer() } catch { throw new ApiFailure('network', 0) }
 }
 
 export async function call<T = Record<string, unknown>>(route: string, body: Record<string, unknown> = {}, opts: { device?: boolean } = {}): Promise<T> {
@@ -155,7 +167,8 @@ export const api = {
   revokeCode: (code: string) => call<{ ok: boolean }>('staff/codes/revoke', { code }),
   diaryAdd: (b: { studentNo: number; kind: 'grade' | 'note'; title: string; grade?: string; text?: string }) => call<{ id: string; student_name: string }>('staff/diary', b),
   attendance: (session: string) => call<{ rows: AttendanceRow[] }>('live/attendance', { session }),
-  libraryOpen: (item: string) => call<{ kind: 'text' | 'pdf'; title: string; watermark: number; body?: string; url?: string; expiresIn?: number }>('library/open', { item }),
+  libraryOpen: (item: string) => call<{ kind: 'text' | 'pdf'; title: string; watermark: number; body?: string }>('library/open', { item }),
+  libraryPdf: (item: string) => callFile('library/pdf', { item }),
   libraryUploadUrl: (subject: string) => call<{ path: string; token: string }>('staff/library/upload-url', { subject }),
   libraryAdd: (b: { subject: string; title: string; kind: 'text' | 'pdf'; free: boolean; body?: string; path?: string; bytes?: number }) => call<{ id: string }>('staff/library/add', b),
   libraryDelete: (item: string) => call<{ ok: boolean }>('staff/library/delete', { item }),

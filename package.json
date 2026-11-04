@@ -2,7 +2,7 @@
   "name": "karyeram-academy",
   "private": true,
   "version": "0.1.0",
-  "description": "Karyeram Academy: virtual m\u0259kt\u0259b (\u00f6z\u00fcn\u00fc \u00f6yr\u0259nm\u0259 otaqlar\u0131, canl\u0131 d\u0259rs, qorunan test bank\u0131)",
+  "description": "Karyeram Academy: virtual məktəb (özünü öyrənmə otaqları, canlı dərs, qorunan test bankı)",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -16,6 +16,7 @@
     "import:questions": "node scripts/import-questions.mts"
   },
   "devDependencies": {
+    "pdf-lib": "1.17.1",
     "supabase": "^3.0.0",
     "typescript": "^5.9.3",
     "vitest": "^5.1.0"

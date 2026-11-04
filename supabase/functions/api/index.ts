@@ -29,6 +29,7 @@ function cors(req: Request): Record<string, string> {
   return {
     'Access-Control-Allow-Origin': origins.length === 0 ? '*' : origins.includes(o) ? o : origins[0]!,
     'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-client-info, x-request-id, x-app-version',
+    'Access-Control-Expose-Headers': 'x-request-id, content-disposition',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     Vary: 'Origin',
   }
@@ -65,6 +66,11 @@ Deno.serve(async (req) => {
     const ctx: Ctx = { db, userId, live, admin, storage, log: (msg, data) => log('error', msg, { rid, ...data }) }
     const out = await dispatch(route, ctx, body)
     log('info', 'api', { rid, route, ms: Date.now() - started })
+    // Fayl cavabı (su nişanlı PDF): JSON deyil, baytlar; keşlənmir, çünki hər tələbənin nüsxəsi fərqlidir.
+    if (out && typeof out === 'object' && '__file' in out) {
+      const f = (out as { __file: { bytes: Uint8Array; contentType: string; filename: string } }).__file
+      return new Response(new Uint8Array(f.bytes), { status: 200, headers: { ...headers, 'content-type': f.contentType, 'content-disposition': `inline; filename="${f.filename}"`, 'x-content-type-options': 'nosniff' } })
+    }
     return reply(out)
   } catch (e) {
     if (e instanceof ApiError) {

@@ -1,5 +1,6 @@
 {
   "imports": {
-    "ts-fsrs": "../_vendor/ts-fsrs/index.mjs"
+    "ts-fsrs": "../_vendor/ts-fsrs/index.mjs",
+    "pdf-lib": "../_vendor/pdf-lib/pdf-lib.esm.min.js"
   }
 }

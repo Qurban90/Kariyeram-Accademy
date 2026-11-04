@@ -1,9 +1,15 @@
-/** Konspekt şkafı: icazə DB-də (library_open), fayl ünvanı qısa müddətli imzalı URL (5 dəq). */
+/**
+ * Konspekt şkafı: icazə DB-də (library_open, audit ilə).
+ * PDF: fayl heç vaxt birbaşa ünvanla verilmir; server onu oxuyur, hər səhifəyə tələbə nömrəsini vurur və baytları qaytarır (R-13).
+ */
 import { ApiError, unwrap } from './errors.ts'
 import type { Db } from './handlers.ts'
 import type { StorageDeps } from './supabase.ts'
 
-export const DOWNLOAD_TTL_S = 300
+/** Su nişanı vurulan ən böyük fayl. Edge funksiyasının CPU/yaddaş limiti üçün (ölçmə: docs/PERFORMANCE.md). */
+export const MAX_STAMP_BYTES = 15 * 1024 * 1024
+export type Stamp = (src: Uint8Array, text: string) => Promise<Uint8Array>
+export interface FileOut { __file: { bytes: Uint8Array; contentType: string; filename: string } }
 
 function need(s: StorageDeps | undefined): StorageDeps {
   if (!s) throw new ApiError('storage_not_configured', 503)
@@ -12,11 +18,18 @@ function need(s: StorageDeps | undefined): StorageDeps {
 
 export async function open(db: Db, storage: StorageDeps | undefined, user: string, item: string) {
   const r = unwrap(await db.rpc<Record<string, unknown>>('library_open', { p_user: user, p_item: item }))
-  if (r.kind === 'pdf') {
-    const url = await need(storage).signDownload(String(r.storage_path), DOWNLOAD_TTL_S)
-    return { kind: 'pdf', title: r.title, watermark: r.watermark, url, expiresIn: DOWNLOAD_TTL_S }
-  }
+  // PDF üçün yalnız metadata: faylın özü library/pdf marşrutundan su nişanı ilə gəlir.
+  if (r.kind === 'pdf') return { kind: 'pdf', title: r.title, watermark: r.watermark }
   return { kind: 'text', title: r.title, watermark: r.watermark, body: r.body }
+}
+
+export async function pdf(db: Db, storage: StorageDeps | undefined, user: string, item: string, stamp: Stamp, textFor: (no: unknown) => string): Promise<FileOut> {
+  const r = unwrap(await db.rpc<Record<string, unknown>>('library_open', { p_user: user, p_item: item }))
+  if (r.kind !== 'pdf' || !r.storage_path) throw new ApiError('not_pdf')
+  const raw = await need(storage).download(String(r.storage_path))
+  if (raw.byteLength > MAX_STAMP_BYTES) throw new ApiError('too_large', 413)
+  const bytes = await stamp(raw, textFor(r.watermark))
+  return { __file: { bytes, contentType: 'application/pdf', filename: 'konspekt.pdf' } }
 }
 
 export async function uploadUrl(db: Db, storage: StorageDeps | undefined, user: string, subject: string) {

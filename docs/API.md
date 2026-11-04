@@ -18,7 +18,8 @@
 | `account/revoke` | `doc: marketing\|recording` | `{ok}` | Məcburi sənədlər geri götürülmür |
 | `account/export` | — | şəxsi məlumat JSON | Cavab açarları daxil deyil |
 | `account/delete` | `confirm: "SİL"` | `{ok}` | Şəxsi məlumat silinir, audit anonim qalır |
-| `library/open` | `item` | mətn: `{kind, title, watermark, body}`; PDF: `{kind, title, url, expiresIn: 300}` | Pulsuz və ya abunə; audit; `url` nisbidir (`{SUPABASE_URL}/storage/v1` + url) |
+| `library/open` | `item` | mətn: `{kind, title, watermark, body}`; PDF: `{kind, title, watermark}` (fayl ünvanı yoxdur) | Pulsuz və ya abunə; audit; tələbəyə gündə 200 açılış |
+| `library/pdf` | `item` | **`application/pdf` baytları** (JSON deyil) | Server faylı oxuyur, hər səhifəyə və metadataya `Karyeram Academy - Telebe No N - tarix` yazır; ≤ 15 MB; şifrəli/pozuq PDF `422 pdf_unreadable`; audit |
 | `staff/library/upload-url` | `subject` | `{path, token}` | Yol serverdə: `<fənn>/<uuid>.pdf`; birdəfəlik yükləmə tokeni |
 | `staff/library/add` | `subject, title, kind: text\|pdf, free, body? (≤200 000), path?, bytes?` | `{id}` | Bu marşrut üçün gövdə limiti 900 KB |
 | `staff/library/delete` | `item` | `{ok}` | Metadata, sonra fayl |
@@ -75,6 +76,7 @@
 | 409 | `session_closed`, `out_of_order`, `full`, `too_early`, `code_used`, `bad_transition`, `time_up` |
 | 426 | `upgrade_required` |
 | 413 | `too_large` |
+| 422 | `pdf_unreadable` |
 | 429 | `daily_limit`, `rate_limited`, `too_many_attempts` |
 | 500 | `internal` (detal yalnız server logunda) |
 | 502 | `live_partial_failure` |

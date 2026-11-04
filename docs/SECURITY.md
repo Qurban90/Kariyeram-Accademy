@@ -43,6 +43,8 @@ Versiya 0.1 · 2026-11-04. Bu sənəd heç bir şeyin "100% təhlükəsiz" oldu�
 | **D**enial of service | Böyük gövdə | 64 KB limit | Kod |
 | D | Chat spam | 10 saniyədə 5 mesaj, 500 simvol | DB testi |
 | D | Boş test sessiyaları ilə DB-ni doldurmaq | Saatda ən çox 60 sessiya | DB testi |
+| D | PDF açılışı ilə server CPU-sunu yormaq (hər açılışda su nişanı) | Tələbəyə gündə 200 açılış, fayl ≤ 15 MB | DB testi |
+| I | Konspekt PDF-inin imzalı keçidlə ötürülməsi | Keçid yoxdur: fayl yalnız Edge-dən, su nişanı ilə | E2E (storage sorğusu olmadığı yoxlanır) |
 | D | Kod brute-force | Saatda 10 yanlış cəhd | DB testi |
 | D | API-yə kütləvi sorğu | Supabase platforma limitləri; bizdə ayrıca IP rate limit **yoxdur** | Risk R-06 |
 | **E**levation of privilege | Tələbə canlı dərs yaradır, söz götürür | `live_create_session`, `live_set_role` yalnız host/admin; NULL sahib boşluğu bağlanıb | DB testləri |
@@ -72,7 +74,7 @@ Versiya 0.1 · 2026-11-04. Bu sənəd heç bir şeyin "100% təhlükəsiz" oldu�
 | R-09 | Veb versiyada ekran qoruması yoxdur | Yüksək | Orta | Orta | Vebdə yalnız su nişanı; istəyə görə test vebdə bağlana bilər |
 | R-10 | Asılılıq zəiflikləri (npm) | Orta | Orta | Orta | 2026-11-04 `npm audit --omit=dev`: 6 orta (glob/minimatch, Expo build alətlərində, işləyən tətbiqdə deyil). Avtomatik düzəliş Expo-nu köhnə versiyaya endirir, ona görə Expo yeniləmələri izlənir. Dependabot (plan) |
 | R-12 | Vebdə sessiya tokeni `localStorage`-dadır (XSS olarsa oğurlana bilər) | Aşağı | Yüksək | Orta | Üçüncü tərəf skript yoxdur; istehsalda CSP başlığı; native-də SecureStore |
-| R-13 | PDF konspekt brauzerdə açılır: su nişanı yoxdur, imzalı keçid 5 dəqiqə ərzində başqasına ötürülə bilər | Orta | Orta | Orta | Mətn konspektləri tətbiqdə su nişanı ilə; PDF üçün plan: serverdə tələbə nömrəsi ilə möhürləmə və ya tətbiq daxili görüntüləyici |
+| R-13 | PDF konspekt endirilib yayıla bilər | Orta | Orta | Aşağı | **Azaldılıb (2026-11-04):** fayla birbaşa ünvan verilmir; server hər açılışda hər səhifəyə və metadataya tələbə nömrəsi və tarixi yazır (sızan nüsxənin mənbəyi görünür). Qalan risk: su nişanını PDF redaktoru ilə silmək mümkündür (gizli, görünməz nişan — plan) |
 | R-11 | Müəllim/admin hesabının ələ keçirilməsi | Aşağı | Yüksək | Orta | Staff üçün MFA (Supabase Auth MFA) — plan. Zərər məhdudlaşdırılıb: admin digər adminlərə toxuna bilmir, hər əməliyyat audit-dədir |
 | R-14 | Dayandırılmış istifadəçi PostgREST ilə öz məlumatını oxumağa davam edir (JWT yerli yoxlanır, ≤ 1 saat) | Orta | Aşağı | Aşağı | Yazma əməliyyatlarının hamısı Edge API-dən keçir və dərhal bağlanır; yalnız öz məlumatı oxunur |
 

@@ -43,3 +43,14 @@ where c.contype = 'f' and c.connamespace = 'public'::regnamespace
 ```
 
 Miqyas qərarları və böyümə pilləkəni: [adr/0007-scale-foundation.md](adr/0007-scale-foundation.md).
+
+## PDF su nişanı (R-13)
+
+`node --experimental-transform-types tests/load/stamp-bench.mts` (bu maşında, Node; Deno runtime-da E2E zamanı real konspekt 74 ms):
+
+| Fayl | Səhifə | Su nişanı müddəti | Yaddaş (RSS) |
+| --- | --- | --- | --- |
+| 0,15 MB mətn | 120 | 99–132 ms | ~200 MB proses |
+| 14 MB (sıxılmayan məlumat) | 120 | 176 ms | ~250 MB proses |
+
+Nəticə: 15 MB limit daxilində bir açılış ~0,2 s CPU-dur (Supabase Edge limiti 2 s). Limitlər: fayl ≤ 15 MB, tələbəyə gündə 200 açılış.

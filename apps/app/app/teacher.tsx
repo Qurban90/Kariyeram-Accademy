@@ -227,7 +227,7 @@ function DiaryWriter() {
   )
 }
 
-const MAX_PDF = 25 * 1024 * 1024
+const MAX_PDF = 15 * 1024 * 1024 // serverdə su nişanı limiti ilə eyni (MAX_STAMP_BYTES)
 
 function ShelfManager() {
   const subjects = useSubjects()

@@ -63,7 +63,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | FR-028 | "Səhvlərim harada çoxdur" | S | Mövzu üzrə səhv payı | Hazır (core + UI) |
 | FR-029 | Pulsuz sınaq mövzusu | M | Abunəsiz yalnız `free` mövzular | Hazır (DB + UI, E2E) |
 | FR-030 | Kodla abunə aktivləşdirmə | M | Kod bir dəfəlik, hash | Hazır (DB + UI) |
-| FR-031 | Konspekt kitabxanası (şkaf) | S | İcazəli PDF/mətn | Hazır (mətn: su nişanı ilə tətbiqdə; PDF: 5 dəq imzalı URL; DB + API + UI, E2E) |
+| FR-031 | Konspekt kitabxanası (şkaf) | S | İcazəli PDF/mətn | Hazır (mətn: su nişanı ilə tətbiqdə; PDF: serverdə hər səhifəyə tələbə nömrəsi vurulur, tətbiq daxilində açılır; DB + API + UI, E2E; native PDF açılışı cihazda yoxlanmayıb) |
 | FR-032 | İmtahan zalı: vaxtlı DİM formatlı sınaq | S | Server vaxtı, sonda nəticə | Hazır (API + UI, taymer) |
 
 ### Oxu zalı (canlı)

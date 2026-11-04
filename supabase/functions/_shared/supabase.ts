@@ -79,9 +79,10 @@ export async function deleteAuthUser(cfg: SupaConfig, id: string): Promise<void>
   if (!r.ok) throw new Error(`auth delete: ${r.status}`)
 }
 
-/** Storage (şəxsi bucket): imzalı yükləmə/endirmə ünvanları. Ünvanlar nisbi qaytarılır (/object/...), klient öz Supabase URL-i ilə birləşdirir. */
+/** Storage (şəxsi bucket): müəllim üçün imzalı yükləmə ünvanı; endirmə yalnız serverdə (klientə birbaşa fayl ünvanı verilmir). */
 export interface StorageDeps {
-  signDownload(path: string, ttlSeconds: number): Promise<string>
+  /** Faylın özü (yalnız server oxuyur; məs. su nişanı vurmaq üçün). */
+  download(path: string): Promise<Uint8Array>
   signUpload(path: string): Promise<{ path: string; token: string }>
   remove(path: string): Promise<void>
 }
@@ -89,12 +90,10 @@ export interface StorageDeps {
 export function restStorage(cfg: SupaConfig, bucket: string): StorageDeps {
   const p = (path: string) => path.split('/').map(encodeURIComponent).join('/')
   return {
-    async signDownload(path, ttl) {
-      const r = await call(cfg, `/storage/v1/object/sign/${bucket}/${p(path)}`, { method: 'POST', body: JSON.stringify({ expiresIn: ttl }) })
-      if (!r.ok) throw new Error(`storage sign: ${r.status}`)
-      const j = (await r.json()) as { signedURL?: string }
-      if (!j.signedURL) throw new Error('storage sign: no url')
-      return j.signedURL
+    async download(path) {
+      const r = await call(cfg, `/storage/v1/object/${bucket}/${p(path)}`, { method: 'GET' })
+      if (!r.ok) throw new Error(`storage download: ${r.status}`)
+      return new Uint8Array(await r.arrayBuffer())
     },
     async signUpload(path) {
       const r = await call(cfg, `/storage/v1/object/upload/sign/${bucket}/${p(path)}`, { method: 'POST', body: '{}' })

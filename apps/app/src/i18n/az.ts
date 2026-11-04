@@ -181,9 +181,11 @@ export const t = {
   },
   library: {
     shelf: 'Şkaf', empty: 'Şkaf hələ boşdur.', locked: 'Kod tələb olunur', free: 'Pulsuz', pdf: 'PDF', text: 'Konspekt',
-    pdfNote: 'PDF 5 dəqiqəlik təhlükəsiz keçidlə açılır.',
+    pdfNote: 'PDF-in hər səhifəsində sizin tələbə nömrəniz olur.',
+    download: 'Faylı yüklə', openPdf: 'PDF-i aç', openTab: 'Yeni pəncərədə aç',
+    webHint: 'Fayl görünmürsə (bəzi telefon brauzerləri), "Yeni pəncərədə aç" və ya "Faylı yüklə" düyməsini basın. Hər səhifədə tələbə nömrəniz var.', pdfReady: 'Fayl hazırdır: hər səhifədə tələbə nömrəniz var.', openFailed: 'Bu cihazda PDF açmaq mümkün olmadı.', preparing: 'PDF hazırlanır…',
     add: 'Şkafa əlavə et', title: 'Başlıq', body: 'Konspekt mətni', freeToggle: 'Hamıya açıq (pulsuz)', pickPdf: 'PDF seç',
-    picked: (n: string, kb: number) => `${n} (${kb} KB)`, tooBig: 'Fayl 25 MB-dan böyükdür.', uploaded: 'Şkafa əlavə olundu.', remove: 'Sil',
+    picked: (n: string, kb: number) => `${n} (${kb} KB)`, tooBig: 'Fayl 15 MB-dan böyükdür. PDF-i sıxışdırın və ya hissələrə bölün.', uploaded: 'Şkafa əlavə olundu.', remove: 'Sil',
     needSubject: 'Fənn seçin.', needTitle: 'Başlıq yazın.', needBody: 'Mətn boşdur.', needFile: 'PDF seçin.',
   },
   board: {

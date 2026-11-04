@@ -5,8 +5,6 @@ import { StyleSheet, Text, View } from 'react-native'
 import { Button, Card, Chip, ErrorBox, H, Loading, P, Screen } from '../../src/components/ui'
 import { t } from '../../src/i18n/az'
 import { api, ApiFailure, type Mode } from '../../src/lib/api'
-import * as WebBrowser from 'expo-web-browser'
-import { config } from '../../src/config'
 import { hasAccess, useEnrollments, useLibrary, useSubjects, useTopics } from '../../src/lib/queries'
 import { colors, font, radius, space } from '../../src/theme'
 import { fmtDate } from '../../src/lib/dates'
@@ -39,13 +37,9 @@ export default function Room() {
 
   const toggle = (id: string) => setPicked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n })
 
-  const openItem = async (id: string, kind: 'text' | 'pdf') => {
+  const openItem = (id: string, kind: 'text' | 'pdf', title: string) => {
     setErr(null)
-    if (kind === 'text') { router.push({ pathname: '/library/[id]', params: { id } }); return }
-    try {
-      const r = await api.libraryOpen(id)
-      if (r.url) await WebBrowser.openBrowserAsync(`${config.supabaseUrl}/storage/v1${r.url}`)
-    } catch (e) { setErr(e instanceof ApiFailure ? e.message : String(e)) }
+    router.push({ pathname: '/library/[id]', params: kind === 'pdf' ? { id, kind, title } : { id } })
   }
 
   const start = async () => {
@@ -115,7 +109,7 @@ export default function Room() {
       {(shelf.data ?? []).map((it, i) => {
         const can = !!access || it.free
         return (
-          <Card key={it.id} testID={`shelf-${i}`} label={it.title} onPress={can ? () => openItem(it.id, it.kind) : undefined} style={!can ? { opacity: 0.55 } : undefined}>
+          <Card key={it.id} testID={`shelf-${i}`} label={it.title} onPress={can ? () => openItem(it.id, it.kind, it.title) : undefined} style={!can ? { opacity: 0.55 } : undefined}>
             <Text style={{ color: colors.chalk, fontWeight: '700' }}>{it.kind === 'pdf' ? '📄' : '📘'} {it.title}</Text>
             <P dim small>{it.kind === 'pdf' ? t.library.pdf : t.library.text}{it.free && !access ? ` · ${t.library.free}` : ''}{!can ? ` · 🔒 ${t.library.locked}` : ''}</P>
           </Card>

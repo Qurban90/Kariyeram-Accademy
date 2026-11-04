@@ -369,7 +369,7 @@ try {
     await ap.close()
   })
 
-  await step('şkaf: müəllim mətn konspekti və PDF yükləyir → tələbə oxuyur (icazə, su nişanı, imzalı URL)', async () => {
+  await step('şkaf: müəllim mətn konspekti və PDF yükləyir → tələbə oxuyur (icazə, su nişanı; PDF serverdə möhürlənir)', async () => {
     const lp = await hctx.newPage()
     await lp.goto(`http://127.0.0.1:${PORT}/teacher`)
     await lp.getByTestId('tab-library').click()
@@ -394,16 +394,25 @@ try {
     await sp.getByTestId('library-body').getByText('Onaltılıqda A=10, F=15.').waitFor({ timeout: 15000 })
     expect(await sp.getByText(/№ \d+/).count() > 0, 'konspektdə su nişanı yoxdur')
     await sp.goBack()
-    const [req] = await Promise.all([
-      ctx.waitForEvent('request', { predicate: (r) => r.url().includes('/storage/v1/object/sign/library/'), timeout: 15000 }),
+    // PDF: tətbiqin içində açılır; server faylı tələbə nömrəsi ilə möhürləyib göndərir, birbaşa fayl ünvanı verilmir.
+    const signed = []
+    sp.on('request', (r) => { if (r.url().includes('/storage/v1/object/')) signed.push(r.url()) })
+    const [resp] = await Promise.all([
+      sp.waitForResponse((r) => r.url().endsWith('/functions/v1/api/library/pdf'), { timeout: 20000 }),
       sp.getByText('📄 E2E: PDF konspekt').click(),
     ])
-    const pdfUrl = req.url()
-    expect(/\/storage\/v1\/object\/sign\/library\/informatika\/[0-9a-f-]{36}\.pdf\?token=/.test(pdfUrl), 'imzalı URL deyil: ' + pdfUrl)
-    const res = await fetch(pdfUrl)
-    expect(res.status === 200 && (await res.arrayBuffer()).byteLength > 300, 'PDF endirilmədi')
-    const unsigned = await fetch(pdfUrl.replace('/object/sign/', '/object/public/').split('?')[0])
-    expect(unsigned.status >= 400, 'PDF imzasız açılır!')
+    expect(resp.status() === 200 && resp.headers()['content-type'] === 'application/pdf', 'PDF cavabı deyil: ' + resp.status())
+    const { PDFDocument } = require('pdf-lib')
+    const stamped = await PDFDocument.load(await resp.body())
+    const no = sql(`select student_no from public.profiles p join auth.users u on u.id = p.id where u.phone = '${PHONE_DB}'`)
+    expect(stamped.getSubject()?.includes(`Telebe No ${no}`), 'PDF-də tələbə nömrəsi yoxdur: ' + stamped.getSubject())
+    await sp.getByTestId('pdf-frame').waitFor({ timeout: 15000 })
+    expect(signed.length === 0, 'klient birbaşa storage ünvanına müraciət etdi: ' + signed.join(', '))
+    await sp.screenshot({ path: join(SHOTS, '15-pdf-su-nisani.png') })
+    // Faylın özü nə imzasız, nə də anon açarla açılmır.
+    const path = sql(`select storage_path from public.library_items where title = 'E2E: PDF konspekt'`)
+    const api = process.env.EXPO_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
+    expect((await fetch(`${api}/storage/v1/object/public/library/${path}`)).status >= 400, 'PDF imzasız açılır!')
     for (const p of ctx.pages()) if (p !== page) await p.close()
   })
 

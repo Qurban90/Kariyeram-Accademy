@@ -49,6 +49,12 @@ begin
   r := public.staff_library_delete(t, v_pdf);
   perform tests.ok((r->>'ok')::boolean and r->>'storage_path' = 'lib9/0b8f6c2e-1d2a-4c3b-9e4f-5a6b7c8d9e0f.pdf', 'silmə faylın yolunu qaytarır (Storage-dan da silinir)');
   perform tests.ok(public.library_open(a, v_pdf)->>'error' = 'not_found', 'silinmiş material açılmır');
+
+  -- Gündəlik limit (su nişanı serverdə CPU tələb edir): tələbəyə 200, müəllimə limit yoxdur.
+  insert into public.audit_events (student_id, kind, detail) select a, 'library_open', '{}'::jsonb from generate_series(1, 200);
+  perform tests.ok(public.library_open(a, v_paid)->>'error' = 'daily_limit', 'gündə 200 açılışdan sonra limit');
+  insert into public.audit_events (student_id, kind, detail) select t, 'library_open', '{}'::jsonb from generate_series(1, 200);
+  perform tests.ok(public.library_open(t, v_paid) ? 'kind', 'müəllim limitsizdir');
 end $$;
 
 rollback;

@@ -8,6 +8,7 @@ import * as live from './live.ts'
 import { itemAnalysis } from './staff.ts'
 import { board } from './board.ts'
 import * as library from './library.ts'
+import { stampPdf, stampText } from './stamp.ts'
 import type { StorageDeps } from './supabase.ts'
 import type { LiveDeps } from './live.ts'
 import { bool, device, int, obj, oneOf, str, uuid, uuids } from './validate.ts'
@@ -43,13 +44,14 @@ export const routes: Record<string, Handler> = {
 
   // Konspekt şkafı
   'library/open': (c, b) => library.open(c.db, c.storage, c.userId, uuid(b, 'item')),
+  'library/pdf': (c, b) => library.pdf(c.db, c.storage, c.userId, uuid(b, 'item'), stampPdf, (no) => stampText(String(no), new Date())),
   'staff/library/upload-url': (c, b) => library.uploadUrl(c.db, c.storage, c.userId, str(b, 'subject', 1, 40)!),
   'staff/library/add': (c, b) => {
     const kind = oneOf(b, 'kind', ['text', 'pdf'])!
     return library.add(c.db, c.userId, {
       subject: str(b, 'subject', 1, 40)!, topic: b.topic ? uuid(b, 'topic') : undefined, title: str(b, 'title', 1, 140)!, kind,
       free: bool(b, 'free')!, body: kind === 'text' ? str(b, 'body', 1, 200_000)! : undefined,
-      path: kind === 'pdf' ? str(b, 'path', 5, 200)! : undefined, bytes: int(b, 'bytes', 1, 26_214_400, true),
+      path: kind === 'pdf' ? str(b, 'path', 5, 200)! : undefined, bytes: int(b, 'bytes', 1, 15 * 1024 * 1024, true),
     })
   },
   'staff/library/delete': (c, b) => library.remove(c.db, c.storage, c.userId, uuid(b, 'item')),
