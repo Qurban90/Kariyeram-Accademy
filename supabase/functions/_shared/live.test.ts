@@ -159,6 +159,18 @@ describe('router validasiyası', () => {
     await dispatch('live/chat', ctx(db), { session: S1, body: 'salam', p_user: U2, userId: U2 })
     expect(seen[0]).toMatchObject({ p_user: U1 })
   })
+  it('staff marşrutları: validasiya və istifadəçi kontekstdən', async () => {
+    const seen: [string, Record<string, unknown>][] = []
+    const db = { async rpc(fn: string, args: Record<string, unknown>) { seen.push([fn, args]); return { codes: [] } as never } }
+    await expect(dispatch('staff/codes', ctx(db), { subject: 'inf', count: 500, days: 30 })).rejects.toMatchObject({ code: 'bad_count' })
+    await expect(dispatch('staff/question/status', ctx(db), { question: S1, status: 'deleted' })).rejects.toMatchObject({ code: 'bad_status' })
+    await dispatch('staff/codes', ctx(db), { subject: 'inf', count: 5, days: 30, p_staff: U2 })
+    await dispatch('staff/question/status', ctx(db), { question: S1, status: 'published' })
+    expect(seen).toEqual([
+      ['staff_create_codes', { p_staff: U1, p_subject: 'inf', p_count: 5, p_days: 30 }],
+      ['staff_set_question_status', { p_staff: U1, p_question: S1, p_status: 'published' }],
+    ])
+  })
   it('client/event: yalnız icazəli növlər, istifadəçi kontekstdən', async () => {
     const seen: [string, Record<string, unknown>][] = []
     const db = { async rpc(fn: string, args: Record<string, unknown>) { seen.push([fn, args]); return { ok: true, recorded: true } as never } }

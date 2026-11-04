@@ -87,9 +87,9 @@ Prioritet: M (Must), S (Should), C (Could).
 
 | ID | Tələb | P | Qəbul meyarı | Status |
 | --- | --- | --- | --- | --- |
-| FR-060 | Kod yaratma (toplu), ləğv | M | Yalnız müəllim/admin | Qismən (yaratma RPC-si var; UI yoxdur) |
+| FR-060 | Kod yaratma (toplu), ləğv | M | Yalnız müəllim/admin | Qismən (toplu yaratma: DB + API + UI, E2E; ləğv etmə yoxdur) |
 | FR-061 | Sual analizi: tələli, şübhəli açar, asan/çətin | S | Min 30 cavab | Hazır (core; UI yoxdur) |
-| FR-062 | Sual statusu: qaralama, yoxlama, dərc, köhnəlmiş | M | Tələbə yalnız dərc olunanı görür | Hazır |
+| FR-062 | Sual statusu: qaralama, yoxlama, dərc, köhnəlmiş | M | Tələbə yalnız dərc olunanı görür | Hazır (DB + müəllim otağı UI, E2E) |
 | FR-063 | Qiymət və qeyd gündəliyə | S | Dərhal tələbədə görünür | Plan |
 | FR-064 | Admin: istifadəçi dayandırma, audit | M | Hər əməliyyat audit-ə | Qismən |
 
@@ -117,7 +117,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | TEST-001 | Alqoritm vahid testləri | Vitest | Hazır |
 | TEST-002 | DB/RLS testləri real Postgres-də | psql | Hazır |
 | TEST-003 | Lokal Supabase ilə end-to-end API testi | supabase start | Hazır (8 inteqrasiya testi) |
-| TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (19 addım) |
+| TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (22 addım) |
 | TEST-005 | Native cihazlarda E2E | Maestro/Detox | Plan |
 | NFR-004 | Əlçatanlıq: toxunma sahəsi ≥ 44, ARIA rolları və vəziyyətləri, azaldılmış hərəkət | Ekran oxuyucu ilə yoxlama | Qismən (kod; ekran oxuyucu ilə yoxlanmayıb) |
 

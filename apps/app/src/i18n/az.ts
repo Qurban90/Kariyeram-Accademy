@@ -163,6 +163,15 @@ export const t = {
     form: { title: 'Mövzu', venue: 'Məkan', start: 'Başlama (YYYY-AA-GG SS:DD)', duration: 'Müddət (dəq)', access: 'Kimlər qoşula bilər' },
     access: { enrolled: 'Fənnə yazılanlar', public: 'Hamı', invite: 'Dəvətlilər' },
   },
+  teacher: {
+    title: 'Müəllim otağı', open: 'Müəllim otağı', questions: 'Yoxlamada olan suallar', codes: 'Abunə kodları',
+    none: 'Yoxlamada sual yoxdur. Sualları CSV ilə idxal edin (docs/DATABASE.md).',
+    publish: 'Dərc et', toDraft: 'Qaralamaya', retire: 'Köhnəlmiş', correct: 'düzgün',
+    status: { draft: 'Qaralama', review: 'Yoxlamada', published: 'Dərc olunub', retired: 'Köhnəlmiş' } as Record<string, string>,
+    subject: 'Fənn', count: 'Kod sayı (1–200)', days: 'Giriş müddəti (gün)', create: 'Kodları yarat',
+    onceWarn: 'Kodlar yalnız indi görünür: bazada yalnız hash saxlanılır. Kopyalayıb təhlükəsiz yerdə saxlayın.',
+    copy: 'Hamısını kopyala', copied: 'Kopyalandı', countBad: 'Say 1–200 arasında olmalıdır.', pickSubject: 'Fənn seçin.',
+  },
   profile: {
     title: 'Kabinet', role: { student: 'Tələbə', teacher: 'Müəllim', admin: 'Admin' } as Record<string, string>,
     redeem: 'Abunə kodu', codeFormat: 'Kod XXXX-XXXX-XXXX formatında olmalıdır.', redeemPh: 'XXXX-XXXX-XXXX', redeemBtn: 'Aktivləşdir', redeemed: (s: string, d: string) => `${s} fənninə giriş ${d} tarixinədək açıldı.`,

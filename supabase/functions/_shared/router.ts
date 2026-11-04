@@ -34,6 +34,14 @@ export const routes: Record<string, Handler> = {
     p_user: c.userId, p_kind: oneOf(b, 'kind', ['screenshot', 'screen_recording'])!, p_context: str(b, 'context', 0, 64, true) ?? null,
   })),
 
+  // Müəllim paneli (icazə DB-də yoxlanır: is_staff)
+  'staff/codes': async (c, b) => unwrap(await c.db.rpc<Record<string, unknown>>('staff_create_codes', {
+    p_staff: c.userId, p_subject: str(b, 'subject', 1, 40)!, p_count: int(b, 'count', 1, 200)!, p_days: int(b, 'days', 1, 730)!,
+  })),
+  'staff/question/status': async (c, b) => unwrap(await c.db.rpc<Record<string, unknown>>('staff_set_question_status', {
+    p_staff: c.userId, p_question: uuid(b, 'question'), p_status: oneOf(b, 'status', ['draft', 'review', 'published', 'retired'])!,
+  })),
+
   // Cihaz və abunə
   'device/claim': (c, b) => claimDevice(c.db, c.userId, { device: device(b) }),
   'code/redeem': (c, b) => redeemCode(c.db, c.userId, { code: str(b, 'code', 12, 20)! }),

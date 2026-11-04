@@ -110,6 +110,7 @@ export default function Profile() {
         <>
           <H level={2}>{t.live.title}</H>
           <Button variant="ghost" label={t.live.create} onPress={() => router.push('/live/new')} />
+          <Button variant="ghost" testID="open-teacher" label={t.teacher.open} onPress={() => router.push('/teacher')} />
         </>
       )}
 

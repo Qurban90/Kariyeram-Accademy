@@ -115,6 +115,8 @@ export const api = {
   revoke: (doc: 'marketing' | 'recording') => call('account/revoke', { doc }),
   exportData: () => call<Record<string, unknown>>('account/export'),
   deleteAccount: (confirm: string) => call('account/delete', { confirm }),
+  staffCodes: (subject: string, count: number, days: number) => call<{ codes: string[]; subject: string; days: number }>('staff/codes', { subject, count, days }),
+  setQuestionStatus: (question: string, status: 'draft' | 'review' | 'published' | 'retired') => call<{ status: string; changed: boolean }>('staff/question/status', { question, status }),
   clientEvent: (kind: 'screenshot' | 'screen_recording', context?: string) => call('client/event', context ? { kind, context } : { kind }),
 
   start: (b: { subject: string; mode: Mode; topicIds?: string[]; size?: number }) =>

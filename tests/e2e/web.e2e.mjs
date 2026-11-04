@@ -48,6 +48,7 @@ const HOST_LOCAL = '050 000 00 02'
 const HOST_DB = '994500000002'
 // Təmiz başlanğıc
 sql(`delete from auth.users where phone in ('${PHONE_DB}', '${HOST_DB}')`)
+sql(`delete from public.questions q where q.stem = '[E2E] Yoxlama sualı' and not exists (select 1 from public.answers a where a.question_id = q.id)`)
 
 const browser = await chromium.launch({ args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--autoplay-policy=no-user-gesture-required'] })
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, locale: 'az-AZ', acceptDownloads: true })
@@ -229,6 +230,47 @@ try {
     hostLive = host.url().split('/live/')[1]
     expect(/^[0-9a-f-]{36}$/.test(hostLive), 'host otağa keçmədi')
     await htid('ctl-host').waitFor({ timeout: 30000 })
+  })
+
+  await step('müəllim otağı: yoxlamadakı sualı dərc edir', async () => {
+    sql(`insert into public.questions (topic_id, stem, options, answer_index, status)
+         select id, '[E2E] Yoxlama sualı', '["bir","iki"]', 1, 'review' from public.topics where subject_id = 'informatika' and name = 'Kompüter qurğuları (DEMO)'`)
+    const back = host.url()
+    await host.goto(`http://127.0.0.1:${PORT}/teacher`)
+    const card = host.getByTestId(/^rq-\d+$/).filter({ hasText: '[E2E] Yoxlama sualı' })
+    await card.waitFor({ timeout: 15000 })
+    await card.getByRole('button', { name: 'Dərc et' }).click()
+    await card.waitFor({ state: 'detached', timeout: 15000 })
+    expect(sql(`select status from public.questions where stem = '[E2E] Yoxlama sualı'`) === 'published', 'sual dərc olunmadı')
+    await host.goto(back)
+    await htid('ctl-host').waitFor({ timeout: 30000 })
+  })
+
+  let teacherCode = ''
+  await step('müəllim otağı: toplu abunə kodu yaradır', async () => {
+    const lp = await hctx.newPage()
+    await lp.goto(`http://127.0.0.1:${PORT}/teacher`)
+    await lp.getByTestId('tab-codes').click()
+    await lp.getByTestId('cs-informatika').click()
+    await lp.getByTestId('code-count').fill('2')
+    await lp.getByTestId('make-codes').click()
+    const out = (await lp.getByTestId('codes-out').innerText({ timeout: 15000 })).trim().split('\n')
+    expect(out.length === 2 && out.every((c) => /^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(c)), 'kod formatı')
+    teacherCode = out[0]
+    await lp.screenshot({ path: join(SHOTS, '13-muellim-otagi-kodlar.png') })
+    await lp.close()
+  })
+
+  await step('tələbə müəllimin kodunu aktivləşdirir → ödənişli mövzu açılır', async () => {
+    const sp = await ctx.newPage()
+    await sp.goto(`http://127.0.0.1:${PORT}/profile`)
+    await sp.getByTestId('code').fill(teacherCode.toLowerCase())
+    await sp.getByTestId('redeem').click()
+    await sp.getByText(/İnformatika fənninə giriş .* tarixinədək açıldı/).waitFor({ timeout: 15000 })
+    await sp.goto(`http://127.0.0.1:${PORT}/room/informatika`)
+    await sp.getByTestId('topic-2').waitFor()
+    expect((await sp.getByTestId('topic-2').getAttribute('aria-disabled')) !== 'true', 'ödənişli mövzu açılmadı')
+    await sp.close()
   })
 
   await step('müəllim dərsi başladır və kameranı açır', async () => {

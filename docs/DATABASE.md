@@ -8,6 +8,7 @@ Migrasiyalar (`supabase/migrations`), ardıcıllıqla:
 | `20261104000001_accounts_live.sql` | Profil trigger-i, hüquqi sənədlər və razılıqlar, hesab silmə/ixrac, məkanlar, canlı sessiyalar, iştirakçılar, əllər, chat, webhook hadisələri və RPC-ləri |
 | `20261104000002_realtime_client_events.sql` | `live_chat` Realtime nəşri, `report_client_event` |
 | `20261104000003_finish_idempotent.sql` | `finish_session` təkrar çağırışda `already: true` |
+| `20261104000004_staff.sql` | `staff_create_codes`, `staff_set_question_status` (audit ilə) |
 
 ## Prinsiplər
 
@@ -22,6 +23,7 @@ Migrasiyalar (`supabase/migrations`), ardıcıllıqla:
 | Qrup | Funksiyalar |
 | --- | --- |
 | Test | `_guard`, `claim_device`, `create_codes`, `redeem_code`, `candidates`, `create_session`, `next_question`, `submit_answer`, `finish_session`, `session_review`, `upsert_card`, `card_of` |
+| Müəllim | `staff_create_codes`, `staff_set_question_status` |
 | Hesab | `accept_consents`, `revoke_consent`, `export_my_data`, `prepare_account_deletion`, `report_client_event` |
 | Canlı | `live_create_session`, `live_join`, `live_leave`, `live_set_state`, `live_settings`, `live_raise_hand`, `live_lower_hand`, `live_hands_queue`, `live_set_role`, `live_ban`, `live_chat_post`, `live_webhook_event`, `live_attendance` |
 
@@ -55,4 +57,4 @@ npm run import:questions -- suallar.csv --dry-run
 npm run import:questions -- suallar.csv --db "$DATABASE_URL"
 ```
 
-Hər hansı sətirdə xəta varsa heç nə yazılmır (sətir nömrəsi ilə siyahı çıxır). Eyni mövzuda eyni mətnli sual təkrar yazılmır, ona görə yenidən işə salmaq təhlükəsizdir. Defolt status `review` (tələbə görmür); pilot üçün `--status published`. Dərc etmə ekranı hələ yoxdur (plan).
+Hər hansı sətirdə xəta varsa heç nə yazılmır (sətir nömrəsi ilə siyahı çıxır). Eyni mövzuda eyni mətnli sual təkrar yazılmır, ona görə yenidən işə salmaq təhlükəsizdir. Defolt status `review` (tələbə görmür); pilot üçün `--status published`. Dərc etmə: tətbiqdə Kabinet → Müəllim otağı.
