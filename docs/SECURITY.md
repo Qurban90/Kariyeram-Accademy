@@ -40,10 +40,13 @@ Versiya 0.1 · 2026-11-04. Bu sənəd heç bir şeyin "100% təhlükəsiz" oldu�
 | I | Sirlərin repoya düşməsi | `.env*` gitignore, CI-də gitleaks | gitleaks konfiqurasiya olunub, **CI-də hələ işləməyib** |
 | **D**enial of service | Böyük gövdə | 64 KB limit | Kod |
 | D | Chat spam | 10 saniyədə 5 mesaj, 500 simvol | DB testi |
+| D | Boş test sessiyaları ilə DB-ni doldurmaq | Saatda ən çox 60 sessiya | DB testi |
 | D | Kod brute-force | Saatda 10 yanlış cəhd | DB testi |
 | D | API-yə kütləvi sorğu | Supabase platforma limitləri; bizdə ayrıca IP rate limit **yoxdur** | Risk R-06 |
 | **E**levation of privilege | Tələbə canlı dərs yaradır, söz götürür | `live_create_session`, `live_set_role` yalnız host/admin; NULL sahib boşluğu bağlanıb | DB testləri |
 | E | Köməkçi host başqasını köməkçi edir | Yalnız əsas host | DB testi |
+| E | Müəllim cavab açarını REST ilə iz qoymadan dəyişir | Müəllimə `questions` yalnız oxumaq üçün açıqdır; status dəyişikliyi audit ilə RPC-dən | DB testi |
+| T | İmtahan vaxtı bitəndən sonra cavab | `submit_answer` vaxtı yoxlayır (+5 san.), sessiyanı bağlayır | DB testi |
 | E | Müəllim başqasının məkanında dərs yaradır | Məkan sahibi və ya admin | DB testi |
 
 ## 4. Risk reyestri
@@ -59,7 +62,7 @@ Versiya 0.1 · 2026-11-04. Bu sənəd heç bir şeyin "100% təhlükəsiz" oldu�
 | R-07 | Yük testi edilməyib (PERF-001..003) | Yüksək | Orta | Orta | k6 skriptləri, LiveKit Cloud yük testi |
 | R-08 | `APP_ORIGINS` boşdursa CORS `*` | Orta | Aşağı | Aşağı | İstehsalda mütləq təyin edilməli (DEPLOYMENT.md). Token olmadan API işləmir |
 | R-09 | Veb versiyada ekran qoruması yoxdur | Yüksək | Orta | Orta | Vebdə yalnız su nişanı; istəyə görə test vebdə bağlana bilər |
-| R-10 | Asılılıq zəiflikləri (npm) | Orta | Orta | Orta | Dependabot/`npm audit` CI-də (plan) |
+| R-10 | Asılılıq zəiflikləri (npm) | Orta | Orta | Orta | 2026-11-04 `npm audit --omit=dev`: 6 orta (glob/minimatch, Expo build alətlərində, işləyən tətbiqdə deyil). Avtomatik düzəliş Expo-nu köhnə versiyaya endirir, ona görə Expo yeniləmələri izlənir. Dependabot (plan) |
 | R-12 | Vebdə sessiya tokeni `localStorage`-dadır (XSS olarsa oğurlana bilər) | Aşağı | Yüksək | Orta | Üçüncü tərəf skript yoxdur; istehsalda CSP başlığı; native-də SecureStore |
 | R-11 | Müəllim/admin hesabının ələ keçirilməsi | Aşağı | Yüksək | Orta | Staff üçün MFA (Supabase Auth MFA) — plan |
 

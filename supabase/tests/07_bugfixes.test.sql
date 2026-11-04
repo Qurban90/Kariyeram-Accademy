@@ -51,6 +51,19 @@ begin
   perform tests.ok((select left_at is not null from public.live_participants where session_id = s and user_id = a), 'təzə webhook ayrılmanı qeyd edir');
 end $$;
 
+-- 5) Sessiya yaratma limiti
+do $$
+declare a uuid := '00000000-0000-0000-0000-0000000007a1'; r jsonb; i int;
+begin
+  insert into public.test_sessions (student_id, mode, subject_id, question_ids, state)
+  select a, 'topic', 'bf7', array['70000000-0000-0000-0000-0000000000f1']::uuid[], 'abandoned' from generate_series(1, 60);
+  r := public.create_session(a, 'device-BF7-0001', 'topic', 'bf7', array['70000000-0000-0000-0000-0000000000f1']::uuid[], 1, null);
+  perform tests.ok(r->>'error' = 'rate_limited', 'saatda 60-dan çox test sessiyası yaradılmır');
+  update public.test_sessions set started_at = now() - interval '2 hours' where student_id = a;
+  r := public.create_session(a, 'device-BF7-0001', 'topic', 'bf7', array['70000000-0000-0000-0000-0000000000f1']::uuid[], 1, null);
+  perform tests.ok(r ? 'session_id', 'bir saatdan sonra yenə olur');
+end $$;
+
 -- 4) Müəllim sualı yalnız oxuyur, birbaşa dəyişə bilmir
 do $$
 declare v_n int; v_ok boolean := false;
