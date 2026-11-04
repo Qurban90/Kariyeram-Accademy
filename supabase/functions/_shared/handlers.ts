@@ -1,28 +1,17 @@
 /**
- * API məntiqi (Deno-dan asılı deyil, vitest ilə test olunur).
+ * Test və sessiya məntiqi (Deno-dan asılı deyil, vitest ilə test olunur).
  * Edge Function JWT-ni yoxlayır, sonra bu funksiyalar service_role ilə SQL RPC-ləri çağırır.
  */
 import {
   assemble, expectedMs, fromJSON, gradeFromAnswer, review, toJSON,
   type AssembleRequest, type Candidate, type SrsCardJSON,
 } from '../../../packages/core/src/index.ts'
+import { ApiError, unwrap } from './errors.ts'
+
+export { ApiError }
 
 export interface Db {
   rpc<T = unknown>(fn: string, args: Record<string, unknown>): Promise<T>
-}
-
-export class ApiError extends Error {
-  constructor(public code: string, public status = 400) {
-    super(code)
-  }
-}
-
-const unwrap = <T extends Record<string, unknown>>(r: T): T => {
-  if (r && typeof r === 'object' && 'error' in r && r.error) {
-    const code = String(r.error)
-    throw new ApiError(code, code === 'suspended' || code === 'device_not_active' ? 403 : code === 'daily_limit' ? 429 : 400)
-  }
-  return r
 }
 
 export interface StartBody {
@@ -115,12 +104,3 @@ export const claimDevice = async (db: Db, student: string, b: { device: string }
 export const redeemCode = async (db: Db, student: string, b: { code: string }) =>
   unwrap(await db.rpc<Record<string, unknown>>('redeem_code', { p_student: student, p_code: b.code }))
 
-export const routes = {
-  'device/claim': claimDevice,
-  'code/redeem': redeemCode,
-  'session/start': startSession,
-  'question/next': nextQuestion,
-  'answer': answer,
-  'session/finish': finish,
-  'session/review': reviewSession,
-} as const

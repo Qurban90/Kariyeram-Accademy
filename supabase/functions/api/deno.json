@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "ts-fsrs": "../_vendor/ts-fsrs/index.mjs"
+  }
+}

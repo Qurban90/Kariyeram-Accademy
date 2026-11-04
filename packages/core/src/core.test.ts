@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   allocate, analyzeItem, assemble, badges, expectedMs, fromJSON, gradeFromAnswer, interleave, isDue, newCard, paceSuspicion,
   rankWeek, Rating, retrievability, review, score, streak, toJSON, TokenBucket, weakTopics, wilsonLower, type Candidate, type ItemResponse,
-} from './index'
+} from './index.ts'
 
 const NOW = new Date('2026-11-03T12:00:00Z')
 const DAY = 86_400_000

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { answer, ApiError, finish, startSession, type Db } from './handlers'
+import { answer, ApiError, finish, startSession, type Db } from './handlers.ts'
 
 function fakeDb(responses: Record<string, unknown>) {
   const calls: { fn: string; args: Record<string, unknown> }[] = []

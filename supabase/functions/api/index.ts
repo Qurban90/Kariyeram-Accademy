@@ -1,40 +1,64 @@
-// Supabase Edge Function (Deno). Bütün tələbə əməliyyatları buradan keçir.
+// Supabase Edge Function (Deno). Bütün tələbə və müəllim əməliyyatları buradan keçir.
 // POST /functions/v1/api/<route>  Authorization: Bearer <istifadəçi JWT>
-import { createClient } from 'npm:@supabase/supabase-js@2'
-import { ApiError, routes, type Db } from '../_shared/handlers.ts'
+import { ApiError } from '../_shared/errors.ts'
+import { RoomService, type LiveKitConfig } from '../_shared/livekit.ts'
+import { dispatch, type Ctx } from '../_shared/router.ts'
+import { deleteAuthUser, getUserId, restDb } from '../_shared/supabase.ts'
 
-const url = Deno.env.get('SUPABASE_URL')!
-const service = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })
-const db: Db = {
-  async rpc(fn, args) {
-    const { data, error } = await service.rpc(fn, args)
-    if (error) throw new ApiError(error.message, 500)
-    return data
-  },
+const env = (k: string) => Deno.env.get(k) ?? ''
+const supa = { url: env('SUPABASE_URL'), serviceKey: env('SUPABASE_SERVICE_ROLE_KEY') }
+const db = restDb(supa)
+const lk: LiveKitConfig | null = env('LIVEKIT_URL') && env('LIVEKIT_API_KEY') && env('LIVEKIT_API_SECRET')
+  ? { url: env('LIVEKIT_URL'), apiKey: env('LIVEKIT_API_KEY'), apiSecret: env('LIVEKIT_API_SECRET') }
+  : null
+const live = { cfg: lk, rooms: lk ? new RoomService(lk) : null }
+const admin = { deleteAuthUser: (id: string) => deleteAuthUser(supa, id) }
+
+const MAX_BODY = 64 * 1024
+const origins = env('APP_ORIGINS').split(',').map((s) => s.trim()).filter(Boolean)
+
+function cors(req: Request): Record<string, string> {
+  const o = req.headers.get('origin') ?? ''
+  return {
+    'Access-Control-Allow-Origin': origins.length === 0 ? '*' : origins.includes(o) ? o : origins[0]!,
+    'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-client-info, x-request-id',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    Vary: 'Origin',
+  }
 }
-const cors = {
-  'Access-Control-Allow-Origin': Deno.env.get('APP_ORIGIN') ?? '*',
-  'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-client-info',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, 'content-type': 'application/json' } })
+
+const log = (level: 'info' | 'warn' | 'error', msg: string, data: Record<string, unknown>) =>
+  console.log(JSON.stringify({ level, msg, ...data, at: new Date().toISOString() }))
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: cors })
-  if (req.method !== 'POST') return json({ error: 'method' }, 405)
-  const route = new URL(req.url).pathname.split('/api/')[1] as keyof typeof routes
-  const handler = routes[route]
-  if (!handler) return json({ error: 'not_found' }, 404)
+  const rid = req.headers.get('x-request-id')?.slice(0, 64) || crypto.randomUUID()
+  const headers = { ...cors(req), 'content-type': 'application/json', 'x-request-id': rid, 'cache-control': 'no-store' }
+  const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers })
+  if (req.method === 'OPTIONS') return new Response(null, { headers })
+  if (req.method !== 'POST') return reply({ error: 'method' }, 405)
+
+  const route = new URL(req.url).pathname.split('/api/')[1] ?? ''
   const jwt = req.headers.get('authorization')?.replace(/^Bearer /, '')
-  if (!jwt) return json({ error: 'unauthorized' }, 401)
-  const { data: user, error } = await service.auth.getUser(jwt)
-  if (error || !user.user) return json({ error: 'unauthorized' }, 401)
+  if (!jwt) return reply({ error: 'unauthorized' }, 401)
+  const userId = await getUserId(supa, jwt)
+  if (!userId) return reply({ error: 'unauthorized' }, 401)
+
+  const started = Date.now()
   try {
-    const body = await req.json().catch(() => ({}))
-    return json(await (handler as (db: Db, s: string, b: unknown) => Promise<unknown>)(db, user.user.id, body))
+    const raw = await req.text()
+    if (raw.length > MAX_BODY) return reply({ error: 'too_large' }, 413)
+    const body = raw ? JSON.parse(raw) : {}
+    const ctx: Ctx = { db, userId, live, admin }
+    const out = await dispatch(route, ctx, body)
+    log('info', 'api', { rid, route, ms: Date.now() - started })
+    return reply(out)
   } catch (e) {
-    if (e instanceof ApiError) return json({ error: e.code }, e.status)
-    console.error(e)
-    return json({ error: 'internal' }, 500)
+    if (e instanceof ApiError) {
+      log('warn', 'api_error', { rid, route, code: e.code, ms: Date.now() - started })
+      return reply({ error: e.code, requestId: rid }, e.status)
+    }
+    if (e instanceof SyntaxError) return reply({ error: 'bad_json', requestId: rid }, 400)
+    log('error', 'api_crash', { rid, route, err: String(e).slice(0, 300) })
+    return reply({ error: 'internal', requestId: rid }, 500)
   }
 })

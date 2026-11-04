@@ -1,5 +1,5 @@
-import { isDue, retrievability, type SrsCard } from './srs'
-import { rng, shuffle, type ID, type Level, type QuestionMeta } from './types'
+import { isDue, retrievability, type SrsCard } from './srs.ts'
+import { rng, shuffle, type ID, type Level, type QuestionMeta } from './types.ts'
 
 export interface Candidate extends QuestionMeta {
   card?: SrsCard
