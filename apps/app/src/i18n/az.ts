@@ -143,6 +143,7 @@ export const t = {
     title: 'Gündəlik', empty: 'Hələ qeyd yoxdur. İlk testi bitirəndə burada görünəcək.',
     weak: 'Səhvlər harada çoxdur', weakEmpty: 'Zəif mövzu tapmaq üçün ən azı 5 cavab lazımdır.',
     grade: 'Qiymət', note: 'Qeyd', test: 'Test',
+    streak: (n: number) => `${n} gün ardıcıl`, streakNone: 'Bu gün test işləyin, seriya başlasın', medals: 'Medallar', noMedals: 'İlk medal: 7 gün ardıcıl işləyin və ya bir mövzuda 50 sualda 90%-ə çatın.', correctTotal: (n: number) => `${n} düz cavab`,
   },
   live: {
     title: 'Oxu zalı', upcoming: 'Planlaşdırılmış dərslər', none: 'Hazırda planlaşdırılmış canlı dərs yoxdur.',

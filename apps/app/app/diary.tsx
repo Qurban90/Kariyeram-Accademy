@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import { Text, View } from 'react-native'
 import { Bar, Card, ErrorBox, H, Loading, P, Screen } from '../src/components/ui'
 import { t } from '../src/i18n/az'
+import { progressFrom } from '../src/lib/progress'
 import { useDiary } from '../src/lib/queries'
 import { colors, font, space } from '../src/theme'
 
@@ -26,11 +27,29 @@ export default function Diary() {
     return weakTopics(agg, 5).slice(0, 5).map((w) => ({ ...w, name: agg[w.topicId]!.name }))
   }, [diary.data])
 
+  const prog = useMemo(() => progressFrom(diary.data ?? []), [diary.data])
+
   if (diary.isLoading) return <Screen back title={t.diary.title}><Loading /></Screen>
 
   return (
     <Screen back title={t.diary.title}>
       <ErrorBox message={diary.error ? (diary.error as Error).message : null} onRetry={() => diary.refetch()} />
+      <Card testID="progress">
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+          <Text style={{ fontSize: 34 }}>🔥</Text>
+          <View style={{ flex: 1 }}>
+            <H level={3}>{prog.streak ? t.diary.streak(prog.streak) : t.diary.streakNone}</H>
+            <P dim small>{t.diary.correctTotal(prog.totalCorrect)}</P>
+          </View>
+        </View>
+        <P small dim>{t.diary.medals}</P>
+        {prog.badges.length === 0 ? <P dim small>{t.diary.noMedals}</P> : (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
+            {prog.badges.map((b) => <Text key={b.id} style={{ color: colors.ink, backgroundColor: colors.brass, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4, fontWeight: '800', fontSize: font.small }}>🏅 {b.title}</Text>)}
+          </View>
+        )}
+      </Card>
+
       <H level={2}>{t.diary.weak}</H>
       {weak.length === 0 ? <P dim>{t.diary.weakEmpty}</P> : weak.map((w) => (
         <View key={w.topicId} style={{ gap: 4 }}>

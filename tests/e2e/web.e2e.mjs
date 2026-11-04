@@ -155,9 +155,10 @@ try {
     expect(sql(`select count(*) from public.answers a join public.test_sessions s on s.id = a.session_id join auth.users u on u.id = s.student_id where u.phone = '${PHONE_DB}'`) === String(answered), 'cavab sayı uyğun deyil')
   })
 
-  await step('gündəlik: test nəticəsi və zəif mövzular', async () => {
+  await step('gündəlik: test nəticəsi, seriya və zəif mövzular', async () => {
     await page.goto(`http://127.0.0.1:${PORT}/diary`)
     await page.getByText('İnformatika · Mövzu testi').first().waitFor({ timeout: 15000 })
+    await page.getByText('1 gün ardıcıl').waitFor({ timeout: 5000 })
     await shot('08-gundelik')
   })
 

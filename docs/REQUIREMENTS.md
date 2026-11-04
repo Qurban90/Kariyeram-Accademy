@@ -88,7 +88,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | ID | Tələb | P | Qəbul meyarı | Status |
 | --- | --- | --- | --- | --- |
 | FR-070 | Şərəf lövhəsi (həftəlik, fənn üzrə) | S | Wilson aşağı sərhədi, min 30 cavab; yalnız razılıq verənlər, qısa ad, ID yoxdur | Hazır (DB + API + UI, E2E) |
-| FR-071 | Medallar və ardıcıl günlər | C | Alqoritm | Qismən (core; UI yoxdur) |
+| FR-071 | Medallar və ardıcıl günlər | C | Alqoritm | Hazır (core + gündəlik UI; son 100 test əsasında) |
 
 ### Müəllim və admin
 
