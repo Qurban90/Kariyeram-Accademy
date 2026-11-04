@@ -23,7 +23,7 @@ export async function join(db: Db, live: LiveDeps, user: string, session: string
     room: String(r.room), identity: user, name: String(r.name), role, canPublish: Boolean(r.can_publish), seat: (r.seat as number | null) ?? null,
   })
   return {
-    url: cfg.url, token, role, seat: r.seat, title: r.title, state: r.state,
+    url: cfg.publicUrl || cfg.url, token, role, seat: r.seat, title: r.title, state: r.state,
     canPublish: r.can_publish, canPublishScreen: r.can_publish_screen, chatEnabled: r.chat_enabled, onlyHostAudio: r.only_host_audio,
   }
 }

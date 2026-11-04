@@ -5,9 +5,11 @@
 import { sha256b64, signHS256, verifyHS256 } from './jwt.ts'
 
 export interface LiveKitConfig {
-  url: string // wss://...
+  url: string // server API üçün (daxili ünvan ola bilər)
   apiKey: string
   apiSecret: string
+  /** Klientin qoşulacağı ünvan (wss://...). Verilməyibsə url istifadə olunur. */
+  publicUrl?: string
 }
 
 export type Source = 'camera' | 'microphone' | 'screen_share' | 'screen_share_audio'

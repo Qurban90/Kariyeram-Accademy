@@ -159,4 +159,12 @@ describe('router validasiyası', () => {
     await dispatch('live/chat', ctx(db), { session: S1, body: 'salam', p_user: U2, userId: U2 })
     expect(seen[0]).toMatchObject({ p_user: U1 })
   })
+  it('client/event: yalnız icazəli növlər, istifadəçi kontekstdən', async () => {
+    const seen: [string, Record<string, unknown>][] = []
+    const db = { async rpc(fn: string, args: Record<string, unknown>) { seen.push([fn, args]); return { ok: true, recorded: true } as never } }
+    await expect(dispatch('client/event', ctx(db), { kind: 'drop' })).rejects.toMatchObject({ code: 'bad_kind' })
+    await expect(dispatch('client/event', ctx(db), { kind: 'screenshot', context: 'x'.repeat(65) })).rejects.toMatchObject({ code: 'bad_context' })
+    await dispatch('client/event', ctx(db), { kind: 'screenshot', context: 'test', p_user: U2 })
+    expect(seen).toEqual([['report_client_event', { p_user: U1, p_kind: 'screenshot', p_context: 'test' }]])
+  })
 })

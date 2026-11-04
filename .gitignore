@@ -22,3 +22,5 @@ coverage/
 # Supabase lokal
 supabase/.branches/
 supabase/.temp/
+tests/e2e/screenshots/
+apps/app/dist/

@@ -60,4 +60,9 @@ describe('api handlers', () => {
     await finish(db, 'u1', { session: 's' })
     expect(calls.filter((c) => c.fn === 'upsert_card')).toHaveLength(2)
   })
+  it('finish: təkrar çağırış (already) kartları ikinci dəfə yeniləmir', async () => {
+    const { db, calls } = fakeDb({ finish_session: { mode: 'exam', total: 2, already: true }, session_review: { items: [{ question_id: 'a', correct: true, stem: 'x' }] }, card_of: [], upsert_card: null })
+    await finish(db, 'u1', { session: 's' })
+    expect(calls.map((c) => c.fn)).toEqual(['finish_session'])
+  })
 })

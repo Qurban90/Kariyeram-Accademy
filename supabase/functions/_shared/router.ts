@@ -1,7 +1,7 @@
 /** Bütün API marşrutları: giriş validasiyası + handler. index.ts yalnız HTTP, auth və log ilə məşğuldur. */
 import * as account from './account.ts'
 import type { AdminDeps } from './account.ts'
-import { ApiError } from './errors.ts'
+import { ApiError, unwrap } from './errors.ts'
 import { answer, claimDevice, finish, nextQuestion, redeemCode, reviewSession, startSession, type Db } from './handlers.ts'
 import * as live from './live.ts'
 import type { LiveDeps } from './live.ts'
@@ -28,6 +28,11 @@ export const routes: Record<string, Handler> = {
   'account/revoke': (c, b) => account.revoke(c.db, c.userId, oneOf(b, 'doc', ['marketing', 'recording'])!),
   'account/export': (c) => account.exportData(c.db, c.userId),
   'account/delete': (c, b) => account.deleteAccount(c.db, c.admin, c.userId, str(b, 'confirm', 1, 10)!),
+
+  // Klient təhlükəsizlik siqnalı (iOS ekran şəkli və s.) — yalnız audit, sübut deyil
+  'client/event': async (c, b) => unwrap(await c.db.rpc<Record<string, unknown>>('report_client_event', {
+    p_user: c.userId, p_kind: oneOf(b, 'kind', ['screenshot', 'screen_recording'])!, p_context: str(b, 'context', 0, 64, true) ?? null,
+  })),
 
   // Cihaz və abunə
   'device/claim': (c, b) => claimDevice(c.db, c.userId, { device: device(b) }),

@@ -25,3 +25,20 @@ jobs:
       - run: npm run db:test
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      # Veb build tüstü yoxlaması (ünvanlar saxtadır: yalnız paketin yığıldığını yoxlayır).
+      - run: npx expo export --platform web --output-dir dist
+        working-directory: apps/app
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: https://example.invalid
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
+
+  secrets:
+    # SEC-007: repoya sir düşməsinin qarşısı. Şəxsi hesab reposu üçün lisenziya tələb olunmur.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

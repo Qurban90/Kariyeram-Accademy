@@ -9,7 +9,7 @@ const env = (k: string) => Deno.env.get(k) ?? ''
 const supa = { url: env('SUPABASE_URL'), serviceKey: env('SUPABASE_SERVICE_ROLE_KEY') }
 const db = restDb(supa)
 const lk: LiveKitConfig | null = env('LIVEKIT_URL') && env('LIVEKIT_API_KEY') && env('LIVEKIT_API_SECRET')
-  ? { url: env('LIVEKIT_URL'), apiKey: env('LIVEKIT_API_KEY'), apiSecret: env('LIVEKIT_API_SECRET') }
+  ? { url: env('LIVEKIT_URL'), apiKey: env('LIVEKIT_API_KEY'), apiSecret: env('LIVEKIT_API_SECRET'), publicUrl: env('LIVEKIT_PUBLIC_URL') || undefined }
   : null
 const live = { cfg: lk, rooms: lk ? new RoomService(lk) : null }
 const admin = { deleteAuthUser: (id: string) => deleteAuthUser(supa, id) }

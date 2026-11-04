@@ -102,7 +102,7 @@ begin
 
   r := public.finish_session(a, s);
   perform tests.ok((r->>'correct')::int = 1 and (r->>'wrong')::int = 1 and (r->>'blank')::int = 1 and (r->>'percent')::numeric = 33.3, 'nəticə: 1 düz, 1 səhv, 1 boş, 33.3%');
-  perform tests.ok(public.finish_session(a, s) = r, 'bitirmə idempotentdir');
+  perform tests.ok(public.finish_session(a, s) - 'already' = r and (public.finish_session(a, s)->>'already')::boolean, 'bitirmə idempotentdir və təkrar çağırışı bildirir');
   perform tests.ok((select count(*) from public.diary_entries where student_id = a and kind = 'test') = 1, 'nəticə gündəliyə düşdü');
 
   r := public.session_review(a, s);

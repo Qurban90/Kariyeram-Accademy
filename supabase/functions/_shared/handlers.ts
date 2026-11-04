@@ -90,7 +90,8 @@ async function updateCard(db: Db, student: string, question: string, correct: bo
 
 export async function finish(db: Db, student: string, b: { session: string }, now = new Date()) {
   const res = unwrap(await db.rpc<Record<string, unknown>>('finish_session', { p_student: student, p_session: b.session }))
-  if (res.mode === 'exam') {
+  // Təkrar çağırış (already) kartları yenidən yeniləməməlidir: FSRS bir cavabı iki dəfə saymasın.
+  if (res.mode === 'exam' && !res.already) {
     const rev = await db.rpc<{ items: { question_id: string; correct: boolean; stem: string }[] }>('session_review', { p_student: student, p_session: b.session })
     for (const it of rev.items ?? []) await updateCard(db, student, it.question_id, it.correct, 30_000, it.stem.length, now)
   }
