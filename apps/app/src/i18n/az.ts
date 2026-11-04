@@ -170,6 +170,13 @@ export const t = {
     title: 'Giriş üsulları', none: 'bağlı deyil', addEmail: 'E-poçt əlavə et', addPhone: 'Telefon əlavə et',
     done: 'Bağlandı: indi hər iki üsulla daxil ola bilərsiniz.', taken: 'Bu ünvan/nömrə başqa hesaba bağlıdır.',
   },
+  library: {
+    shelf: 'Şkaf', empty: 'Şkaf hələ boşdur.', locked: 'Kod tələb olunur', free: 'Pulsuz', pdf: 'PDF', text: 'Konspekt',
+    pdfNote: 'PDF 5 dəqiqəlik təhlükəsiz keçidlə açılır.',
+    add: 'Şkafa əlavə et', title: 'Başlıq', body: 'Konspekt mətni', freeToggle: 'Hamıya açıq (pulsuz)', pickPdf: 'PDF seç',
+    picked: (n: string, kb: number) => `${n} (${kb} KB)`, tooBig: 'Fayl 25 MB-dan böyükdür.', uploaded: 'Şkafa əlavə olundu.', remove: 'Sil',
+    needSubject: 'Fənn seçin.', needTitle: 'Başlıq yazın.', needBody: 'Mətn boşdur.', needFile: 'PDF seçin.',
+  },
   board: {
     title: 'Şərəf lövhəsi', sub: 'Bu həftənin ən dəqiq tələbələri', all: 'Hamısı',
     note: (n: number) => `Sıralama faizlə yox, etibarlılıqla: az cavabla təsadüfi 100% önə keçmir. Lövhəyə düşmək üçün bu həftə ən azı ${n} cavab lazımdır.`,

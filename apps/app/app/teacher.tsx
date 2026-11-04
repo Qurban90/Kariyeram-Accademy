@@ -2,10 +2,11 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Platform, Text, View } from 'react-native'
-import { Button, Card, Chip, ErrorBox, Field, H, Loading, P, Screen } from '../src/components/ui'
+import * as DocumentPicker from 'expo-document-picker'
+import { Button, Card, Check, Chip, ErrorBox, Field, H, Loading, P, Screen } from '../src/components/ui'
 import { t } from '../src/i18n/az'
 import { api, ApiFailure } from '../src/lib/api'
-import { useSubjects } from '../src/lib/queries'
+import { useLibrary, useSubjects } from '../src/lib/queries'
 import { supabase } from '../src/lib/supabase'
 import { colors, font, space } from '../src/theme'
 
@@ -17,7 +18,7 @@ interface StaffQuestion {
 const msg = (e: unknown) => (e instanceof ApiFailure ? e.message : e instanceof Error ? e.message : String(e))
 
 export default function Teacher() {
-  const [tab, setTab] = useState<'questions' | 'codes' | 'analysis' | 'diary'>('questions')
+  const [tab, setTab] = useState<'questions' | 'codes' | 'analysis' | 'diary' | 'library'>('questions')
   return (
     <Screen back title={t.teacher.title}>
       <View style={{ flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' }}>
@@ -25,8 +26,9 @@ export default function Teacher() {
         <Chip testID="tab-codes" label={t.teacher.codes} selected={tab === 'codes'} onPress={() => setTab('codes')} />
         <Chip testID="tab-analysis" label={t.teacher.analysis} selected={tab === 'analysis'} onPress={() => setTab('analysis')} />
         <Chip testID="tab-diary" label={t.teacher.diary} selected={tab === 'diary'} onPress={() => setTab('diary')} />
+        <Chip testID="tab-library" label={t.library.shelf} selected={tab === 'library'} onPress={() => setTab('library')} />
       </View>
-      {tab === 'questions' ? <ReviewQueue /> : tab === 'codes' ? <><CodeMaker /><CodeList /></> : tab === 'analysis' ? <Analysis /> : <DiaryWriter />}
+      {tab === 'questions' ? <ReviewQueue /> : tab === 'codes' ? <><CodeMaker /><CodeList /></> : tab === 'analysis' ? <Analysis /> : tab === 'diary' ? <DiaryWriter /> : <ShelfManager />}
     </Screen>
   )
 }
@@ -220,6 +222,92 @@ function DiaryWriter() {
       <ErrorBox message={err} />
       {ok ? <P style={{ color: colors.ok }}>{ok}</P> : null}
       <Button testID="d-save" label={t.teacher.save} onPress={save} loading={busy} />
+    </View>
+  )
+}
+
+const MAX_PDF = 25 * 1024 * 1024
+
+function ShelfManager() {
+  const subjects = useSubjects()
+  const qc = useQueryClient()
+  const [subject, setSubject] = useState<string | null>(null)
+  const list = useLibrary(subject ?? undefined)
+  const [kind, setKind] = useState<'text' | 'pdf'>('text')
+  const [title, setTitle] = useState('')
+  const [body, setBody] = useState('')
+  const [free, setFree] = useState(false)
+  const [file, setFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null)
+  const [err, setErr] = useState<string | null>(null)
+  const [ok, setOk] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  const pick = async () => {
+    setErr(null)
+    const r = await DocumentPicker.getDocumentAsync({ type: 'application/pdf', copyToCacheDirectory: true, multiple: false })
+    if (r.canceled || !r.assets[0]) return
+    const a = r.assets[0]
+    if ((a.size ?? 0) > MAX_PDF) { setErr(t.library.tooBig); return }
+    setFile(a)
+  }
+
+  const save = async () => {
+    setErr(null); setOk(null)
+    if (!subject) { setErr(t.library.needSubject); return }
+    if (!title.trim()) { setErr(t.library.needTitle); return }
+    if (kind === 'text' && !body.trim()) { setErr(t.library.needBody); return }
+    if (kind === 'pdf' && !file) { setErr(t.library.needFile); return }
+    setBusy(true)
+    try {
+      if (kind === 'text') {
+        await api.libraryAdd({ subject, title: title.trim(), kind, free, body })
+      } else {
+        // 1) server yol və birdəfəlik yükləmə tokeni verir, 2) fayl birbaşa Storage-a, 3) metadata qeydi.
+        const up = await api.libraryUploadUrl(subject)
+        const data: Blob | ArrayBuffer = file!.file ?? (await (await fetch(file!.uri)).arrayBuffer())
+        const { error } = await supabase.storage.from('library').uploadToSignedUrl(up.path, up.token, data, { contentType: 'application/pdf' })
+        if (error) throw new Error(error.message)
+        await api.libraryAdd({ subject, title: title.trim(), kind, free, path: up.path, bytes: file!.size ?? undefined })
+      }
+      setOk(t.library.uploaded); setTitle(''); setBody(''); setFile(null)
+      await qc.invalidateQueries({ queryKey: ['library'] })
+    } catch (e) { setErr(msg(e)) } finally { setBusy(false) }
+  }
+
+  const remove = async (id: string) => {
+    setErr(null)
+    try { await api.libraryDelete(id); await qc.invalidateQueries({ queryKey: ['library'] }) } catch (e) { setErr(msg(e)) }
+  }
+
+  return (
+    <View style={{ gap: space.md }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
+        {(subjects.data ?? []).map((s) => <Chip key={s.id} testID={`ls-${s.id}`} label={s.name} selected={subject === s.id} onPress={() => setSubject(s.id)} />)}
+      </View>
+      <View style={{ flexDirection: 'row', gap: space.sm }}>
+        <Chip testID="lk-text" label={t.library.text} selected={kind === 'text'} onPress={() => setKind('text')} />
+        <Chip testID="lk-pdf" label={t.library.pdf} selected={kind === 'pdf'} onPress={() => setKind('pdf')} />
+      </View>
+      <Field testID="l-title" label={t.library.title} value={title} onChangeText={setTitle} maxLength={140} />
+      {kind === 'text'
+        ? <Field testID="l-body" label={t.library.body} value={body} onChangeText={setBody} multiline maxLength={200000} style={{ minHeight: 160, textAlignVertical: 'top' }} />
+        : (
+          <View style={{ gap: space.xs }}>
+            <Button small variant="ghost" testID="l-pick" label={t.library.pickPdf} onPress={pick} />
+            {file && <P small>{t.library.picked(file.name, Math.round((file.size ?? 0) / 1024))}</P>}
+          </View>
+        )}
+      <Check testID="l-free" label={t.library.freeToggle} value={free} onChange={setFree} />
+      <ErrorBox message={err} />
+      {ok ? <P style={{ color: colors.ok }}>{ok}</P> : null}
+      <Button testID="l-save" label={t.library.add} onPress={save} loading={busy} />
+
+      {(list.data ?? []).map((it) => (
+        <View key={it.id} style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+          <Text style={{ color: colors.chalk, flex: 1, fontSize: font.small }}>{it.kind === 'pdf' ? '📄' : '📘'} {it.title}{it.free ? ` · ${t.library.free}` : ''}</Text>
+          <Button small variant="danger" label={t.library.remove} onPress={() => remove(it.id)} />
+        </View>
+      ))}
     </View>
   )
 }

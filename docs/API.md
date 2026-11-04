@@ -18,6 +18,10 @@
 | `account/revoke` | `doc: marketing\|recording` | `{ok}` | Məcburi sənədlər geri götürülmür |
 | `account/export` | — | şəxsi məlumat JSON | Cavab açarları daxil deyil |
 | `account/delete` | `confirm: "SİL"` | `{ok}` | Şəxsi məlumat silinir, audit anonim qalır |
+| `library/open` | `item` | mətn: `{kind, title, watermark, body}`; PDF: `{kind, title, url, expiresIn: 300}` | Pulsuz və ya abunə; audit; `url` nisbidir (`{SUPABASE_URL}/storage/v1` + url) |
+| `staff/library/upload-url` | `subject` | `{path, token}` | Yol serverdə: `<fənn>/<uuid>.pdf`; birdəfəlik yükləmə tokeni |
+| `staff/library/add` | `subject, title, kind: text\|pdf, free, body? (≤200 000), path?, bytes?` | `{id}` | Bu marşrut üçün gövdə limiti 900 KB |
+| `staff/library/delete` | `item` | `{ok}` | Metadata, sonra fayl |
 | `board` | `subject?` | `{since, minTotal, top[]: rank, name, score, total, me; me}` | Bu həftə; yalnız razılıq verənlər + özü |
 | `account/board` | `show: boolean` | `{show}` | Lövhədə görünmə razılığı (defolt: yox) |
 | `staff/codes` | `subject, count: 1..200, days: 1..730` | `{codes[], subject, days}` | Yalnız müəllim/admin; kodlar yalnız bu cavabda açıq görünür |

@@ -6,6 +6,8 @@ import { answer, claimDevice, finish, nextQuestion, redeemCode, reviewSession, s
 import * as live from './live.ts'
 import { itemAnalysis } from './staff.ts'
 import { board } from './board.ts'
+import * as library from './library.ts'
+import type { StorageDeps } from './supabase.ts'
 import type { LiveDeps } from './live.ts'
 import { bool, device, int, obj, oneOf, str, uuid, uuids } from './validate.ts'
 
@@ -14,6 +16,7 @@ export interface Ctx {
   userId: string
   live: LiveDeps
   admin: AdminDeps
+  storage?: StorageDeps
 }
 
 type Handler = (ctx: Ctx, body: Record<string, unknown>) => Promise<unknown>
@@ -35,6 +38,19 @@ export const routes: Record<string, Handler> = {
   'client/event': async (c, b) => unwrap(await c.db.rpc<Record<string, unknown>>('report_client_event', {
     p_user: c.userId, p_kind: oneOf(b, 'kind', ['screenshot', 'screen_recording'])!, p_context: str(b, 'context', 0, 64, true) ?? null,
   })),
+
+  // Konspekt şkafı
+  'library/open': (c, b) => library.open(c.db, c.storage, c.userId, uuid(b, 'item')),
+  'staff/library/upload-url': (c, b) => library.uploadUrl(c.db, c.storage, c.userId, str(b, 'subject', 1, 40)!),
+  'staff/library/add': (c, b) => {
+    const kind = oneOf(b, 'kind', ['text', 'pdf'])!
+    return library.add(c.db, c.userId, {
+      subject: str(b, 'subject', 1, 40)!, topic: b.topic ? uuid(b, 'topic') : undefined, title: str(b, 'title', 1, 140)!, kind,
+      free: bool(b, 'free')!, body: kind === 'text' ? str(b, 'body', 1, 200_000)! : undefined,
+      path: kind === 'pdf' ? str(b, 'path', 5, 200)! : undefined, bytes: int(b, 'bytes', 1, 26_214_400, true),
+    })
+  },
+  'staff/library/delete': (c, b) => library.remove(c.db, c.storage, c.userId, uuid(b, 'item')),
 
   // Şərəf lövhəsi (məxfilik: yalnız razılıq verənlər görünür)
   'board': (c, b) => board(c.db, c.userId, str(b, 'subject', 1, 40, true) ?? null),

@@ -5,7 +5,9 @@ import { StyleSheet, Text, View } from 'react-native'
 import { Button, Card, Chip, ErrorBox, H, Loading, P, Screen } from '../../src/components/ui'
 import { t } from '../../src/i18n/az'
 import { api, ApiFailure, type Mode } from '../../src/lib/api'
-import { hasAccess, useEnrollments, useSubjects, useTopics } from '../../src/lib/queries'
+import * as WebBrowser from 'expo-web-browser'
+import { config } from '../../src/config'
+import { hasAccess, useEnrollments, useLibrary, useSubjects, useTopics } from '../../src/lib/queries'
 import { colors, font, radius, space } from '../../src/theme'
 
 const SIZES = [10, 20, 30, 50] as const
@@ -21,6 +23,7 @@ export default function Room() {
   const subjects = useSubjects()
   const topics = useTopics(subject)
   const enr = useEnrollments()
+  const shelf = useLibrary(subject)
   const [mode, setMode] = useState<Mode>('topic')
   const [size, setSize] = useState<number>(10)
   const [picked, setPicked] = useState<Set<string>>(new Set())
@@ -34,6 +37,15 @@ export default function Room() {
   if (topics.isLoading || subjects.isLoading) return <Screen back title={name}><Loading /></Screen>
 
   const toggle = (id: string) => setPicked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n })
+
+  const openItem = async (id: string, kind: 'text' | 'pdf') => {
+    setErr(null)
+    if (kind === 'text') { router.push({ pathname: '/library/[id]', params: { id } }); return }
+    try {
+      const r = await api.libraryOpen(id)
+      if (r.url) await WebBrowser.openBrowserAsync(`${config.supabaseUrl}/storage/v1${r.url}`)
+    } catch (e) { setErr(e instanceof ApiFailure ? e.message : String(e)) }
+  }
 
   const start = async () => {
     setErr(null)
@@ -96,6 +108,19 @@ export default function Room() {
       )}
       <ErrorBox message={err} />
       <Button testID="start-test" label={t.room.start} onPress={start} loading={busy} />
+
+      <H level={2}>📚 {t.library.shelf}</H>
+      {(shelf.data ?? []).length === 0 && <P dim small>{t.library.empty}</P>}
+      {(shelf.data ?? []).map((it, i) => {
+        const can = !!access || it.free
+        return (
+          <Card key={it.id} testID={`shelf-${i}`} label={it.title} onPress={can ? () => openItem(it.id, it.kind) : undefined} style={!can ? { opacity: 0.55 } : undefined}>
+            <Text style={{ color: colors.chalk, fontWeight: '700' }}>{it.kind === 'pdf' ? '📄' : '📘'} {it.title}</Text>
+            <P dim small>{it.kind === 'pdf' ? t.library.pdf : t.library.text}{it.free && !access ? ` · ${t.library.free}` : ''}{!can ? ` · 🔒 ${t.library.locked}` : ''}</P>
+          </Card>
+        )
+      })}
+      {(shelf.data ?? []).some((x) => x.kind === 'pdf') && <P dim small>{t.library.pdfNote}</P>}
     </Screen>
   )
 }

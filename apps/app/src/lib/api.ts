@@ -139,6 +139,10 @@ export const api = {
   revokeCode: (code: string) => call<{ ok: boolean }>('staff/codes/revoke', { code }),
   diaryAdd: (b: { studentNo: number; kind: 'grade' | 'note'; title: string; grade?: string; text?: string }) => call<{ id: string; student_name: string }>('staff/diary', b),
   attendance: (session: string) => call<{ rows: AttendanceRow[] }>('live/attendance', { session }),
+  libraryOpen: (item: string) => call<{ kind: 'text' | 'pdf'; title: string; watermark: number; body?: string; url?: string; expiresIn?: number }>('library/open', { item }),
+  libraryUploadUrl: (subject: string) => call<{ path: string; token: string }>('staff/library/upload-url', { subject }),
+  libraryAdd: (b: { subject: string; title: string; kind: 'text' | 'pdf'; free: boolean; body?: string; path?: string; bytes?: number }) => call<{ id: string }>('staff/library/add', b),
+  libraryDelete: (item: string) => call<{ ok: boolean }>('staff/library/delete', { item }),
   clientEvent: (kind: 'screenshot' | 'screen_recording', context?: string) => call('client/event', context ? { kind, context } : { kind }),
 
   start: (b: { subject: string; mode: Mode; topicIds?: string[]; size?: number }) =>

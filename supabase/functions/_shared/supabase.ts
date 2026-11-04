@@ -45,3 +45,35 @@ export async function deleteAuthUser(cfg: SupaConfig, id: string): Promise<void>
   const r = await call(cfg, `/auth/v1/admin/users/${encodeURIComponent(id)}`, { method: 'DELETE' })
   if (!r.ok) throw new Error(`auth delete: ${r.status}`)
 }
+
+/** Storage (şəxsi bucket): imzalı yükləmə/endirmə ünvanları. Ünvanlar nisbi qaytarılır (/object/...), klient öz Supabase URL-i ilə birləşdirir. */
+export interface StorageDeps {
+  signDownload(path: string, ttlSeconds: number): Promise<string>
+  signUpload(path: string): Promise<{ path: string; token: string }>
+  remove(path: string): Promise<void>
+}
+
+export function restStorage(cfg: SupaConfig, bucket: string): StorageDeps {
+  const p = (path: string) => path.split('/').map(encodeURIComponent).join('/')
+  return {
+    async signDownload(path, ttl) {
+      const r = await call(cfg, `/storage/v1/object/sign/${bucket}/${p(path)}`, { method: 'POST', body: JSON.stringify({ expiresIn: ttl }) })
+      if (!r.ok) throw new Error(`storage sign: ${r.status}`)
+      const j = (await r.json()) as { signedURL?: string }
+      if (!j.signedURL) throw new Error('storage sign: no url')
+      return j.signedURL
+    },
+    async signUpload(path) {
+      const r = await call(cfg, `/storage/v1/object/upload/sign/${bucket}/${p(path)}`, { method: 'POST', body: '{}' })
+      if (!r.ok) throw new Error(`storage upload sign: ${r.status}`)
+      const j = (await r.json()) as { url?: string; token?: string }
+      const token = j.token ?? new URL(`http://x${j.url ?? ''}`).searchParams.get('token')
+      if (!token) throw new Error('storage upload sign: no token')
+      return { path, token }
+    },
+    async remove(path) {
+      const r = await call(cfg, `/storage/v1/object/${bucket}`, { method: 'DELETE', body: JSON.stringify({ prefixes: [path] }) })
+      if (!r.ok) throw new Error(`storage remove: ${r.status}`)
+    },
+  }
+}

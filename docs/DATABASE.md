@@ -14,6 +14,7 @@ Migrasiyalar (`supabase/migrations`), ardıcıllıqla:
 | `20261104000008_questions_readonly_staff.sql` | Müəllim `questions`-ı REST ilə yalnız oxuyur |
 | `20261104000009_session_rate_limit.sql` | Saatda 60 test sessiyası |
 | `20261104000010_staff_more.sql` | `staff_list_codes`, `staff_revoke_code`, `staff_diary_add` |
+| `20261104000011_library.sql` | Konspekt şkafı: `library_items`, `library_bodies` (klientə bağlı), `library_open`, `staff_library_add/delete`, şəxsi `library` bucket-i |
 | `20261104000006_honor_board.sql` | `profiles.show_on_board`, `set_board_visibility`, `board_rows`, `_short_name` |
 
 ## Prinsiplər

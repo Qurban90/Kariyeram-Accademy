@@ -63,7 +63,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | FR-028 | "Səhvlərim harada çoxdur" | S | Mövzu üzrə səhv payı | Hazır (core + UI) |
 | FR-029 | Pulsuz sınaq mövzusu | M | Abunəsiz yalnız `free` mövzular | Hazır (DB + UI, E2E) |
 | FR-030 | Kodla abunə aktivləşdirmə | M | Kod bir dəfəlik, hash | Hazır (DB + UI) |
-| FR-031 | Konspekt kitabxanası (şkaf) | S | İcazəli PDF/mətn | Plan |
+| FR-031 | Konspekt kitabxanası (şkaf) | S | İcazəli PDF/mətn | Hazır (mətn: su nişanı ilə tətbiqdə; PDF: 5 dəq imzalı URL; DB + API + UI, E2E) |
 | FR-032 | İmtahan zalı: vaxtlı DİM formatlı sınaq | S | Server vaxtı, sonda nəticə | Hazır (API + UI, taymer) |
 
 ### Oxu zalı (canlı)
@@ -124,7 +124,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | TEST-001 | Alqoritm vahid testləri | Vitest | Hazır |
 | TEST-002 | DB/RLS testləri real Postgres-də | psql | Hazır |
 | TEST-003 | Lokal Supabase ilə end-to-end API testi | supabase start | Hazır (8 inteqrasiya testi) |
-| TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (27 addım) |
+| TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (28 addım) |
 | TEST-005 | Native cihazlarda E2E | Maestro/Detox | Plan |
 | NFR-004 | Əlçatanlıq: toxunma sahəsi ≥ 44, ARIA rolları və vəziyyətləri, azaldılmış hərəkət | Ekran oxuyucu ilə yoxlama | Qismən (kod; ekran oxuyucu ilə yoxlanmayıb) |
 

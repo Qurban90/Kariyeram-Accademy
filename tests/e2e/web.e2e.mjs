@@ -58,6 +58,7 @@ const HOST_LOCAL = '050 000 00 02'
 const HOST_DB = '994500000002'
 // Təmiz başlanğıc
 sql(`delete from auth.users where phone in ('${PHONE_DB}', '${HOST_DB}')`)
+sql(`delete from public.library_items where title like 'E2E:%'`)
 sql(`delete from public.questions q where q.stem = '[E2E] Yoxlama sualı' and not exists (select 1 from public.answers a where a.question_id = q.id)`)
 
 const browser = await chromium.launch({ args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--autoplay-policy=no-user-gesture-required'] })
@@ -321,6 +322,44 @@ try {
     await sp.goto(`http://127.0.0.1:${PORT}/diary`)
     await sp.getByText('Şifahi sorğu: say sistemləri').waitFor({ timeout: 15000 })
     await sp.close()
+  })
+
+  await step('şkaf: müəllim mətn konspekti və PDF yükləyir → tələbə oxuyur (icazə, su nişanı, imzalı URL)', async () => {
+    const lp = await hctx.newPage()
+    await lp.goto(`http://127.0.0.1:${PORT}/teacher`)
+    await lp.getByTestId('tab-library').click()
+    await lp.getByTestId('ls-informatika').click()
+    await lp.getByTestId('l-title').fill('E2E: Say sistemləri konspekti')
+    await lp.getByTestId('l-body').fill('İkilik say sistemində yalnız 0 və 1 var.\n\nOnaltılıqda A=10, F=15.')
+    await lp.getByTestId('l-save').click()
+    await lp.getByText('Şkafa əlavə olundu.').waitFor({ timeout: 15000 })
+    await lp.getByTestId('lk-pdf').click()
+    await lp.getByTestId('l-title').fill('E2E: PDF konspekt')
+    const [chooser] = await Promise.all([lp.waitForEvent('filechooser'), lp.getByTestId('l-pick').click()])
+    await chooser.setFiles(join(ROOT, 'tests/e2e/fixtures/demo-konspekt.pdf'))
+    await lp.getByText(/demo-konspekt\.pdf/).waitFor({ timeout: 10000 })
+    await lp.getByTestId('l-save').click()
+    await lp.getByText('Şkafa əlavə olundu.').waitFor({ timeout: 20000 })
+    await lp.close()
+    expect(sql(`select count(*) from public.library_items where title like 'E2E:%'`) === '2', 'şkafa yazılmadı')
+
+    const sp = await ctx.newPage()
+    await sp.goto(`http://127.0.0.1:${PORT}/room/informatika`)
+    await sp.getByText('📘 E2E: Say sistemləri konspekti').click()
+    await sp.getByTestId('library-body').getByText('Onaltılıqda A=10, F=15.').waitFor({ timeout: 15000 })
+    expect(await sp.getByText(/№ \d+/).count() > 0, 'konspektdə su nişanı yoxdur')
+    await sp.goBack()
+    const [req] = await Promise.all([
+      ctx.waitForEvent('request', { predicate: (r) => r.url().includes('/storage/v1/object/sign/library/'), timeout: 15000 }),
+      sp.getByText('📄 E2E: PDF konspekt').click(),
+    ])
+    const pdfUrl = req.url()
+    expect(/\/storage\/v1\/object\/sign\/library\/informatika\/[0-9a-f-]{36}\.pdf\?token=/.test(pdfUrl), 'imzalı URL deyil: ' + pdfUrl)
+    const res = await fetch(pdfUrl)
+    expect(res.status === 200 && (await res.arrayBuffer()).byteLength > 300, 'PDF endirilmədi')
+    const unsigned = await fetch(pdfUrl.replace('/object/sign/', '/object/public/').split('?')[0])
+    expect(unsigned.status >= 400, 'PDF imzasız açılır!')
+    for (const p of ctx.pages()) if (p !== page) await p.close()
   })
 
   await step('müəllim dərsi başladır və kameranı açır', async () => {

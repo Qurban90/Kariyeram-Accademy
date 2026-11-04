@@ -36,6 +36,8 @@ Versiya 0.1 · 2026-11-04. Bu sənəd heç bir şeyin "100% təhlükəsiz" oldu�
 | I | İmtahanda nəticəni əvvəlcədən görmək | İmtahanda `submit_answer` yalnız `accepted` qaytarır | DB testi |
 | I | Bankı skreypinq (avtomat) | Gündəlik limit (Bakı günü), sürət medianı < 1.5 san → 1 saat dayandırma, bir aktiv sessiya, tək cihaz | DB testləri |
 | I | Ekran şəkli ilə sızma | Android: FLAG_SECURE; iOS: aşkarlanma + audit; su nişanı (`student_no`) | **Native cihazda yoxlanmayıb** (yalnız kod) |
+| I | Ödənişli konspekti abunəsiz oxumaq | Gövdə klientə bağlı cədvəldə; `library_open` icazə yoxlayır; PDF şəxsi bucket-də, yalnız 5 dəq imzalı URL | DB + E2E (imzasız URL rədd) |
+| T | Yükləmə yolu ilə başqa fayla yazmaq | Yolu server yaradır, DB `<fənn>/<uuid>.pdf` formatını tələb edir | DB testi |
 | I | Başqasının chat/iştirakçı məlumatı | RLS: yalnız iştirakçı və host | İnteqrasiya + E2E (Realtime) |
 | I | Sirlərin repoya düşməsi | `.env*` gitignore, CI-də gitleaks | gitleaks konfiqurasiya olunub, **CI-də hələ işləməyib** |
 | **D**enial of service | Böyük gövdə | 64 KB limit | Kod |
@@ -64,6 +66,7 @@ Versiya 0.1 · 2026-11-04. Bu sənəd heç bir şeyin "100% təhlükəsiz" oldu�
 | R-09 | Veb versiyada ekran qoruması yoxdur | Yüksək | Orta | Orta | Vebdə yalnız su nişanı; istəyə görə test vebdə bağlana bilər |
 | R-10 | Asılılıq zəiflikləri (npm) | Orta | Orta | Orta | 2026-11-04 `npm audit --omit=dev`: 6 orta (glob/minimatch, Expo build alətlərində, işləyən tətbiqdə deyil). Avtomatik düzəliş Expo-nu köhnə versiyaya endirir, ona görə Expo yeniləmələri izlənir. Dependabot (plan) |
 | R-12 | Vebdə sessiya tokeni `localStorage`-dadır (XSS olarsa oğurlana bilər) | Aşağı | Yüksək | Orta | Üçüncü tərəf skript yoxdur; istehsalda CSP başlığı; native-də SecureStore |
+| R-13 | PDF konspekt brauzerdə açılır: su nişanı yoxdur, imzalı keçid 5 dəqiqə ərzində başqasına ötürülə bilər | Orta | Orta | Orta | Mətn konspektləri tətbiqdə su nişanı ilə; PDF üçün plan: serverdə tələbə nömrəsi ilə möhürləmə və ya tətbiq daxili görüntüləyici |
 | R-11 | Müəllim/admin hesabının ələ keçirilməsi | Aşağı | Yüksək | Orta | Staff üçün MFA (Supabase Auth MFA) — plan |
 
 ## 5. Sirlər

@@ -3,7 +3,7 @@
 import { ApiError } from '../_shared/errors.ts'
 import { RoomService, type LiveKitConfig } from '../_shared/livekit.ts'
 import { dispatch, type Ctx } from '../_shared/router.ts'
-import { deleteAuthUser, getUserId, restDb } from '../_shared/supabase.ts'
+import { deleteAuthUser, getUserId, restDb, restStorage } from '../_shared/supabase.ts'
 
 const env = (k: string) => Deno.env.get(k) ?? ''
 const supa = { url: env('SUPABASE_URL'), serviceKey: env('SUPABASE_SERVICE_ROLE_KEY') }
@@ -13,8 +13,11 @@ const lk: LiveKitConfig | null = env('LIVEKIT_URL') && env('LIVEKIT_API_KEY') &&
   : null
 const live = { cfg: lk, rooms: lk ? new RoomService(lk) : null }
 const admin = { deleteAuthUser: (id: string) => deleteAuthUser(supa, id) }
+const storage = restStorage(supa, 'library')
 
 const MAX_BODY = 64 * 1024
+/** Mətn konspekti (200 000 simvola qədər) üçün yeganə istisna. */
+const MAX_BODY_LIBRARY = 900 * 1024
 const origins = env('APP_ORIGINS').split(',').map((s) => s.trim()).filter(Boolean)
 
 function cors(req: Request): Record<string, string> {
@@ -46,9 +49,9 @@ Deno.serve(async (req) => {
   const started = Date.now()
   try {
     const raw = await req.text()
-    if (raw.length > MAX_BODY) return reply({ error: 'too_large' }, 413)
+    if (raw.length > (route === 'staff/library/add' ? MAX_BODY_LIBRARY : MAX_BODY)) return reply({ error: 'too_large' }, 413)
     const body = raw ? JSON.parse(raw) : {}
-    const ctx: Ctx = { db, userId, live, admin }
+    const ctx: Ctx = { db, userId, live, admin, storage }
     const out = await dispatch(route, ctx, body)
     log('info', 'api', { rid, route, ms: Date.now() - started })
     return reply(out)

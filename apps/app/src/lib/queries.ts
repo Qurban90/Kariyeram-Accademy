@@ -81,3 +81,14 @@ export const useActiveSession = () => useQuery({
     return ((data ?? [])[0] as ActiveSession | undefined) ?? null
   },
 })
+
+export interface LibraryItem { id: string; subject_id: string; topic_id: string | null; title: string; kind: 'text' | 'pdf'; free: boolean; created_at: string }
+/** Şkafın siyahısı (yalnız metadata; məzmun API-dən icazə ilə). */
+export const useLibrary = (subject?: string) => useQuery({
+  queryKey: ['library', subject ?? 'all'],
+  queryFn: () => {
+    let q = supabase.from('library_items').select('id, subject_id, topic_id, title, kind, free, created_at').order('created_at', { ascending: false }).limit(200)
+    if (subject) q = q.eq('subject_id', subject)
+    return rows<LibraryItem[]>(q)
+  },
+})
