@@ -40,6 +40,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select('id, display_name, student_no, role, onboarded_at, suspended_until').eq('id', s.user.id).maybeSingle()
     if (error) { setProfileError(error.message); return }
     setProfileError(null)
+    if (!data) {
+      // Token hələ etibarlıdır, amma profil yoxdur (hesab başqa cihazda silinib): sonsuz gözləmə əvəzinə çıxış.
+      await supabase.auth.signOut({ scope: 'local' }).catch(() => {})
+      setSession(null)
+    }
     setProfile(data as Profile | null)
   }, [])
 

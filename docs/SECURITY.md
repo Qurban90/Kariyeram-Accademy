@@ -60,6 +60,7 @@ Versiya 0.1 · 2026-11-04. Bu sənəd heç bir şeyin "100% təhlükəsiz" oldu�
 | R-08 | `APP_ORIGINS` boşdursa CORS `*` | Orta | Aşağı | Aşağı | İstehsalda mütləq təyin edilməli (DEPLOYMENT.md). Token olmadan API işləmir |
 | R-09 | Veb versiyada ekran qoruması yoxdur | Yüksək | Orta | Orta | Vebdə yalnız su nişanı; istəyə görə test vebdə bağlana bilər |
 | R-10 | Asılılıq zəiflikləri (npm) | Orta | Orta | Orta | Dependabot/`npm audit` CI-də (plan) |
+| R-12 | Vebdə sessiya tokeni `localStorage`-dadır (XSS olarsa oğurlana bilər) | Aşağı | Yüksək | Orta | Üçüncü tərəf skript yoxdur; istehsalda CSP başlığı; native-də SecureStore |
 | R-11 | Müəllim/admin hesabının ələ keçirilməsi | Aşağı | Yüksək | Orta | Staff üçün MFA (Supabase Auth MFA) — plan |
 
 ## 5. Sirlər

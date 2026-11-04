@@ -63,6 +63,8 @@ export default function LiveRoom() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
   useEffect(() => { void doJoin() }, [doJoin])
+  // Ekrandan istənilən yolla çıxanda (geri jesti də daxil) serverə ayrıldığımızı bildiririk; webhook da bunu edir, təkrar zərərsizdir.
+  useEffect(() => () => { api.liveLeave(id).catch(() => {}) }, [id])
 
   const leave = useCallback(async () => {
     await lk.disconnect()

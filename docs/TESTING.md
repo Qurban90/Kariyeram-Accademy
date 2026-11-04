@@ -8,7 +8,7 @@ Nəticələr uydurulmur: aşağıdakı rəqəmlər son işə salınmanın çıx�
 | Tip yoxlaması | `npm run typecheck` | `packages/core` və `apps/app` (native fayllar daxil) | Xətasız |
 | DB (psql) | `npm run db:test` | Sxem, RLS, bütün RPC-lər, limitlər, canlı dərs qaydaları, silinmə | 6 fayl, hamısı keçdi (155 yoxlama) |
 | İnteqrasiya | `npm run test:int` | Real Supabase (GoTrue, PostgREST, Edge Runtime), real LiveKit, Mailpit | 8/8 keçdi |
-| Veb E2E (Playwright) | `npm run test:e2e` | Build olunmuş tətbiq brauzerdə, real stekə qarşı: telefon OTP, razılıq, test, gündəlik, kabinet, yarımçıq testə qayıtma, müəllim otağı (dərc, kod yaratma → tələbədə aktivləşmə), canlı zal (müəllim + tələbə), Realtime chat, hesab silmə | 22/22 addım keçdi |
+| Veb E2E (Playwright) | `npm run test:e2e` | Build olunmuş tətbiq brauzerdə, real stekə qarşı: telefon OTP, razılıq, test, gündəlik, kabinet, yarımçıq testə qayıtma, müəllim otağı (dərc, kod yaratma → tələbədə aktivləşmə), canlı zal (müəllim + tələbə), Realtime chat, hesab silmə | 23/23 addım keçdi |
 | Native (iOS/Android) | — | — | **İşə salınmayıb** (bu mühitdə SDK yoxdur) |
 | Yük testi | — | — | **Edilməyib** |
 

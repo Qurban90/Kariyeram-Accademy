@@ -316,8 +316,12 @@ try {
     await page.getByText('Dərs bitdi.').waitFor({ timeout: 15000 })
     expect(sql(`select count(*) from public.live_participants where session_id = '${hostLive}' and left_at is null`) === '0', 'iştirakçılar bağlanmadı')
   })
+  await step('hesab başqa yerdə silinibsə tətbiq ilişmir, girişə qayıdır', async () => {
+    sql(`delete from auth.users where phone = '${HOST_DB}'`)
+    await host.goto(`http://127.0.0.1:${PORT}/`)
+    await host.waitForURL('**/sign-in', { timeout: 20000 })
+  })
   await hctx.close()
-  sql(`delete from auth.users where phone = '${HOST_DB}'`)
 
   await step('hesab silinir (SİL təsdiqi) və giriş səhifəsinə qayıdır', async () => {
     await page.goto(`http://127.0.0.1:${PORT}/profile`)
