@@ -40,7 +40,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | --- | --- | --- | --- | --- |
 | FR-001 | E-poçtla 6 rəqəmli OTP ilə qeydiyyat/giriş | M | Kod 1 dəfəlik, müddətli; yanlış kod rədd edilir | Hazır (lokal GoTrue + Mailpit inteqrasiya testi; real SMTP yoxlanmayıb) |
 | FR-002 | Telefonla SMS OTP qeydiyyat/giriş | M | +994 formatı yoxlanır, kod 1 dəfəlik | Qismən (klient + lokal test nömrəsi; SMS provayderi qoşulmayıb) |
-| FR-003 | Hesaba ikinci identifikator (telefon/e-poçt) bağlamaq | S | Təsdiqdən sonra hər ikisi ilə giriş | Plan |
+| FR-003 | Hesaba ikinci identifikator (telefon/e-poçt) bağlamaq | S | Təsdiqdən sonra hər ikisi ilə giriş | Hazır (e-poçt və telefon bağlama, kodla təsdiq; E2E: bağlanmış e-poçtla giriş) |
 | FR-004 | Qeydiyyatda şərtlər və məxfilik siyasətinə razılıq, yaş təsdiqi (18+) | M | Razılıq versiyası və vaxtı bazada | Hazır (DB + UI); hüquqi mətnlər yazılmayıb (R-02) |
 | FR-005 | Profil avtomatik yaradılır, tələbə nömrəsi (su nişanı) verilir | M | auth istifadəçisi yarananda profil var | Hazır |
 | FR-006 | Hesab silmə (real backend prosesi) | M | Şəxsi məlumat silinir/anonimləşir, audit qalır | Hazır (DB + API + UI, E2E) |
@@ -124,7 +124,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | TEST-001 | Alqoritm vahid testləri | Vitest | Hazır |
 | TEST-002 | DB/RLS testləri real Postgres-də | psql | Hazır |
 | TEST-003 | Lokal Supabase ilə end-to-end API testi | supabase start | Hazır (8 inteqrasiya testi) |
-| TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (26 addım) |
+| TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (27 addım) |
 | TEST-005 | Native cihazlarda E2E | Maestro/Detox | Plan |
 | NFR-004 | Əlçatanlıq: toxunma sahəsi ≥ 44, ARIA rolları və vəziyyətləri, azaldılmış hərəkət | Ekran oxuyucu ilə yoxlama | Qismən (kod; ekran oxuyucu ilə yoxlanmayıb) |
 

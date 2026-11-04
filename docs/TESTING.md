@@ -8,7 +8,7 @@ Nəticələr uydurulmur: aşağıdakı rəqəmlər son işə salınmanın çıx�
 | Tip yoxlaması | `npm run typecheck` | `packages/core` və `apps/app` (native fayllar daxil) | Xətasız |
 | DB (psql) | `npm run db:test` | Sxem, RLS, bütün RPC-lər, limitlər, canlı dərs qaydaları, silinmə | 9 fayl, hamısı keçdi (194 yoxlama) |
 | İnteqrasiya | `npm run test:int` | Real Supabase (GoTrue, PostgREST, Edge Runtime), real LiveKit, Mailpit | 8/8 keçdi |
-| Veb E2E (Playwright) | `npm run test:e2e` | Build olunmuş tətbiq brauzerdə, real stekə qarşı: telefon OTP, razılıq, test, gündəlik, kabinet, şərəf lövhəsi, yarımçıq testə qayıtma, müəllim otağı (dərc, kod yaratma və ləğvi, gündəliyə qiymət, sual analizi, davamiyyət, bütün cihazlardan çıxış → tələbədə aktivləşmə), canlı zal (müəllim + tələbə), Realtime chat, hesab silmə | 26/26 addım keçdi |
+| Veb E2E (Playwright) | `npm run test:e2e` | Build olunmuş tətbiq brauzerdə, real stekə qarşı: telefon OTP, razılıq, test, gündəlik, kabinet, şərəf lövhəsi, yarımçıq testə qayıtma, ikinci giriş üsulu (e-poçt bağlama və onunla giriş), müəllim otağı (dərc, kod yaratma və ləğvi, gündəliyə qiymət, sual analizi, davamiyyət, bütün cihazlardan çıxış → tələbədə aktivləşmə), canlı zal (müəllim + tələbə), Realtime chat, hesab silmə | 27/27 addım keçdi |
 | Native (iOS/Android) | — | — | **İşə salınmayıb** (bu mühitdə SDK yoxdur) |
 | Yük testi | — | — | **Edilməyib** |
 
@@ -66,3 +66,7 @@ Proksi `api.expo.dev`-i bloklayırsa: `EXPO_OFFLINE=1`.
 ## CI
 
 `.github/workflows/ci.yml`: `npm ci`, tip yoxlaması, vahid testlər, DB testləri (Postgres 16 servisi), veb build, gitleaks. İnteqrasiya və E2E testləri Docker stek tələb etdiyi üçün CI-də **yoxdur** (plan: ayrıca workflow).
+
+## Qeyd: dəyişkən nəticə
+
+Lokal Supabase yenidən başladılandan dərhal sonra bir dəfə canlı zal addımı Realtime abunəsi gecikdiyi üçün uğursuz oldu; konteyner tam qalxandan sonra ardıcıl işə salmalarda keçdi. İstehsalda Realtime soyuq başlanğıcı ayrıca izlənməlidir.

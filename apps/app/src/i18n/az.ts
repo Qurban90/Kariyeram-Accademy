@@ -166,6 +166,10 @@ export const t = {
     form: { title: 'Mövzu', venue: 'Məkan', start: 'Başlama (YYYY-AA-GG SS:DD)', duration: 'Müddət (dəq)', access: 'Kimlər qoşula bilər' },
     access: { enrolled: 'Fənnə yazılanlar', public: 'Hamı', invite: 'Dəvətlilər' },
   },
+  link: {
+    title: 'Giriş üsulları', none: 'bağlı deyil', addEmail: 'E-poçt əlavə et', addPhone: 'Telefon əlavə et',
+    done: 'Bağlandı: indi hər iki üsulla daxil ola bilərsiniz.', taken: 'Bu ünvan/nömrə başqa hesaba bağlıdır.',
+  },
   board: {
     title: 'Şərəf lövhəsi', sub: 'Bu həftənin ən dəqiq tələbələri', all: 'Hamısı',
     note: (n: number) => `Sıralama faizlə yox, etibarlılıqla: az cavabla təsadüfi 100% önə keçmir. Lövhəyə düşmək üçün bu həftə ən azı ${n} cavab lazımdır.`,

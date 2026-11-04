@@ -260,6 +260,10 @@ otp_expiry = 3600
 subject = "Karyeram Academy: təsdiq kodu"
 content_path = "./supabase/templates/otp.html"
 
+[auth.email.template.email_change]
+subject = "Karyeram Academy: e-poçtu təsdiqləyin"
+content_path = "./supabase/templates/email_change.html"
+
 [auth.email.template.magic_link]
 subject = "Karyeram Academy: giriş kodu"
 content_path = "./supabase/templates/otp.html"

@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { router } from 'expo-router'
 import { useState } from 'react'
 import { View } from 'react-native'
+import { LinkIdentity } from '../src/components/LinkIdentity'
 import { Button, Card, ErrorBox, Field, H, P, Screen } from '../src/components/ui'
 import { t } from '../src/i18n/az'
 import { api, ApiFailure } from '../src/lib/api'
@@ -91,6 +92,8 @@ export default function Profile() {
         <P dim>{t.profile.role[profile?.role ?? 'student']} · № {profile?.student_no}</P>
         <P dim small>{contact}</P>
       </Card>
+
+      <LinkIdentity />
 
       <H level={2}>{t.profile.redeem}</H>
       <Field testID="code" label={t.profile.redeem} placeholder={t.profile.redeemPh} value={code} onChangeText={setCode}

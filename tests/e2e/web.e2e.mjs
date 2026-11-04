@@ -23,6 +23,16 @@ if (!DB) throw new Error('DB_URL tələb olunur (tests/e2e/run.sh)')
 if (!existsSync(join(DIST, 'index.html'))) throw new Error('apps/app/dist yoxdur: əvvəlcə expo export')
 mkdirSync(SHOTS, { recursive: true })
 
+const MAILPIT = 'http://127.0.0.1:54324'
+async function mailCode(to) {
+  for (let i = 0; i < 20; i++) {
+    const r = await (await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent('to:' + to)}`)).json()
+    const id = r.messages?.[0]?.ID
+    if (id) { const m = await (await fetch(`${MAILPIT}/api/v1/message/${id}`)).json(); const c = m.Text?.match(/\b(\d{6})\b/)?.[1]; if (c) return c }
+    await new Promise((res) => setTimeout(res, 500))
+  }
+  throw new Error('məktub gəlmədi: ' + to)
+}
 const sql = (q) => execFileSync('psql', [DB, '-At', '-v', 'ON_ERROR_STOP=1', '-c', q], { encoding: 'utf8' }).trim().split('\n')[0] ?? ''
 
 // --- SPA statik server ---
@@ -365,13 +375,28 @@ try {
   })
   await hctx.close()
 
-  await step('bütün cihazlardan çıxış: server refresh tokenləri ləğv edir, yenidən giriş', async () => {
+  const LINK_EMAIL = `e2e-${Date.now()}@karyeram.test`
+  await step('telefon hesabına e-poçt bağlanır (kod Mailpit-dən)', async () => {
+    await page.goto(`http://127.0.0.1:${PORT}/profile`)
+    await tid('link-email').click()
+    await tid('link-value').fill(LINK_EMAIL)
+    await tid('link-send').click()
+    await tid('link-code').fill(await mailCode(LINK_EMAIL))
+    await tid('link-verify').click()
+    await page.getByText(LINK_EMAIL).waitFor({ timeout: 15000 })
+    expect(sql(`select email from auth.users where phone = '${PHONE_DB}'`) === LINK_EMAIL, 'e-poçt bağlanmadı')
+  })
+
+  await step('bütün cihazlardan çıxış: refresh tokenlər ləğv olunur; bağlanmış e-poçtla yenidən giriş', async () => {
     await page.goto(`http://127.0.0.1:${PORT}/profile`)
     await tid('sign-out-all').click()
     await page.waitForURL('**/sign-in', { timeout: 20000 })
     expect(sql(`select count(*) from auth.refresh_tokens rt join auth.users u on u.id::text = rt.user_id where u.phone = '${PHONE_DB}' and not rt.revoked`) === '0', 'refresh tokenlər ləğv olunmadı')
-    await tid('phone').fill(PHONE_LOCAL); await tid('send-code').click()
-    await tid('otp').fill('123456'); await tid('verify').click()
+    await tid('tab-email').click()
+    await tid('email').fill(LINK_EMAIL); await tid('send-code').click()
+    await tid('otp').waitFor()
+    await page.waitForTimeout(800)
+    await tid('otp').fill(await mailCode(LINK_EMAIL)); await tid('verify').click()
     await tid('door-live').waitFor({ timeout: 20000 }) // razılıqlar var: birbaşa məktəbə
   })
 
