@@ -41,6 +41,15 @@
 | LiveKit Cloud (və ya öz server) | Canlı dərs | Lokal işləyir, hesab lazımdır |
 | Apple Developer, Google Play | Mağazalar | Lazımdır |
 
+## Hazır olub sizin addımınızı gözləyənlər (2026-11-04)
+
+| Nə | Sizdən lazım olan |
+| --- | --- |
+| Admin otağı (dayandırma, rol, audit, texniki iş, minimum versiya) | İlk admin hesabı kim olacaq (e-poçt) |
+| Müəllim/admin üçün iki mərhələli qoruma | Müəllimlərə autentifikator tətbiqi quraşdırmağı tapşırmaq; nə vaxt hamı üçün məcburi edilsin |
+| PDF konspektlərdə tələbə nömrəsi | PDF-lər ≤ 15 MB olmalıdır (böyükləri bölmək) |
+| 3D məktəb (teksturalı dəhliz və sinif) | Real telefonlarda yoxlama (zəif Android daxil) |
+
 ## Gözlənilən qərarlar
 
 1. ~~Giriş üsulu~~ — qərar verildi: həm telefon (SMS kodu), həm e-poçt (kod). Hər ikisi hazırdır.

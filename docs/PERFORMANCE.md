@@ -16,6 +16,7 @@ VUS=100 QUESTIONS=20 node tests/load/load.mjs
 | 50 | 50/50 | 140 sorğu/san | 180 / 381 | 293 / 560 |
 | 100 | 100/100 | 148 sorğu/san | 298 / 688 | 563 / 1139 |
 | 150 (hamısı eyni saniyədə qeydiyyat) | 100/150 | 139 sorğu/san | 282 / 834 | 589 / 1347 |
+| 100 (təkrar: konfiqurasiya, qadağa və MFA qapılarından sonra) | 100/100 | 142 sorğu/san | 303 / 721 | 576 / 1154 |
 
 ## Nə öyrəndik
 
