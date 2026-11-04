@@ -107,8 +107,8 @@ Prioritet: M (Must), S (Should), C (Could).
 | NFR-001 | Platformalar: Android, iOS, veb bir kod bazası | Expo | Qismən (veb build + E2E; native build yoxlanmayıb) |
 | NFR-002 | Dil: Azərbaycan (i18n strukturu ilə) | Bütün mətnlər bir yerdə | Hazır (apps/app/src/i18n/az.ts; yalnız konfiqurasiya xətası mətni config.ts-dədir) |
 | NFR-003 | Zəif cihaz dəstəyi: 3D söndürülə bilir | 2D rejim | Hazır (hazırda yalnız 2D var) |
-| PERF-001 | API p95 < 400 ms (normal yük) | k6 ilə ölçüləcək | Ölçülməyib |
-| PERF-002 | 500 eyni vaxtlı istifadəçi (test və gündəlik) | k6 yük testi | Ölçülməyib |
+| PERF-001 | API p95 < 400 ms (normal yük) | Yük skripti | Lokal ölçülüb: 50 tələbəyə qədər qarşılanır, 100-də yox (PERFORMANCE.md); istehsalda ölçülməyib |
+| PERF-002 | 500 eyni vaxtlı istifadəçi (test və gündəlik) | Yük skripti | Lokal tavan ~140 sorğu/san (100 tələbə tam uğurlu); 500 istehsalda ölçülməlidir |
 | PERF-003 | Canlı sinifdə 30–50 iştirakçı | LiveKit SFU | Ölçülməyib |
 | SEC-001 | Tələbə sual cədvəlini birbaşa oxuya bilmir | RLS testi | Hazır |
 | SEC-002 | Cavab açarı klientə yalnız cavabdan sonra | DB testi | Hazır |

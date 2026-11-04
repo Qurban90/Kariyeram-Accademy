@@ -16,7 +16,12 @@ export class ApiFailure extends Error {
 }
 
 /** Şəbəkə xətası zamanı təkrar cəhd yalnız oxuma tipli (idempotent) marşrutlar üçündür. */
-const IDEMPOTENT = new Set(['question/next', 'session/finish', 'session/review', 'live/hands', 'live/attendance', 'account/export'])
+/**
+ * Bir dəfə təkrar edilə bilən (təkrar zərərsizdir): answer — cavab artıq yazılıbsa server out_of_order qaytarır,
+ * klient növbəti suala keçir; session/start — yeni sessiya köhnəni bağlayır.
+ */
+const RETRY_ONCE = new Set(['answer', 'session/start'])
+const IDEMPOTENT = new Set(['question/next', 'session/finish', 'session/review', 'live/hands', 'live/attendance', 'account/export', 'account/consent', 'device/claim', 'board', 'staff/analysis'])
 
 async function once<T>(route: string, body: Record<string, unknown>): Promise<T> {
   const { data } = await supabase.auth.getSession()
@@ -50,14 +55,15 @@ async function once<T>(route: string, body: Record<string, unknown>): Promise<T>
 
 export async function call<T = Record<string, unknown>>(route: string, body: Record<string, unknown> = {}, opts: { device?: boolean } = {}): Promise<T> {
   const payload = opts.device ? { ...body, device: await getDeviceId() } : body
-  const attempts = IDEMPOTENT.has(route) ? 3 : 1
+  const attempts = IDEMPOTENT.has(route) ? 3 : RETRY_ONCE.has(route) ? 2 : 1
   let last: unknown
   for (let i = 0; i < attempts; i++) {
     try {
       return await once<T>(route, payload)
     } catch (e) {
       last = e
-      const retriable = e instanceof ApiFailure && (e.code === 'network' || e.code === 'timeout' || e.status >= 502)
+      // Edge Runtime yük altında işçini yeniləyəndə sorğu koda çatmadan 500 ala bilər (yük testində müşahidə olunub).
+      const retriable = e instanceof ApiFailure && (e.code === 'network' || e.code === 'timeout' || e.status >= 500)
       if (!retriable || i === attempts - 1) break
       await new Promise((r) => setTimeout(r, 400 * 2 ** i))
     }

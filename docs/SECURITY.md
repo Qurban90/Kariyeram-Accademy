@@ -61,7 +61,7 @@ Versiya 0.1 · 2026-11-04. Bu sənəd heç bir şeyin "100% təhlükəsiz" oldu�
 | R-04 | Native build-lər (iOS/Android) heç vaxt işə salınmayıb | Yüksək | Yüksək | **Yüksək** | EAS development build, real cihazda yoxlama (ekran qoruması, LiveKit, SecureStore) |
 | R-05 | SMS provayderi qoşulmayıb, SMS dəyəri və çatdırılma | Orta | Yüksək | **Yüksək** | Provayder seçimi (müdir), sınaq, e-poçt alternativ kimi qalır |
 | R-06 | IP səviyyəsində rate limit yoxdur | Orta | Orta | Orta | Supabase/edge limitləri ölçülməli, lazım olsa WAF |
-| R-07 | Yük testi edilməyib (PERF-001..003) | Yüksək | Orta | Orta | k6 skriptləri, LiveKit Cloud yük testi |
+| R-07 | Yük testi yalnız lokal edilib (PERF-001..003, bax PERFORMANCE.md) | Yüksək | Orta | Orta | k6 skriptləri, LiveKit Cloud yük testi |
 | R-08 | `APP_ORIGINS` boşdursa CORS `*` | Orta | Aşağı | Aşağı | İstehsalda mütləq təyin edilməli (DEPLOYMENT.md). Token olmadan API işləmir |
 | R-09 | Veb versiyada ekran qoruması yoxdur | Yüksək | Orta | Orta | Vebdə yalnız su nişanı; istəyə görə test vebdə bağlana bilər |
 | R-10 | Asılılıq zəiflikləri (npm) | Orta | Orta | Orta | 2026-11-04 `npm audit --omit=dev`: 6 orta (glob/minimatch, Expo build alətlərində, işləyən tətbiqdə deyil). Avtomatik düzəliş Expo-nu köhnə versiyaya endirir, ona görə Expo yeniləmələri izlənir. Dependabot (plan) |

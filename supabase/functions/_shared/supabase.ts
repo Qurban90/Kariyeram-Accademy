@@ -25,7 +25,17 @@ async function call(cfg: SupaConfig, path: string, init: { method: string; heade
 export function restDb(cfg: SupaConfig): Db {
   return {
     async rpc(fn, args) {
-      const r = await call(cfg, `/rest/v1/rpc/${encodeURIComponent(fn)}`, { method: 'POST', body: JSON.stringify(args) })
+      const req = () => call(cfg, `/rest/v1/rpc/${encodeURIComponent(fn)}`, { method: 'POST', body: JSON.stringify(args) })
+      let r: Response
+      try {
+        r = await req()
+      } catch (e) {
+        // Yalnız şəbəkə səviyyəsində xəta (bağlantı qırıldı, HTTP cavabı yoxdur): bir dəfə təkrar.
+        // RPC-lər təkrara dözümlüdür (submit_answer → out_of_order, razılıq/cihaz idempotent). Timeout (AbortError) təkrar edilmir.
+        if (!(e instanceof TypeError)) throw e
+        await new Promise((res) => setTimeout(res, 50 + Math.random() * 100))
+        r = await req()
+      }
       const text = await r.text()
       if (!r.ok) throw new Error(`rpc ${fn}: ${r.status} ${text.slice(0, 200)}`)
       return (text ? JSON.parse(text) : null) as never
