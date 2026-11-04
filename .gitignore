@@ -1,31 +1,20 @@
-# Logs
-logs
+node_modules/
+dist/
+web-build/
+.expo/
+.turbo/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+coverage/
 
-# Pillə
-# Real məzmun repoya yazılmır (repo public). Nümunə məzmun content-sample/ və src/content/sample.ts-dədir.
-/content/
+# Sirlər
 .env
 .env.*
 !.env.example
+
+# Real məzmun heç vaxt repoya yazılmır (sual bankı serverdə saxlanılır)
+/content/
+/supabase/seed.private.sql
+
+# Lokal Postgres test klasteri
+/supabase/.pgtest/

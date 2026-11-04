@@ -1,34 +1,19 @@
 {
-  "name": "pille",
+  "name": "karyeram-academy",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "0.1.0",
+  "description": "Karyeram Academy: virtual məktəb (özünü öyrənmə otaqları, canlı dərs, qorunan test bankı)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
     "test": "vitest run",
-    "lint": "oxlint"
-  },
-  "dependencies": {
-    "@fontsource/literata": "^5.3.0",
-    "@fontsource/onest": "^5.3.1",
-    "@fontsource/unbounded": "^5.3.0",
-    "motion": "^14.9.0",
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1",
-    "zustand": "^5.0.16"
+    "typecheck": "tsc -p packages/core --noEmit",
+    "db:test": "bash supabase/tests/run.sh"
   },
   "devDependencies": {
-    "@types/node": "^24.19.2",
-    "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.1.2",
-    "oxlint": "^1.89.0",
-    "typescript": "~7.0.2",
-    "vite": "^8.3.5",
-    "vite-plugin-pwa": "^2.0.0",
+    "typescript": "^5.9.3",
     "vitest": "^5.1.0"
-  },
-  "description": "Pillə: Qala + Usta oyun əsaslı hazırlıq PWA"
+  }
 }
