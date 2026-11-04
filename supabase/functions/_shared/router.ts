@@ -44,6 +44,12 @@ export const routes: Record<string, Handler> = {
   'staff/codes': async (c, b) => unwrap(await c.db.rpc<Record<string, unknown>>('staff_create_codes', {
     p_staff: c.userId, p_subject: str(b, 'subject', 1, 40)!, p_count: int(b, 'count', 1, 200)!, p_days: int(b, 'days', 1, 730)!,
   })),
+  'staff/codes/list': async (c, b) => unwrap(await c.db.rpc<Record<string, unknown>>('staff_list_codes', { p_staff: c.userId, p_subject: str(b, 'subject', 1, 40, true) ?? null })),
+  'staff/codes/revoke': async (c, b) => unwrap(await c.db.rpc<Record<string, unknown>>('staff_revoke_code', { p_staff: c.userId, p_code: uuid(b, 'code') })),
+  'staff/diary': async (c, b) => unwrap(await c.db.rpc<Record<string, unknown>>('staff_diary_add', {
+    p_staff: c.userId, p_student_no: int(b, 'studentNo', 1, 9_999_999_999)!, p_kind: oneOf(b, 'kind', ['grade', 'note'])!,
+    p_title: str(b, 'title', 1, 140)!, p_grade: str(b, 'grade', 1, 10, true) ?? null, p_text: str(b, 'text', 0, 2000, true) ?? null,
+  })),
   'staff/analysis': (c, b) => itemAnalysis(c.db, c.userId, str(b, 'subject', 1, 40)!),
   'staff/question/status': async (c, b) => unwrap(await c.db.rpc<Record<string, unknown>>('staff_set_question_status', {
     p_staff: c.userId, p_question: uuid(b, 'question'), p_status: oneOf(b, 'status', ['draft', 'review', 'published', 'retired'])!,

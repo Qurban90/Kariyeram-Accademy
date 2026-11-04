@@ -291,6 +291,28 @@ try {
     await sp.close()
   })
 
+  await step('müəllim istifadə olunmamış kodu ləğv edir, gündəliyə qiymət yazır → tələbə görür', async () => {
+    const lp = await hctx.newPage()
+    await lp.goto(`http://127.0.0.1:${PORT}/teacher`)
+    await lp.getByTestId('tab-codes').click()
+    await lp.getByText('Aktivləşdirilib').first().waitFor({ timeout: 15000 })
+    await lp.getByRole('button', { name: 'Ləğv et' }).first().click()
+    await lp.getByText('Ləğv olunub').first().waitFor({ timeout: 15000 })
+    expect(sql(`select count(*) from public.access_codes c join auth.users u on u.id = c.created_by where u.phone = '${HOST_DB}' and c.revoked`) === '1', 'kod ləğv olunmadı')
+    const no = sql(`select student_no from public.profiles p join auth.users u on u.id = p.id where u.phone = '${PHONE_DB}'`)
+    await lp.getByTestId('tab-diary').click()
+    await lp.getByTestId('d-no').fill(no)
+    await lp.getByTestId('d-title').fill('Şifahi sorğu: say sistemləri')
+    await lp.getByTestId('d-grade').fill('9')
+    await lp.getByTestId('d-save').click()
+    await lp.getByText('Test Tələbə gündəliyinə yazıldı.').waitFor({ timeout: 15000 })
+    await lp.close()
+    const sp = await ctx.newPage()
+    await sp.goto(`http://127.0.0.1:${PORT}/diary`)
+    await sp.getByText('Şifahi sorğu: say sistemləri').waitFor({ timeout: 15000 })
+    await sp.close()
+  })
+
   await step('müəllim dərsi başladır və kameranı açır', async () => {
     await htid('ctl-host').click()
     await htid('host-start').click()
@@ -311,6 +333,8 @@ try {
     await tid('ctl-hand').click()
     await htid('hand-0').waitFor({ timeout: 15000 })
     await host.screenshot({ path: join(SHOTS, '11-muellim-paneli.png') })
+    await htid('host-attendance').click()
+    await host.getByTestId('attendance').getByText(/Test Tələbə · [\d.]+ dəq/).waitFor({ timeout: 15000 })
     await htid('host-onlyhost').click() // "yalnız host danışır" söndürülür
     await host.waitForTimeout(500)
     expect(sql(`select only_host_audio from public.live_sessions where id = '${hostLive}'`) === 'f', 'rejim dəyişmədi')
@@ -340,6 +364,16 @@ try {
     await host.waitForURL('**/sign-in', { timeout: 20000 })
   })
   await hctx.close()
+
+  await step('bütün cihazlardan çıxış: server refresh tokenləri ləğv edir, yenidən giriş', async () => {
+    await page.goto(`http://127.0.0.1:${PORT}/profile`)
+    await tid('sign-out-all').click()
+    await page.waitForURL('**/sign-in', { timeout: 20000 })
+    expect(sql(`select count(*) from auth.refresh_tokens rt join auth.users u on u.id::text = rt.user_id where u.phone = '${PHONE_DB}' and not rt.revoked`) === '0', 'refresh tokenlər ləğv olunmadı')
+    await tid('phone').fill(PHONE_LOCAL); await tid('send-code').click()
+    await tid('otp').fill('123456'); await tid('verify').click()
+    await tid('door-live').waitFor({ timeout: 20000 }) // razılıqlar var: birbaşa məktəbə
+  })
 
   await step('hesab silinir (SİL təsdiqi) və giriş səhifəsinə qayıdır', async () => {
     await page.goto(`http://127.0.0.1:${PORT}/profile`)

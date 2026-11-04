@@ -154,6 +154,7 @@ export const t = {
     mic: 'Mikrofon', micOff: 'Mikrofon bağlı', cam: 'Kamera', screen: 'Ekran', raise: 'Əl qaldır', lower: 'Əli endir',
     chat: 'Chat', leave: 'Çıx', start: 'Dərsi başlat', end: 'Dərsi bitir',
     onlyHost: 'Yalnız host danışır', chatOn: 'Chat açıq', hands: 'Əl qaldıranlar', noHands: 'Əl qaldıran yoxdur',
+    attendance: 'Davamiyyət', attendanceLoad: 'Davamiyyəti göstər', minutes: 'dəq',
     grant: 'Söz ver', dismiss: 'Rədd et', revoke: 'Sözü al', remove: 'Çıxar', participants: 'İştirakçılar',
     youCanSpeak: 'Sizə söz verildi: mikrofonu aça bilərsiniz.', handRaised: 'Əliniz qaldırılıb. Növbədəsiniz.',
     ended: 'Dərs bitdi.', removed: 'Dərsdən çıxarıldınız.', reconnecting: 'Bağlantı bərpa olunur…',
@@ -186,6 +187,11 @@ export const t = {
       suspect_key: 'Cavab açarı şübhəlidir', non_discriminating: 'Güclü və zəifi ayırmır', too_hard: 'Çox çətin',
       too_easy: 'Çox asan', trap: 'Tələ kimi işləyir', insufficient_data: 'Az məlumat',
     } as Record<string, string>,
+    myCodes: 'Yaradılmış kodlar', revoke: 'Ləğv et', noCodes: 'Hələ kod yaradılmayıb.',
+    codeState: { unused: 'İstifadə olunmayıb', redeemed: 'Aktivləşdirilib', revoked: 'Ləğv olunub', expired: 'Vaxtı keçib' } as Record<string, string>,
+    diary: 'Gündəliyə yaz', studentNo: 'Tələbə №', kindGrade: 'Qiymət', kindNote: 'Qeyd', entryTitle: 'Başlıq (məs. Şifahi sorğu)',
+    grade: 'Qiymət (məs. 9 və ya "əla")', text: 'Şərh (istəyə bağlı)', save: 'Gündəliyə əlavə et',
+    saved: (n: string) => `${n || 'Tələbə'} gündəliyinə yazıldı.`, studentNoBad: 'Tələbə nömrəsini yazın.',
     copy: 'Hamısını kopyala', copied: 'Kopyalandı', countBad: 'Say 1–200 arasında olmalıdır.', pickSubject: 'Fənn seçin.',
   },
   profile: {
@@ -196,6 +202,6 @@ export const t = {
     marketing: 'Xəbər bülleteni', recording: 'Dərs yazısına razılıq',
     delete: 'Hesabı sil', deleteWarn: 'Hesab silinəndə ad, əlaqə, test tarixçəsi və gündəlik silinir. Bu geri qaytarılmır. Audit qeydləri şəxsi məlumatsız saxlanılır.',
     deleteType: 'Təsdiq üçün SİL yazın', deleteBtn: 'Hesabı birdəfəlik sil',
-    board: 'Şərəf lövhəsində görün', signOut: 'Çıxış', device: 'Bu cihaz', deviceNote: 'Hesab eyni anda yalnız bir cihazda aktiv olur.',
+    board: 'Şərəf lövhəsində görün', signOut: 'Çıxış', signOutAll: 'Bütün cihazlardan çıx', device: 'Bu cihaz', deviceNote: 'Hesab eyni anda yalnız bir cihazda aktiv olur.',
   },
 } as const

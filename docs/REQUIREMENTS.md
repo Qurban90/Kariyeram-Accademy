@@ -46,7 +46,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | FR-006 | Hesab silmə (real backend prosesi) | M | Şəxsi məlumat silinir/anonimləşir, audit qalır | Hazır (DB + API + UI, E2E) |
 | FR-007 | Məlumat ixracı (JSON) | S | Tələbə öz məlumatını yükləyir | Hazır (DB + API + UI, E2E) |
 | FR-008 | Tək aktiv cihaz, cihaz dəyişimi audit | M | Köhnə cihaz bloklanır | Hazır (DB + UI) |
-| FR-009 | Bütün cihazlardan çıxış | S | Sessiyalar ləğv | Plan |
+| FR-009 | Bütün cihazlardan çıxış | S | Sessiyalar ləğv | Hazır (refresh tokenlər serverdə ləğv, E2E) |
 
 ### Özünü öyrənmə
 
@@ -59,7 +59,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | FR-024 | Tələli sualların rənglə seçilməsi (imtahanda gizli) | S | `trap` bayrağı | Hazır (API + UI) |
 | FR-025 | "Yalnız səhvlərimi təkrar işlə" | M | Son cavabı səhv olanlar | Hazır (API + UI) |
 | FR-026 | FSRS aralıqlı təkrar | S | Hər cavabdan sonra kart yenilənir | Hazır |
-| FR-027 | Gündəlik: test nəticələri, müəllim qiymətləri, qeydlər | M | Test bitəndə avtomatik | Qismən (test nəticələri avtomatik; müəllim qiyməti/qeydi UI-si yoxdur) |
+| FR-027 | Gündəlik: test nəticələri, müəllim qiymətləri, qeydlər | M | Test bitəndə avtomatik | Hazır (test avtomatik, qiymət/qeyd müəllimdən) |
 | FR-028 | "Səhvlərim harada çoxdur" | S | Mövzu üzrə səhv payı | Hazır (core + UI) |
 | FR-029 | Pulsuz sınaq mövzusu | M | Abunəsiz yalnız `free` mövzular | Hazır (DB + UI, E2E) |
 | FR-030 | Kodla abunə aktivləşdirmə | M | Kod bir dəfəlik, hash | Hazır (DB + UI) |
@@ -78,7 +78,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | FR-045 | Əl qaldırma növbəsi, host söz verir/alır | M | İcazə serverdə dəyişir | Hazır (API + UI, E2E) |
 | FR-046 | "Yalnız host danışır" rejimi | M | Bütün iştirakçıların səsi bağlanır | Hazır (API + UI, E2E) |
 | FR-047 | Chat | S | Uzunluq limiti, rate limit | Hazır (API + Realtime + UI, E2E) |
-| FR-048 | Davamiyyət: qoşulma/ayrılma, dəqiqə | S | Webhook əsasında | Qismən (API/DB var; UI yoxdur) |
+| FR-048 | Davamiyyət: qoşulma/ayrılma, dəqiqə | S | Webhook əsasında | Hazır (API/DB + host panelində UI, E2E) |
 | FR-049 | Dərsin yazılması və şkafa düşməsi | C | Razılıqla | Plan |
 | FR-050 | 3D zal/sinif: iştirakçılar oturacaqlarda, host səhnədə | S | Zəif cihazda 2D | Qismən (2D sinif: lövhə + partalar; 3D yoxdur) |
 | FR-051 | İştirakçını çıxarmaq/bloklamaq | M | Host/admin | Hazır (API + UI) |
@@ -94,10 +94,10 @@ Prioritet: M (Must), S (Should), C (Could).
 
 | ID | Tələb | P | Qəbul meyarı | Status |
 | --- | --- | --- | --- | --- |
-| FR-060 | Kod yaratma (toplu), ləğv | M | Yalnız müəllim/admin | Qismən (toplu yaratma: DB + API + UI, E2E; ləğv etmə yoxdur) |
+| FR-060 | Kod yaratma (toplu), ləğv | M | Yalnız müəllim/admin | Hazır (yaratma, siyahı, ləğv: DB + API + UI, E2E) |
 | FR-061 | Sual analizi: tələli, şübhəli açar, asan/çətin | S | Min 30 cavab | Hazır (core + API + müəllim otağı UI, E2E) |
 | FR-062 | Sual statusu: qaralama, yoxlama, dərc, köhnəlmiş | M | Tələbə yalnız dərc olunanı görür | Hazır (DB + müəllim otağı UI, E2E) |
-| FR-063 | Qiymət və qeyd gündəliyə | S | Dərhal tələbədə görünür | Plan |
+| FR-063 | Qiymət və qeyd gündəliyə | S | Dərhal tələbədə görünür | Hazır (tələbə № ilə; DB + API + UI, E2E) |
 | FR-064 | Admin: istifadəçi dayandırma, audit | M | Hər əməliyyat audit-ə | Qismən |
 
 ## 5. Qeyri-funksional tələblər
@@ -124,7 +124,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | TEST-001 | Alqoritm vahid testləri | Vitest | Hazır |
 | TEST-002 | DB/RLS testləri real Postgres-də | psql | Hazır |
 | TEST-003 | Lokal Supabase ilə end-to-end API testi | supabase start | Hazır (8 inteqrasiya testi) |
-| TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (24 addım) |
+| TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (26 addım) |
 | TEST-005 | Native cihazlarda E2E | Maestro/Detox | Plan |
 | NFR-004 | Əlçatanlıq: toxunma sahəsi ≥ 44, ARIA rolları və vəziyyətləri, azaldılmış hərəkət | Ekran oxuyucu ilə yoxlama | Qismən (kod; ekran oxuyucu ilə yoxlanmayıb) |
 

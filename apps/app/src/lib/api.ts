@@ -120,6 +120,9 @@ export interface ItemStat {
 export interface BoardRow { rank: number | null; name: string; score: number | null; total: number; me: boolean }
 export interface BoardResult { since: string; minTotal: number; top: BoardRow[]; me: BoardRow | null }
 
+export interface StaffCode { id: string; subject_id: string; days: number; created_at: string; state: 'unused' | 'redeemed' | 'revoked' | 'expired'; redeemed_at: string | null }
+export interface AttendanceRow { user_id: string; name: string; student_no: number; role: string; minutes: number; banned: boolean }
+
 export const api = {
   claimDevice: () => call<{ replaced: boolean }>('device/claim', {}, { device: true }),
   redeem: (code: string) => call<{ subject_id: string; access_until?: string; already?: boolean }>('code/redeem', { code }),
@@ -132,6 +135,10 @@ export const api = {
   analysis: (subject: string) => call<{ items: ItemStat[] }>('staff/analysis', { subject }),
   board: (subject?: string) => call<BoardResult>('board', subject ? { subject } : {}),
   setBoardVisibility: (show: boolean) => call<{ show: boolean }>('account/board', { show }),
+  listCodes: (subject?: string) => call<{ codes: StaffCode[] }>('staff/codes/list', subject ? { subject } : {}),
+  revokeCode: (code: string) => call<{ ok: boolean }>('staff/codes/revoke', { code }),
+  diaryAdd: (b: { studentNo: number; kind: 'grade' | 'note'; title: string; grade?: string; text?: string }) => call<{ id: string; student_name: string }>('staff/diary', b),
+  attendance: (session: string) => call<{ rows: AttendanceRow[] }>('live/attendance', { session }),
   clientEvent: (kind: 'screenshot' | 'screen_recording', context?: string) => call('client/event', context ? { kind, context } : { kind }),
 
   start: (b: { subject: string; mode: Mode; topicIds?: string[]; size?: number }) =>

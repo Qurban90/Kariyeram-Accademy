@@ -171,6 +171,19 @@ describe('router validasiyası', () => {
       ['staff_set_question_status', { p_staff: U1, p_question: S1, p_status: 'published' }],
     ])
   })
+  it('staff: kod siyahısı/ləğvi, gündəlik yazısı', async () => {
+    const seen: [string, Record<string, unknown>][] = []
+    const db = { async rpc(fn: string, args: Record<string, unknown>) { seen.push([fn, args]); return { ok: true } as never } }
+    await expect(dispatch('staff/diary', ctx(db), { studentNo: 0, kind: 'grade', title: 'x' })).rejects.toMatchObject({ code: 'bad_studentNo' })
+    await expect(dispatch('staff/diary', ctx(db), { studentNo: 5, kind: 'test', title: 'x' })).rejects.toMatchObject({ code: 'bad_kind' })
+    await expect(dispatch('staff/codes/revoke', ctx(db), { code: 'abc' })).rejects.toMatchObject({ code: 'bad_code' })
+    await dispatch('staff/diary', ctx(db), { studentNo: 17, kind: 'grade', title: 'Sorğu', grade: '9', p_staff: U2 })
+    await dispatch('staff/codes/list', ctx(db), {})
+    expect(seen).toEqual([
+      ['staff_diary_add', { p_staff: U1, p_student_no: 17, p_kind: 'grade', p_title: 'Sorğu', p_grade: '9', p_text: null }],
+      ['staff_list_codes', { p_staff: U1, p_subject: null }],
+    ])
+  })
   it('client/event: yalnız icazəli növlər, istifadəçi kontekstdən', async () => {
     const seen: [string, Record<string, unknown>][] = []
     const db = { async rpc(fn: string, args: Record<string, unknown>) { seen.push([fn, args]); return { ok: true, recorded: true } as never } }

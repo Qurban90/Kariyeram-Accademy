@@ -265,7 +265,7 @@ function Desk({ seat, peer, raised }: { seat: number; peer: Peer | null; raised:
   )
 }
 
-function HostPanel({ state, isMainHost, onlyHost, chatOn, hands, peers, onState, onSettings, onRole, onBan }: {
+function HostPanel({ session, state, isMainHost, onlyHost, chatOn, hands, peers, onState, onSettings, onRole, onBan }: {
   session: string; state: string; isMainHost: boolean; onlyHost: boolean; chatOn: boolean; hands: Hand[]; peers: Peer[]
   onState: (s: 'live' | 'ended') => void; onSettings: (x: { onlyHostAudio?: boolean; chatEnabled?: boolean }) => void
   onRole: (target: string, role: 'speaker' | 'audience' | 'cohost') => void; onBan: (target: string) => void
@@ -291,6 +291,8 @@ function HostPanel({ state, isMainHost, onlyHost, chatOn, hands, peers, onState,
         </View>
       ))}
 
+      <Attendance session={session} />
+
       <Text style={st.panelH}>{t.live.participants} ({others.length})</Text>
       {others.map((p) => (
         <View key={p.identity} style={st.row}>
@@ -301,6 +303,20 @@ function HostPanel({ state, isMainHost, onlyHost, chatOn, hands, peers, onState,
         </View>
       ))}
     </ScrollView>
+  )
+}
+
+function Attendance({ session }: { session: string }) {
+  const [on, setOn] = useState(false)
+  const q = useQuery({ queryKey: ['attendance', session], enabled: on, refetchInterval: on ? 15_000 : false, queryFn: async () => (await api.attendance(session)).rows })
+  if (!on) return <Button small variant="ghost" testID="host-attendance" label={t.live.attendanceLoad} onPress={() => setOn(true)} />
+  return (
+    <View style={{ gap: 4 }} testID="attendance">
+      <Text style={st.panelH}>{t.live.attendance}</Text>
+      {(q.data ?? []).map((r) => (
+        <Text key={r.user_id} style={st.rowTxt}>№{r.student_no} · {r.name || '—'} · {r.minutes} {t.live.minutes}{r.banned ? ' · 🚫' : ''}</Text>
+      ))}
+    </View>
   )
 }
 

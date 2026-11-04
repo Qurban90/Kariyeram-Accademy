@@ -10,6 +10,10 @@ Migrasiyalar (`supabase/migrations`), ardıcıllıqla:
 | `20261104000003_finish_idempotent.sql` | `finish_session` təkrar çağırışda `already: true` |
 | `20261104000004_staff.sql` | `staff_create_codes`, `staff_set_question_status` (audit ilə) |
 | `20261104000005_item_analysis.sql` | `staff_item_responses` (sual analizi üçün anonim xam məlumat) |
+| `20261104000007_bugfixes.sql` | İmtahan vaxtı aşımı, canlı dərs uzanması, gecikmiş webhook düzəlişləri |
+| `20261104000008_questions_readonly_staff.sql` | Müəllim `questions`-ı REST ilə yalnız oxuyur |
+| `20261104000009_session_rate_limit.sql` | Saatda 60 test sessiyası |
+| `20261104000010_staff_more.sql` | `staff_list_codes`, `staff_revoke_code`, `staff_diary_add` |
 | `20261104000006_honor_board.sql` | `profiles.show_on_board`, `set_board_visibility`, `board_rows`, `_short_name` |
 
 ## Prinsiplər

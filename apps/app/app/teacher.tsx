@@ -17,15 +17,16 @@ interface StaffQuestion {
 const msg = (e: unknown) => (e instanceof ApiFailure ? e.message : e instanceof Error ? e.message : String(e))
 
 export default function Teacher() {
-  const [tab, setTab] = useState<'questions' | 'codes' | 'analysis'>('questions')
+  const [tab, setTab] = useState<'questions' | 'codes' | 'analysis' | 'diary'>('questions')
   return (
     <Screen back title={t.teacher.title}>
       <View style={{ flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' }}>
         <Chip testID="tab-questions" label={t.teacher.questions} selected={tab === 'questions'} onPress={() => setTab('questions')} />
         <Chip testID="tab-codes" label={t.teacher.codes} selected={tab === 'codes'} onPress={() => setTab('codes')} />
         <Chip testID="tab-analysis" label={t.teacher.analysis} selected={tab === 'analysis'} onPress={() => setTab('analysis')} />
+        <Chip testID="tab-diary" label={t.teacher.diary} selected={tab === 'diary'} onPress={() => setTab('diary')} />
       </View>
-      {tab === 'questions' ? <ReviewQueue /> : tab === 'codes' ? <CodeMaker /> : <Analysis />}
+      {tab === 'questions' ? <ReviewQueue /> : tab === 'codes' ? <><CodeMaker /><CodeList /></> : tab === 'analysis' ? <Analysis /> : <DiaryWriter />}
     </Screen>
   )
 }
@@ -159,6 +160,66 @@ function Analysis() {
           </View>
         </Card>
       ))}
+    </View>
+  )
+}
+
+function CodeList() {
+  const q = useQuery({ queryKey: ['staff-codes'], queryFn: () => api.listCodes() })
+  const [err, setErr] = useState<string | null>(null)
+  const revoke = async (id: string) => {
+    setErr(null)
+    try { await api.revokeCode(id); await q.refetch() } catch (e) { setErr(msg(e)) }
+  }
+  return (
+    <View style={{ gap: space.sm, marginTop: space.lg }}>
+      <H level={3}>{t.teacher.myCodes}</H>
+      <ErrorBox message={err ?? (q.error ? msg(q.error) : null)} />
+      {q.data && q.data.codes.length === 0 && <P dim small>{t.teacher.noCodes}</P>}
+      {(q.data?.codes ?? []).slice(0, 100).map((c, i) => (
+        <View key={c.id} testID={`code-row-${i}`} style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, flexWrap: 'wrap' }}>
+          <Text style={{ color: colors.chalk, flex: 1, minWidth: 160, fontSize: font.small }}>
+            {c.subject_id} · {c.days} gün · {new Date(c.created_at).toLocaleDateString('az-AZ')} · {t.teacher.codeState[c.state]}
+          </Text>
+          {c.state === 'unused' && <Button small variant="danger" label={t.teacher.revoke} onPress={() => revoke(c.id)} />}
+        </View>
+      ))}
+    </View>
+  )
+}
+
+function DiaryWriter() {
+  const [no, setNo] = useState('')
+  const [kind, setKind] = useState<'grade' | 'note'>('grade')
+  const [title, setTitle] = useState('')
+  const [grade, setGrade] = useState('')
+  const [text, setText] = useState('')
+  const [err, setErr] = useState<string | null>(null)
+  const [ok, setOk] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const save = async () => {
+    setErr(null); setOk(null)
+    const n = Number(no)
+    if (!Number.isInteger(n) || n < 1) { setErr(t.teacher.studentNoBad); return }
+    setBusy(true)
+    try {
+      const r = await api.diaryAdd({ studentNo: n, kind, title: title.trim(), grade: kind === 'grade' ? grade.trim() : undefined, text: text.trim() || undefined })
+      setOk(t.teacher.saved(r.student_name)); setTitle(''); setGrade(''); setText('')
+    } catch (e) { setErr(msg(e)) } finally { setBusy(false) }
+  }
+  return (
+    <View style={{ gap: space.md }}>
+      <Field testID="d-no" label={t.teacher.studentNo} value={no} onChangeText={(v) => setNo(v.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={10} />
+      <View style={{ flexDirection: 'row', gap: space.sm }}>
+        <Chip label={t.teacher.kindGrade} selected={kind === 'grade'} onPress={() => setKind('grade')} />
+        <Chip testID="d-note" label={t.teacher.kindNote} selected={kind === 'note'} onPress={() => setKind('note')} />
+      </View>
+      <Field testID="d-title" label={t.teacher.entryTitle} value={title} onChangeText={setTitle} maxLength={140} />
+      {kind === 'grade' && <Field testID="d-grade" label={t.teacher.grade} value={grade} onChangeText={setGrade} maxLength={10} />}
+      <Field label={t.teacher.text} value={text} onChangeText={setText} maxLength={2000} multiline />
+      <ErrorBox message={err} />
+      {ok ? <P style={{ color: colors.ok }}>{ok}</P> : null}
+      <Button testID="d-save" label={t.teacher.save} onPress={save} loading={busy} />
     </View>
   )
 }

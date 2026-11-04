@@ -22,6 +22,9 @@
 | `account/board` | `show: boolean` | `{show}` | Lövhədə görünmə razılığı (defolt: yox) |
 | `staff/codes` | `subject, count: 1..200, days: 1..730` | `{codes[], subject, days}` | Yalnız müəllim/admin; kodlar yalnız bu cavabda açıq görünür |
 | `staff/analysis` | `subject` | `{items[]: questionId, stem, topic, n, p, discrimination, pointBiserial, distractors, flags}` | Yalnız müəllim/admin; tələbə kimliyi yoxdur; açar şübhəsi önə |
+| `staff/codes/list` | `subject?` | `{codes[]: id, subject_id, days, state, ...}` | Açıq mətn kod yoxdur; müəllim öz kodlarını, admin hamısını görür |
+| `staff/codes/revoke` | `code: uuid` | `{ok}` | İstifadə olunmuş kod ləğv olunmur; audit |
+| `staff/diary` | `studentNo, kind: grade\|note, title, grade?, text?` | `{id, student_name}` | Tələbənin gündəliyinə yazılır |
 | `staff/question/status` | `question, status: draft\|review\|published\|retired` | `{id, status, changed}` | Yalnız müəllim/admin; audit |
 | `client/event` | `kind: screenshot\|screen_recording`, `context?` | `{ok, recorded}` | Gündə 50; siqnaldır, sübut deyil |
 | `device/claim` | `device` | `{replaced}` | Köhnə cihaz bağlanır, audit |

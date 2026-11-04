@@ -132,6 +132,10 @@ export default function Profile() {
       <P dim small>{t.profile.deviceNote}</P>
 
       <Button variant="quiet" testID="sign-out" label={t.profile.signOut} onPress={async () => { qc.clear(); await signOut() }} />
+      <Button variant="quiet" testID="sign-out-all" label={t.profile.signOutAll} onPress={async () => {
+        // Bütün refresh tokenlər serverdə ləğv olunur (FR-009); digər cihazlarda access token müddəti bitəndə çıxış olur.
+        qc.clear(); await supabase.auth.signOut({ scope: 'global' }).catch(() => {}); await signOut()
+      }} />
 
       {!showDel ? (
         <Button variant="danger" testID="delete-open" label={t.profile.delete} onPress={() => setShowDel(true)} />
