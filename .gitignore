@@ -18,3 +18,7 @@ coverage/
 
 # Lokal Postgres test klasteri
 /supabase/.pgtest/
+
+# Supabase lokal
+supabase/.branches/
+supabase/.temp/

@@ -2,7 +2,7 @@
 -- Real Supabase layihəsində bunlar artıq mövcuddur, bu fayl ora tətbiq olunmur.
 create schema if not exists auth;
 create schema if not exists extensions;
-create table if not exists auth.users (id uuid primary key);
+create table if not exists auth.users (id uuid primary key, email text, phone text, raw_user_meta_data jsonb not null default '{}'::jsonb);
 create or replace function auth.uid() returns uuid language sql stable as $$
   select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
 $$;

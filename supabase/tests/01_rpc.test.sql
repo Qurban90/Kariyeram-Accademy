@@ -8,7 +8,9 @@ insert into auth.users (id) values
 insert into public.profiles (id, display_name, role) values
   ('00000000-0000-0000-0000-00000000000a', 'Tələbə A', 'student'),
   ('00000000-0000-0000-0000-00000000000b', 'Tələbə B', 'student'),
-  ('00000000-0000-0000-0000-00000000000c', 'Müəllim', 'teacher');
+  ('00000000-0000-0000-0000-00000000000c', 'Müəllim', 'teacher')
+on conflict (id) do update set display_name = excluded.display_name, role = excluded.role;
+select public.accept_consents(id, array['terms', 'privacy', 'age18']) from public.profiles;
 insert into public.subjects (id, name) values ('inf', 'İnformatika');
 insert into public.topics (id, subject_id, name, free) values
   ('10000000-0000-0000-0000-000000000001', 'inf', 'Excel 2019', true),
