@@ -7,6 +7,7 @@ import { canEnter } from '../../src/live/model'
 import { useAuth } from '../../src/lib/auth'
 import { useLiveSessions } from '../../src/lib/queries'
 import { colors, font, space } from '../../src/theme'
+import { fmtWhen } from '../../src/lib/dates'
 
 export default function LiveList() {
   const { profile, session } = useAuth()
@@ -22,7 +23,7 @@ export default function LiveList() {
       {(q.data ?? []).map((s) => {
         const mine = s.host_id === session?.user.id
         const open = mine || canEnter(s.starts_at, s.state)
-        const when = new Date(s.starts_at).toLocaleString('az-AZ', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+        const when = fmtWhen(s.starts_at)
         return (
           <Card key={s.id} testID={`live-${s.id}`}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: space.sm }}>

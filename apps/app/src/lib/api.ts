@@ -5,6 +5,7 @@
 import { router } from 'expo-router'
 import { config } from '../config'
 import { errorText } from '../i18n/az'
+import { setAppStatus } from './appStatus'
 import { getDeviceId } from './device'
 import { supabase } from './supabase'
 
@@ -33,7 +34,7 @@ async function once<T>(route: string, body: Record<string, unknown>): Promise<T>
   try {
     res = await fetch(`${config.apiBase}/${route}`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', authorization: `Bearer ${token}`, apikey: config.supabaseAnonKey },
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${token}`, apikey: config.supabaseAnonKey, 'x-app-version': config.appVersion },
       body: JSON.stringify(body),
       signal: ctrl.signal,
     })
@@ -48,6 +49,8 @@ async function once<T>(route: string, body: Record<string, unknown>): Promise<T>
     const code = typeof json.error === 'string' ? json.error : res.status === 401 ? 'unauthorized' : 'internal'
     // Yeni şərt versiyası dərc olunubsa, istənilən ekrandan razılıq səhifəsinə yönləndiririk.
     if (code === 'consent_required') setTimeout(() => router.replace('/onboarding'), 0)
+    // Texniki iş və ya köhnə versiya: bütün tətbiq üçün ümumi ekran (Gate göstərir).
+    if (code === 'maintenance' || code === 'upgrade_required') setAppStatus({ kind: code, message: typeof json.message === 'string' ? json.message : null })
     throw new ApiFailure(code, res.status, typeof json.requestId === 'string' ? json.requestId : undefined)
   }
   return json as T
@@ -63,7 +66,8 @@ export async function call<T = Record<string, unknown>>(route: string, body: Rec
     } catch (e) {
       last = e
       // Edge Runtime yük altında işçini yeniləyəndə sorğu koda çatmadan 500 ala bilər (yük testində müşahidə olunub).
-      const retriable = e instanceof ApiFailure && (e.code === 'network' || e.code === 'timeout' || e.status >= 500)
+      // Texniki iş (503 maintenance) keçici xəta deyil: təkrar etmək serverə əlavə yükdür.
+      const retriable = e instanceof ApiFailure && e.code !== 'maintenance' && (e.code === 'network' || e.code === 'timeout' || e.status >= 500)
       if (!retriable || i === attempts - 1) break
       await new Promise((r) => setTimeout(r, 400 * 2 ** i))
     }
@@ -129,6 +133,12 @@ export interface BoardResult { since: string; minTotal: number; top: BoardRow[];
 export interface StaffCode { id: string; subject_id: string; days: number; created_at: string; state: 'unused' | 'redeemed' | 'revoked' | 'expired'; redeemed_at: string | null }
 export interface AttendanceRow { user_id: string; name: string; student_no: number; role: string; minutes: number; banned: boolean }
 
+export interface AdminUser {
+  id: string; student_no: number; display_name: string; role: 'student' | 'teacher' | 'admin'
+  suspended_until: string | null; suspension_reason: string | null; created_at: string; email: string | null; phone: string | null
+}
+export interface AuditEvent { id: number; at: string; kind: string; detail: Record<string, unknown>; student_no: number | null; display_name: string | null }
+
 export const api = {
   claimDevice: () => call<{ replaced: boolean }>('device/claim', {}, { device: true }),
   redeem: (code: string) => call<{ subject_id: string; access_until?: string; already?: boolean }>('code/redeem', { code }),
@@ -149,6 +159,13 @@ export const api = {
   libraryUploadUrl: (subject: string) => call<{ path: string; token: string }>('staff/library/upload-url', { subject }),
   libraryAdd: (b: { subject: string; title: string; kind: 'text' | 'pdf'; free: boolean; body?: string; path?: string; bytes?: number }) => call<{ id: string }>('staff/library/add', b),
   libraryDelete: (item: string) => call<{ ok: boolean }>('staff/library/delete', { item }),
+  adminFind: (query: string) => call<{ users: AdminUser[] }>('admin/users/find', { query }),
+  adminSuspend: (user: string, hours: number, reason: string) => call<{ ok: boolean; until: string; authBan: boolean }>('admin/users/suspend', { user, hours, reason }),
+  adminUnsuspend: (user: string) => call<{ ok: boolean; authBan: boolean }>('admin/users/unsuspend', { user }),
+  adminSetRole: (user: string, role: 'student' | 'teacher') => call<{ ok: boolean }>('admin/users/role', { user, role }),
+  adminConfig: (b: { minVersion?: string; maintenance?: boolean; message?: string }) =>
+    call<{ min_version: string; maintenance: boolean; message: string | null }>('admin/config', b),
+  adminAudit: (f: { kind?: string; user?: string; before?: number }) => call<{ events: AuditEvent[] }>('admin/audit', f),
   clientEvent: (kind: 'screenshot' | 'screen_recording', context?: string) => call('client/event', context ? { kind, context } : { kind }),
 
   start: (b: { subject: string; mode: Mode; topicIds?: string[]; size?: number }) =>

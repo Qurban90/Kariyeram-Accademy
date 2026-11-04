@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc -p packages/core --noEmit && tsc -p apps/app --noEmit",
+    "typecheck": "tsc -p packages/core --noEmit && tsc -p apps/app --noEmit && tsc -p supabase/functions",
     "db:test": "bash supabase/tests/run.sh",
     "test:int": "bash tests/integration/run.sh",
     "test:e2e": "bash tests/e2e/run.sh",

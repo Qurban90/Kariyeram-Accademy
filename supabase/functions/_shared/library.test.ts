@@ -42,7 +42,7 @@ describe('konspekt şkafı', () => {
   it('router: storage yoxdursa 503, mətn tipində path qəbul olunmur', async () => {
     const seen: [string, Record<string, unknown>][] = []
     const db = { async rpc(fn: string, args: Record<string, unknown>) { seen.push([fn, args]); return { kind: 'pdf', storage_path: 'x/y.pdf', id: 'n' } as never } }
-    const ctx: Ctx = { db, userId: U1, live: { cfg: null, rooms: null }, admin: { deleteAuthUser: async () => {} } }
+    const ctx: Ctx = { db, userId: U1, live: { cfg: null, rooms: null }, admin: { deleteAuthUser: async () => {}, setBan: async () => {} } }
     await expect(dispatch('library/open', ctx, { item: I1 })).rejects.toMatchObject({ status: 503 })
     await dispatch('staff/library/add', ctx, { subject: 'inf', title: 'K', kind: 'text', free: true, body: 'b', path: 'evil/../x.pdf' })
     expect(seen.at(-1)![1]).toMatchObject({ p_staff: U1, p_kind: 'text', p_storage_path: null, p_body: 'b' })

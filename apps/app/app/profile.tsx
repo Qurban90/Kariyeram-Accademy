@@ -13,6 +13,7 @@ import { saveJson } from '../src/lib/download'
 import { useEnrollments, useSubjects } from '../src/lib/queries'
 import { supabase } from '../src/lib/supabase'
 import { colors, space } from '../src/theme'
+import { fmtDate } from '../src/lib/dates'
 
 /** Hər klaviaturada İ hərfi olmaya bilər: "sil", "SIL", "SİL" eyni təsdiq sayılır, serverə dəqiq "SİL" gedir. */
 const isDeleteWord = (v: string) => /^s[iİıI]l$/i.test(v.trim())
@@ -50,7 +51,7 @@ export default function Profile() {
     setBusy('code')
     try {
       const r = await api.redeem(c)
-      setCodeMsg(t.profile.redeemed(subjectName(r.subject_id), r.access_until ? new Date(r.access_until).toLocaleDateString('az-AZ') : '—'))
+      setCodeMsg(t.profile.redeemed(subjectName(r.subject_id), r.access_until ? fmtDate(r.access_until) : '—'))
       setCode('')
       await qc.invalidateQueries({ queryKey: ['enrollments'] })
     } catch (e) { setCodeErr(msg(e)) } finally { setBusy(null) }
@@ -105,7 +106,7 @@ export default function Profile() {
       {(enr.data ?? []).length === 0 ? <P dim>{t.profile.noSubs}</P> : (enr.data ?? []).map((e) => (
         <View key={e.subject_id} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
           <P>{subjectName(e.subject_id)}</P>
-          <P dim small>{new Date(e.access_until).toLocaleDateString('az-AZ')}</P>
+          <P dim small>{fmtDate(e.access_until)}</P>
         </View>
       ))}
 
@@ -114,6 +115,7 @@ export default function Profile() {
           <H level={2}>{t.live.title}</H>
           <Button variant="ghost" label={t.live.create} onPress={() => router.push('/live/new')} />
           <Button variant="ghost" testID="open-teacher" label={t.teacher.open} onPress={() => router.push('/teacher')} />
+          {profile?.role === 'admin' && <Button variant="ghost" testID="open-admin" label={t.admin.open} onPress={() => router.push('/admin')} />}
         </>
       )}
 

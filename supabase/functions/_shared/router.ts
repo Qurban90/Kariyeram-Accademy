@@ -1,5 +1,6 @@
 /** Bütün API marşrutları: giriş validasiyası + handler. index.ts yalnız HTTP, auth və log ilə məşğuldur. */
 import * as account from './account.ts'
+import * as adminOps from './admin.ts'
 import type { AdminDeps } from './account.ts'
 import { ApiError, unwrap } from './errors.ts'
 import { answer, claimDevice, finish, nextQuestion, redeemCode, reviewSession, startSession, type Db } from './handlers.ts'
@@ -17,6 +18,7 @@ export interface Ctx {
   live: LiveDeps
   admin: AdminDeps
   storage?: StorageDeps
+  log?: (msg: string, data: Record<string, unknown>) => void
 }
 
 type Handler = (ctx: Ctx, body: Record<string, unknown>) => Promise<unknown>
@@ -70,6 +72,19 @@ export const routes: Record<string, Handler> = {
   'staff/question/status': async (c, b) => unwrap(await c.db.rpc<Record<string, unknown>>('staff_set_question_status', {
     p_staff: c.userId, p_question: uuid(b, 'question'), p_status: oneOf(b, 'status', ['draft', 'review', 'published', 'retired'])!,
   })),
+
+  // Admin (icazə DB-də: is_admin; admin başqa adminə toxuna bilməz)
+  'admin/users/find': (c, b) => adminOps.find(c.db, c.userId, str(b, 'query', 1, 120)!),
+  'admin/users/suspend': (c, b) => adminOps.suspend(c.db, c.admin, c.userId, uuid(b, 'user'), int(b, 'hours', 1, 87600)!, str(b, 'reason', 3, 300)!, c.log, c.live),
+  'admin/users/unsuspend': (c, b) => adminOps.unsuspend(c.db, c.admin, c.userId, uuid(b, 'user'), c.log),
+  'admin/users/role': (c, b) => adminOps.setRole(c.db, c.userId, uuid(b, 'user'), oneOf(b, 'role', ['student', 'teacher'])!),
+  'admin/config': async (c, b) => unwrap(await c.db.rpc<Record<string, unknown>>('admin_set_config', {
+    p_admin: c.userId, p_min_version: str(b, 'minVersion', 5, 11, true) ?? null,
+    p_maintenance: bool(b, 'maintenance', true) ?? null, p_message: typeof b.message === 'string' ? str(b, 'message', 0, 500)! : null,
+  })),
+  'admin/audit': (c, b) => adminOps.audit(c.db, c.userId, {
+    kind: str(b, 'kind', 1, 40, true), target: b.user ? uuid(b, 'user') : undefined, before: int(b, 'before', 1, Number.MAX_SAFE_INTEGER, true),
+  }),
 
   // Cihaz və abunə
   'device/claim': (c, b) => claimDevice(c.db, c.userId, { device: device(b) }),

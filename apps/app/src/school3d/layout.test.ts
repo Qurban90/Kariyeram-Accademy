@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { angleDelta, approach, classroomSeat, colorFor, corridorLength, doorSpots, standBefore } from './layout'
+import { angleDelta, approach, classroomSeat, colorFor, corridorLength, doorSpots, paletteFor, standBefore } from './layout'
 
 describe('3D dəhliz həndəsəsi', () => {
   it('qapılar növbə ilə iki tərəfdə, cüt-cüt irəli', () => {
@@ -32,5 +32,13 @@ describe('3D dəhliz həndəsəsi', () => {
     expect(c.z).toBeGreaterThan(a.z)
     expect(colorFor('u1')).toBe(colorFor('u1'))
     expect(colorFor('u1')).not.toBe(colorFor('u2'))
+  })
+  it('avatar palitrası sabitdir və hex rənglərdir', () => {
+    const p = paletteFor('student-42')
+    expect(p).toEqual(paletteFor('student-42'))
+    expect(p.skin).toMatch(/^#[0-9a-f]{6}$/)
+    expect(p.hair).toMatch(/^#[0-9a-f]{6}$/)
+    const skins = new Set(Array.from({ length: 40 }, (_, i) => paletteFor(`u${i}`).skin))
+    expect(skins.size).toBeGreaterThan(2)
   })
 })

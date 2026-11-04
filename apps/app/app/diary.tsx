@@ -8,6 +8,7 @@ import { t } from '../src/i18n/az'
 import { progressFrom } from '../src/lib/progress'
 import { useDiary } from '../src/lib/queries'
 import { colors, font, space } from '../src/theme'
+import { fmtDateTime } from '../src/lib/dates'
 
 type TopicPayload = Record<string, { name: string; total: number; correct: number; wrong: number; blank: number }>
 
@@ -64,7 +65,7 @@ export default function Diary() {
       {(diary.data ?? []).length === 0 && <P dim>{t.diary.empty}</P>}
       {(diary.data ?? []).map((e) => {
         const p = e.payload as { percent?: number; correct?: number; total?: number; session_id?: string; grade?: string | number; text?: string }
-        const date = new Date(e.created_at).toLocaleString('az-AZ', { dateStyle: 'medium', timeStyle: 'short' })
+        const date = fmtDateTime(e.created_at)
         return (
           <Card key={e.id} testID={`diary-${e.id}`}
             onPress={e.kind === 'test' && p.session_id ? () => router.push({ pathname: '/result/[session]', params: { session: p.session_id! } }) : undefined}

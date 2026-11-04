@@ -8,7 +8,7 @@ export function b64url(bytes: Uint8Array | string): string {
   return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }
 
-export function b64urlDecode(s: string): Uint8Array {
+export function b64urlDecode(s: string): Uint8Array<ArrayBuffer> {
   const pad = s.length % 4 ? '='.repeat(4 - (s.length % 4)) : ''
   const bin = atob(s.replace(/-/g, '+').replace(/_/g, '/') + pad)
   return Uint8Array.from(bin, (c) => c.charCodeAt(0))

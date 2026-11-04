@@ -30,6 +30,10 @@ npx supabase db push
    - Rate limitlər: SMS və e-poçt üçün saatlıq limitləri büdcəyə görə təyin edin.
    - Staff hesabları üçün MFA (plan).
 4. Realtime: `live_chat` nəşrə migrasiya ilə əlavə olunur; panelədə yoxlayın.
+5. İlk admin (yalnız SQL ilə, API admin təyin etmir): panel → SQL Editor:
+   `update public.profiles set role = 'admin' where id = (select id from auth.users where email = '<e-poçt>');`
+6. pg_cron: migrasiya `karyeram-cleanup` işini planlayır (`select * from cron.job;` ilə yoxlayın). Panelda Integrations → Cron aktiv olmalıdır.
+7. Hər yeni mağaza buraxılışında: köhnə versiyalar artıq işləməməlidirsə, Admin otağı → Tətbiq → minimum versiya. `APP_CONFIG_TTL_MS` istehsalda **təyin etməyin** (defolt 30 s).
 
 ## 2. Sirlər və funksiyalar
 
@@ -71,6 +75,8 @@ cd apps/app && npx eas build --profile production --platform all
 - [ ] `questions` cədvəli anon/authenticated REST ilə `[]` qaytarır.
 - [ ] Canlı dərs: müəllim + 2 tələbə, əl qaldırma, söz vermə, bitirmə; webhook davamiyyəti yazır.
 - [ ] Funksiya loglarında `api_crash` yoxdur.
+- [ ] `select * from cron.job` → `karyeram-cleanup` var; ertəsi gün `cron.job_run_details`-də uğurlu.
+- [ ] Admin otağı açılır (admin hesabı ilə), texniki iş rejimi aç/bağla işləyir.
 
 ## 6. Geri qaytarma
 

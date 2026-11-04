@@ -16,6 +16,8 @@ Migrasiyalar (`supabase/migrations`), ardıcıllıqla:
 | `20261104000010_staff_more.sql` | `staff_list_codes`, `staff_revoke_code`, `staff_diary_add` |
 | `20261104000011_library.sql` | Konspekt şkafı: `library_items`, `library_bodies` (klientə bağlı), `library_open`, `staff_library_add/delete`, şəxsi `library` bucket-i |
 | `20261104000006_honor_board.sql` | `profiles.show_on_board`, `set_board_visibility`, `board_rows`, `_short_name` |
+| `20261104000012_admin.sql` | `is_admin`, dayandırılmış müəllim `is_staff` deyil; `admin_find_users` (maskalı əlaqə), `admin_suspend/unsuspend`, `admin_set_role` (yalnız tələbə ↔ müəllim), `admin_audit` (açar-dəst səhifələmə) |
+| `20261104000013_scale.sql` | Çatışmayan xarici açar indeksləri, `maintenance_cleanup` (saxlama siyasəti, pg_cron ilə gündəlik), `app_config` (minimum versiya, texniki iş), `admin_set_config` |
 
 ## Prinsiplər
 
@@ -32,7 +34,28 @@ Migrasiyalar (`supabase/migrations`), ardıcıllıqla:
 | Test | `_guard`, `claim_device`, `create_codes`, `redeem_code`, `candidates`, `create_session`, `next_question`, `submit_answer`, `finish_session`, `session_review`, `upsert_card`, `card_of` |
 | Müəllim | `staff_create_codes`, `staff_set_question_status`, `staff_item_responses` |
 | Hesab | `accept_consents`, `revoke_consent`, `export_my_data`, `prepare_account_deletion`, `report_client_event` |
+| Admin | `is_admin`, `admin_find_users`, `admin_suspend`, `admin_unsuspend`, `admin_set_role`, `admin_audit`, `admin_set_config` |
+| Xidmət | `maintenance_cleanup` (pg_cron: `karyeram-cleanup`, hər gün 00:17 UTC) |
 | Canlı | `live_create_session`, `live_join`, `live_leave`, `live_set_state`, `live_settings`, `live_raise_hand`, `live_lower_hand`, `live_hands_queue`, `live_set_role`, `live_ban`, `live_chat_post`, `live_webhook_event`, `live_attendance` |
+
+## Saxlama siyasəti
+
+| Məlumat | Müddət | Səbəb |
+| --- | --- | --- |
+| `question_views` | 35 gün | Gündəlik limit və sürət yoxlaması yalnız son günlərə baxır |
+| Yarımçıq test (`active`) | 7 gündən sonra `abandoned` | Nəticəyə təsir etmir; köhnə kursorlar yığılmasın |
+| `live_events` (webhook təkrar qoruması) | 30 gün | Təkrar hadisə pəncərəsi dəqiqələrdir |
+| `live_chat` | Dərs bitəndən 90 gün sonra | Mübahisə halları üçün kifayətdir |
+| `audit_events` | Klient siqnalları 180 gün, qalanı 400 gün | Bir illik təhlükəsizlik araşdırması |
+| Cavablar, gündəlik, FSRS kartları | Hesab silinənə qədər | Tələbənin öz tarixçəsi |
+
+Silmə 20 000 sətirlik hissələrlə gedir (uzun kilid yoxdur). Əl ilə: `select public.maintenance_cleanup();`
+
+## Miqyas qeydləri
+
+- Hər xarici açarın indeksi var (hesab silinməsi və admin dayandırması böyük cədvəlləri skan etmir). Yoxlama sorğusu: `docs/PERFORMANCE.md`.
+- Ən sürətli böyüyən cədvəllər: `answers`, `question_views`, `audit_events`. `answers` 50 milyon sətirə çatanda aylıq bölmələrə (partition) keçid planlaşdırılır (ADR-0007).
+- Bütün siyahı RPC-ləri limitlidir (20–500 sətir); audit açar-dəst səhifələmə ilə.
 
 ## Məzmun
 

@@ -35,7 +35,7 @@ export function Corridor3D({ doors, hallLive, onEnter, onFail }: {
       <View style={st.canvas} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" testID="corridor-3d">
         <GLBoundary onFail={onFail}>
           <Suspense fallback={<Loading />}>
-            <SchoolCorridor doors={doors.map((d) => ({ key: d.key }))} selected={selected} onPick={pick} hallLive={hallLive} />
+            <SchoolCorridor doors={doors.map((d) => ({ key: d.key, label: d.number }))} selected={selected} onPick={pick} hallLive={hallLive} />
           </Suspense>
         </GLBoundary>
         <Text style={st.hint} pointerEvents="none">{t.hall.walkHint}</Text>

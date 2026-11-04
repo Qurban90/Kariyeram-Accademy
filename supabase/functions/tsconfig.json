@@ -1,0 +1,16 @@
+{
+  "//": "Edge Functions Deno-da işləyir; CI-də Deno olmadan tsc ilə tip yoxlaması (deno-shim.d.ts yalnız istifadə olunan API-ləri təsvir edir).",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": ["**/*.ts"]
+}

@@ -44,6 +44,8 @@ LIVEKIT_PUBLIC_URL=ws://127.0.0.1:7880
 LIVEKIT_API_KEY=devkey
 LIVEKIT_API_SECRET=secret
 APP_ORIGINS=
+# Lokal testlər üçün: app_config keşi 1 saniyə (istehsalda təyin etməyin, defolt 30 s)
+APP_CONFIG_TTL_MS=1000
 ```
 
 Demo məzmun (`[DEMO]` etiketli, real bank deyil) `supabase db reset` zamanı `supabase/seed.sql`-dən yüklənir.

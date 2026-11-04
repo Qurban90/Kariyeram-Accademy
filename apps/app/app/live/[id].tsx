@@ -210,7 +210,7 @@ export default function LiveRoom() {
       <View style={{ flex: 1, flexDirection: wide ? 'row' : 'column' }}>
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: space.md, gap: space.md }}>
           {view3d ? (
-            <View style={st.class3d} testID="classroom-3d">
+            <View style={[st.class3d, { aspectRatio: wide ? 16 / 9 : 1.05 }]} testID="classroom-3d">
               <GLBoundary onFail={() => { setView3d(false); setErr(t.live.gl3dFailed) }}>
                 <Suspense fallback={<Loading />}>
                   <Classroom3D peers={peers} raised={raised} capacity={capacity} />
@@ -361,13 +361,27 @@ function ChatPanel({ session, enabled, peers, me }: { session: string; enabled: 
     const load = () => supabase.from('live_chat').select('id, user_id, body, created_at').eq('session_id', session).order('id', { ascending: false }).limit(50)
       .then(({ data }) => { if (alive && data) merge(data as ChatMsg[]) })
     void load()
-    // Realtime: RLS tətbiq olunur, yalnız iştirakçılar alır. Abunə qurulanda aradakı mesajları yenidən oxuyuruq (yarış boşluğu).
+    const timers: ReturnType<typeof setTimeout>[] = []
+    let poll: ReturnType<typeof setInterval> | null = null
+    const stopPoll = () => { if (poll) { clearInterval(poll); poll = null } }
+    // Realtime: RLS tətbiq olunur, yalnız iştirakçılar alır.
+    // Yarış boşluqları: (1) abunə qurulana qədər gələn mesajlar; (2) server WAL axınını ilk abunədə işə salır və
+    // SUBSCRIBED-dən sonra bir neçə saniyə hadisə buraxa bilər (lokal stekdə müşahidə olunub). Ona görə SUBSCRIBED-də
+    // dərhal və 3 saniyə sonra yenidən oxuyuruq. Kanal xətada olanda isə 10 saniyədən bir oxuyuruq (yalnız o vaxt: miqyas üçün).
     const ch = supabase.channel(`chat:${session}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'live_chat', filter: `session_id=eq.${session}` }, (payload) => {
         merge([payload.new as ChatMsg])
       })
-      .subscribe((status) => { if (status === 'SUBSCRIBED') void load() })
-    return () => { alive = false; void supabase.removeChannel(ch) }
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          stopPoll()
+          void load()
+          timers.push(setTimeout(() => { if (alive) void load() }, 3000))
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          poll ??= setInterval(() => { if (alive) void load() }, 10_000)
+        }
+      })
+    return () => { alive = false; stopPoll(); timers.forEach(clearTimeout); void supabase.removeChannel(ch) }
   }, [session, merge])
 
   const send = async () => {
@@ -409,7 +423,7 @@ const st = StyleSheet.create({
   title: { flex: 1, color: colors.chalk, fontWeight: '800', fontSize: font.h3 },
   count: { color: colors.chalkDim, fontWeight: '700' },
   viewBtn: { minHeight: 36, paddingHorizontal: space.md, justifyContent: 'center', borderRadius: radius.pill, borderWidth: 1, borderColor: colors.brassDeep },
-  class3d: { height: 460, width: '100%', maxWidth: 1100, alignSelf: 'center', borderRadius: radius.md, overflow: 'hidden', borderWidth: 1, borderColor: colors.boardLine },
+  class3d: { width: '100%', maxWidth: 1100, maxHeight: 620, alignSelf: 'center', borderRadius: radius.md, overflow: 'hidden', borderWidth: 1, borderColor: colors.boardLine },
   banner: { marginHorizontal: space.md, marginBottom: space.sm, padding: space.sm, borderRadius: radius.md, borderWidth: 1, backgroundColor: colors.panel },
   audioBtn: { alignSelf: 'center', backgroundColor: colors.brass, paddingHorizontal: space.lg, minHeight: touch, justifyContent: 'center', borderRadius: radius.pill, marginBottom: space.sm },
   board: { aspectRatio: 16 / 9, width: '100%', maxWidth: 1100, alignSelf: 'center', backgroundColor: '#1d3b2f', borderWidth: 10, borderColor: colors.woodLight, borderRadius: radius.sm, overflow: 'hidden' },

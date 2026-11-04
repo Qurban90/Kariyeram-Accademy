@@ -30,3 +30,16 @@ VUS=100 QUESTIONS=20 node tests/load/load.mjs
 
 - İstehsal Supabase (Edge Functions, Pro plan verilənlər bazası) üzərində eyni skript.
 - Canlı dərs: 30–50 iştirakçılı LiveKit otağı (PERF-003). LiveKit Cloud-un öz yük alətləri ilə ölçülməlidir.
+
+## İndeks yoxlaması (xarici açarlar)
+
+Hər xarici açarın ilk sütunu ilə başlayan indeksi olmalıdır (hesab silinməsi və kaskad əməliyyatları böyük cədvəli skan etməsin). 2026-11-04 yoxlamasında 24 açar indekssiz idi; `20261104000013_scale.sql` istifadəçi, sual və canlı dərs açarlarını bağladı. Qalanları kiçik sorğu cədvəllərinə (`subjects`, `legal_documents`, `venues`) istinaddır. Yoxlama sorğusu:
+
+```sql
+select c.conrelid::regclass, a.attname, c.confrelid::regclass
+from pg_constraint c join pg_attribute a on a.attrelid = c.conrelid and a.attnum = c.conkey[1]
+where c.contype = 'f' and c.connamespace = 'public'::regnamespace
+  and not exists (select 1 from pg_index i where i.indrelid = c.conrelid and i.indkey[0] = c.conkey[1] and i.indpred is null);
+```
+
+Miqyas qərarları və böyümə pilləkəni: [adr/0007-scale-foundation.md](adr/0007-scale-foundation.md).

@@ -343,6 +343,32 @@ try {
     await sp.close()
   })
 
+  await step('admin otağı: tələbəni № ilə tapır, səbəblə dayandırır (GoTrue qadağası), audit-də görür, bərpa edir', async () => {
+    const no = sql(`select student_no from public.profiles p join auth.users u on u.id = p.id where u.phone = '${PHONE_DB}'`)
+    const ap = await hctx.newPage()
+    await ap.goto(`http://127.0.0.1:${PORT}/profile`)
+    await ap.getByTestId('open-admin').click()
+    await ap.waitForURL('**/admin')
+    await ap.getByTestId('admin-q').fill(no)
+    await ap.getByTestId('admin-search').click()
+    const card = ap.getByTestId(`admin-user-${no}`)
+    await card.waitFor({ timeout: 15000 })
+    expect(!(await card.innerText()).includes('500000003'), 'telefon maskalanmayıb')
+    await card.getByTestId('admin-reason').fill('E2E: qayda pozuntusu yoxlaması')
+    await card.getByTestId('admin-suspend').click()
+    await card.getByText(/Dayandırılıb: .* tarixinədək/).waitFor({ timeout: 15000 })
+    expect(sql(`select banned_until > now() from auth.users where phone = '${PHONE_DB}'`) === 't', 'GoTrue qadağası yoxdur')
+    await ap.screenshot({ path: join(SHOTS, '14-admin-dayandirma.png') })
+    await ap.getByTestId('tab-audit').click()
+    await ap.getByText('Admin dayandırdı').first().waitFor({ timeout: 15000 })
+    await ap.getByTestId('tab-users').click()
+    // Tab dəyişəndə axtarış nəticəsi qalmalıdır (yenidən axtarmadan).
+    await card.getByTestId('admin-unsuspend').click()
+    await card.getByText('Aktiv').waitFor({ timeout: 15000 })
+    expect(sql(`select coalesce(banned_until < now(), true) from auth.users where phone = '${PHONE_DB}'`) === 't', 'qadağa götürülmədi')
+    await ap.close()
+  })
+
   await step('şkaf: müəllim mətn konspekti və PDF yükləyir → tələbə oxuyur (icazə, su nişanı, imzalı URL)', async () => {
     const lp = await hctx.newPage()
     await lp.goto(`http://127.0.0.1:${PORT}/teacher`)

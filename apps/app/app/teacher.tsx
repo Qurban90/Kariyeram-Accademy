@@ -9,6 +9,7 @@ import { api, ApiFailure } from '../src/lib/api'
 import { useLibrary, useSubjects } from '../src/lib/queries'
 import { supabase } from '../src/lib/supabase'
 import { colors, font, space } from '../src/theme'
+import { fmtDate } from '../src/lib/dates'
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F']
 interface StaffQuestion {
@@ -181,7 +182,7 @@ function CodeList() {
       {(q.data?.codes ?? []).slice(0, 100).map((c, i) => (
         <View key={c.id} testID={`code-row-${i}`} style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, flexWrap: 'wrap' }}>
           <Text style={{ color: colors.chalk, flex: 1, minWidth: 160, fontSize: font.small }}>
-            {c.subject_id} · {c.days} gün · {new Date(c.created_at).toLocaleDateString('az-AZ')} · {t.teacher.codeState[c.state]}
+            {c.subject_id} · {c.days} gün · {fmtDate(c.created_at)} · {t.teacher.codeState[c.state]}
           </Text>
           {c.state === 'unused' && <Button small variant="danger" label={t.teacher.revoke} onPress={() => revoke(c.id)} />}
         </View>

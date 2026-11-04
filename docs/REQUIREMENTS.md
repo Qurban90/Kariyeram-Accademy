@@ -98,7 +98,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | FR-061 | Sual analizi: tələli, şübhəli açar, asan/çətin | S | Min 30 cavab | Hazır (core + API + müəllim otağı UI, E2E) |
 | FR-062 | Sual statusu: qaralama, yoxlama, dərc, köhnəlmiş | M | Tələbə yalnız dərc olunanı görür | Hazır (DB + müəllim otağı UI, E2E) |
 | FR-063 | Qiymət və qeyd gündəliyə | S | Dərhal tələbədə görünür | Hazır (tələbə № ilə; DB + API + UI, E2E) |
-| FR-064 | Admin: istifadəçi dayandırma, audit | M | Hər əməliyyat audit-ə | Qismən |
+| FR-064 | Admin: istifadəçi dayandırma, audit | M | Hər əməliyyat audit-ə | Hazır (axtarış, dayandırma/bərpa GoTrue qadağası ilə, rol, audit jurnalı, texniki iş/minimum versiya; DB + API + UI, inteqrasiya + E2E) |
 
 ## 5. Qeyri-funksional tələblər
 
@@ -116,7 +116,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | SEC-004 | Gündəlik sual limiti, sürət aşkarlama | DB testi | Hazır |
 | SEC-005 | LiveKit icazələri yalnız serverdə | Vitest | Hazır |
 | SEC-006 | Webhook imzası və təkrar qorunması | Vitest | Hazır |
-| SEC-007 | Sirlər repoda yoxdur, CI-də secret scanning | gitleaks | Qismən (gitignore; CI-də gitleaks konfiqurasiya olunub, hələ işləməyib) |
+| SEC-007 | Sirlər repoda yoxdur, CI-də secret scanning | gitleaks | Qismən (gitignore; CI-də gitleaks konfiqurasiya olunub, hələ işləməyib — GitHub-da Actions işləyəndə yoxlanacaq) |
 | SEC-008 | Android ekran şəkli qadağası, iOS aşkarlama | expo-screen-capture | Qismən (kod var; native cihazda yoxlanmayıb) |
 | PRIV-001 | Minimal məlumat: ad, e-poçt və/və ya telefon | Sxem | Hazır |
 | PRIV-002 | Silinmə və ixrac | DB testi | Hazır |
@@ -126,6 +126,8 @@ Prioritet: M (Must), S (Should), C (Could).
 | TEST-003 | Lokal Supabase ilə end-to-end API testi | supabase start | Hazır (8 inteqrasiya testi) |
 | TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (29 addım) |
 | TEST-005 | Native cihazlarda E2E | Maestro/Detox | Plan |
+| NFR-005 | Köhnə klientin məcburi yenilənməsi və texniki iş rejimi | `app_config`, `x-app-version` | Hazır (DB + API + UI, inteqrasiya testi) |
+| NFR-006 | Məlumat saxlama siyasəti (avtomatik təmizləmə) | pg_cron | Hazır (DB testi; istehsalda cron işi yoxlanmalıdır) |
 | NFR-004 | Əlçatanlıq: toxunma sahəsi ≥ 44, ARIA rolları və vəziyyətləri, azaldılmış hərəkət | Ekran oxuyucu ilə yoxlama | Qismən (kod; ekran oxuyucu ilə yoxlanmayıb) |
 
 ## 6. Kritik ssenarilər və istisnalar

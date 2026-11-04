@@ -200,3 +200,77 @@ describe('e-poçt OTP, kodla abunə, canlı dərs, ixrac və silmə', () => {
     expect((await api(student.token, 'device/claim', { device: dev() })).status).toBe(401)
   })
 })
+
+describe('admin: dayandırma real GoTrue qadağası ilə', () => {
+  it('admin tələbəni tapır, dayandırır (API dərhal bağlanır, token yenilənmir), sonra bərpa edir', async () => {
+    const admin = await emailLogin(`itest-admin-${run}@karyeram.test`)
+    sql(`update public.profiles set role = 'admin' where id = '${admin.id}'`)
+    const o = await http('/auth/v1/otp', { body: { phone: '+994500000003', data: { display_name: 'Dayandırılan Test' } } })
+    expect(o.status).toBe(200)
+    const v = await http('/auth/v1/verify', { body: { type: 'sms', phone: '+994500000003', token: '123456' } })
+    const student = { token: v.json.access_token as string, id: v.json.user.id as string, refresh: v.json.refresh_token as string }
+    const no = sql(`select student_no from public.profiles where id = '${student.id}'`)
+
+    expect((await api(student.token, 'admin/users/find', { query: no })).json.error).toBe('forbidden')
+    const f = await api(admin.token, 'admin/users/find', { query: no })
+    expect(f.status, JSON.stringify(f.json)).toBe(200)
+    expect(f.json.users.map((u: { id: string }) => u.id)).toContain(student.id)
+    expect(JSON.stringify(f.json)).not.toContain('500000003')
+
+    const s = await api(admin.token, 'admin/users/suspend', { user: student.id, hours: 2, reason: 'İnteqrasiya testi' })
+    expect(s.json, JSON.stringify(s.json)).toMatchObject({ ok: true, authBan: true })
+    expect(sql(`select banned_until > now() from auth.users where id = '${student.id}'`)).toBe('t')
+    // GoTrue qadağan olunmuş istifadəçinin köhnə access tokenini də dərhal rədd edir: API bağlıdır (müddətin bitməsini gözləmir).
+    expect((await api(student.token, 'device/claim', { device: dev() })).status).toBe(401)
+    // Test nömrəsinin sabit kodu (auth.sms.test_otp); yeni OTP istəmirik, çünki 60 saniyəlik təkrar göndərmə limiti var.
+    const signIn = await http('/auth/v1/verify', { body: { type: 'sms', phone: '+994500000003', token: '123456' } })
+    expect(signIn.json.error_code, 'qadağan olunmuş hesab yenidən daxil ola bilmir').toBe('user_banned')
+    const rf = await http('/auth/v1/token?grant_type=refresh_token', { body: { refresh_token: student.refresh } })
+    expect(rf.status, 'qadağan olunmuş hesab tokeni yeniləyə bilmir').toBeGreaterThanOrEqual(400)
+
+    const audit = await api(admin.token, 'admin/audit', { user: student.id })
+    expect(audit.json.events[0]).toMatchObject({ kind: 'admin_suspended' })
+
+    const u = await api(admin.token, 'admin/users/unsuspend', { user: student.id })
+    expect(u.json).toMatchObject({ ok: true, authBan: true })
+    expect(sql(`select coalesce(banned_until < now(), true) from auth.users where id = '${student.id}'`)).toBe('t')
+    expect((await api(student.token, 'device/claim', { device: dev() })).status).toBe(200)
+  })
+})
+
+describe('texniki iş rejimi və minimum versiya (server tərəfində)', () => {
+  it('admin texniki işi açır → tələbə 503, admin və ixrac işləyir; minimum versiya → köhnə klient 426', async () => {
+    const admin = await emailLogin(`itest-cfg-${run}@karyeram.test`)
+    sql(`update public.profiles set role = 'admin' where id = '${admin.id}'`)
+    const student = await emailLogin(`itest-cfgs-${run}@karyeram.test`)
+    const wait = () => new Promise((r) => setTimeout(r, 1300)) // APP_CONFIG_TTL_MS=1000 (lokal)
+    try {
+      expect((await api(student.token, 'admin/config', { maintenance: true })).json.error).toBe('forbidden')
+      const on = await api(admin.token, 'admin/config', { maintenance: true, message: 'Saat 03:00-a qədər' })
+      expect(on.json, JSON.stringify(on.json)).toMatchObject({ maintenance: true })
+      await wait()
+      const blocked = await api(student.token, 'device/claim', { device: dev() })
+      expect(blocked.status).toBe(503)
+      expect(blocked.json).toMatchObject({ error: 'maintenance', message: 'Saat 03:00-a qədər' })
+      expect((await api(student.token, 'account/export')).status).toBe(200)
+      expect((await api(admin.token, 'admin/audit', { kind: 'admin_config' })).json.events.length).toBeGreaterThan(0)
+      // Anon (girişdən əvvəl) da görür: klient "texniki iş" ekranını göstərir.
+      const pub = await http('/rest/v1/app_config?select=maintenance', { method: 'GET' })
+      expect(pub.json).toEqual([{ maintenance: true }])
+
+      await api(admin.token, 'admin/config', { maintenance: false, minVersion: '9.0.0', message: '' })
+      await wait()
+      const old = await api(student.token, 'device/claim', { device: dev() })
+      expect(old.status).toBe(426)
+      expect(old.json.error).toBe('upgrade_required')
+      const r = await fetch(`${URL_}/functions/v1/api/device/claim`, {
+        method: 'POST', headers: { apikey: ANON, 'content-type': 'application/json', authorization: `Bearer ${student.token}`, 'x-app-version': '9.0.0' },
+        body: JSON.stringify({ device: dev() }),
+      })
+      expect(r.status).toBe(200)
+    } finally {
+      sql(`update public.app_config set maintenance = false, min_version = '0.0.0', message = null`)
+      await wait()
+    }
+  })
+})

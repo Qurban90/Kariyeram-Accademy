@@ -49,6 +49,19 @@
 | `live/state` | `session, state: live\|ended\|cancelled` | `{state, room: closed\|pending\|skipped}` | Bitəndə LiveKit otağı silinir |
 | `live/chat` | `session, body: 1..500` | `{id}` | 10 saniyədə 5 mesaj |
 | `live/attendance` | `session` | `{rows[]}` | Yalnız host |
+| `admin/users/find` | `query: 1..120` | `{users[]: id, student_no, display_name, role, suspended_until, suspension_reason, email (maskalı), phone (maskalı)}` | Yalnız admin; tələbə №, telefonun son ≥5 rəqəmi, dəqiq e-poçt və ya ad parçası; ən çox 20 |
+| `admin/users/suspend` | `user, hours: 1..87600, reason: 3..300` | `{ok, until, authBan}` | DB + GoTrue qadağası; adminə və özünə tətbiq olunmur; audit |
+| `admin/users/unsuspend` | `user` | `{ok, authBan}` | Audit |
+| `admin/users/role` | `user, role: student\|teacher` | `{ok, unchanged?}` | Admin təyinatı yalnız DB sahibi tərəfindən |
+| `admin/audit` | `kind?, user?, before?` | `{events[]: id, at, kind, detail, student_no, display_name}` | 50-lik səhifə, `before` = son görülən id |
+| `admin/config` | `minVersion?, maintenance?, message?` | `{min_version, maintenance, message}` | Texniki iş rejimi və minimum klient versiyası; audit |
+
+### Hər sorğuda ümumi yoxlamalar (marşrutdan əvvəl)
+
+1. **Texniki iş rejimi** (`app_config.maintenance`): `503 maintenance` (+ `message`). İstisna: `admin/*`, `account/export`, `account/delete`.
+2. **Minimum versiya**: klient `x-app-version` başlığı göndərir (app.json `version`). `app_config.min_version`-dan köhnədirsə və ya başlıq yoxdursa `426 upgrade_required`. İstisna: `account/export`, `account/delete`.
+3. **JWT**: GoTrue `/auth/v1/user` (silinmiş, çıxış etmiş və ya **qadağan olunmuş** istifadəçi `401`).
+4. Konfiqurasiya izolyatda 30 saniyə keşlənir; oxuna bilməsə son məlum dəyər, o da yoxdursa bloklanmır.
 
 ## Xəta kodları və HTTP statusu
 
@@ -56,15 +69,16 @@
 | --- | --- |
 | 400 | `bad_*`, `invalid_code`, `not_viewed`, `not_finished`, `bad_json`, `confirm_required` və s. |
 | 401 | `unauthorized` (token yoxdur və ya etibarsızdır) |
-| 403 | `forbidden`, `suspended`, `device_not_active`, `banned`, `consent_required` |
+| 403 | `forbidden`, `suspended`, `device_not_active`, `banned`, `consent_required`, `self` (admin özünə) |
 | 404 | `not_found`, `no_profile`, `no_questions`, `no_mistakes`, `no_venue` |
 | 405 | `method` |
-| 409 | `session_closed`, `out_of_order`, `full`, `too_early`, `code_used`, `bad_transition` |
+| 409 | `session_closed`, `out_of_order`, `full`, `too_early`, `code_used`, `bad_transition`, `time_up` |
+| 426 | `upgrade_required` |
 | 413 | `too_large` |
 | 429 | `daily_limit`, `rate_limited`, `too_many_attempts` |
 | 500 | `internal` (detal yalnız server logunda) |
 | 502 | `live_partial_failure` |
-| 503 | `live_not_configured` |
+| 503 | `live_not_configured`, `maintenance` |
 
 ## Webhook
 

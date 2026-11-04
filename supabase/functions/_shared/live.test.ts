@@ -126,16 +126,16 @@ describe('account', () => {
   it('silmə təsdiq sözü tələb edir, əvvəl audit, sonra auth silinməsi', async () => {
     const del = vi.fn(async () => {})
     const { db, calls } = fakeDb({ prepare_account_deletion: { ok: true } })
-    await expect(deleteAccount(db, { deleteAuthUser: del }, U1, 'sil')).rejects.toMatchObject({ code: 'confirm_required' })
+    await expect(deleteAccount(db, { deleteAuthUser: del, setBan: vi.fn(async () => {}) }, U1, 'sil')).rejects.toMatchObject({ code: 'confirm_required' })
     expect(del).not.toHaveBeenCalled()
-    await deleteAccount(db, { deleteAuthUser: del }, U1, 'SİL')
+    await deleteAccount(db, { deleteAuthUser: del, setBan: vi.fn(async () => {}) }, U1, 'SİL')
     expect(calls).toEqual(['prepare_account_deletion'])
     expect(del).toHaveBeenCalledWith(U1)
   })
 })
 
 describe('router validasiyası', () => {
-  const ctx = (db: Ctx['db']): Ctx => ({ db, userId: U1, live: { cfg, rooms: null }, admin: { deleteAuthUser: async () => {} } })
+  const ctx = (db: Ctx['db']): Ctx => ({ db, userId: U1, live: { cfg, rooms: null }, admin: { deleteAuthUser: async () => {}, setBan: async () => {} } })
   it('naməlum və prototip marşrutları 404', async () => {
     const { db } = fakeDb({})
     await expect(dispatch('nope', ctx(db), {})).rejects.toMatchObject({ status: 404 })

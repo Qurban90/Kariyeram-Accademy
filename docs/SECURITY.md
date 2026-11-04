@@ -50,6 +50,12 @@ Versiya 0.1 · 2026-11-04. Bu sənəd heç bir şeyin "100% təhlükəsiz" oldu�
 | E | Müəllim cavab açarını REST ilə iz qoymadan dəyişir | Müəllimə `questions` yalnız oxumaq üçün açıqdır; status dəyişikliyi audit ilə RPC-dən | DB testi |
 | T | İmtahan vaxtı bitəndən sonra cavab | `submit_answer` vaxtı yoxlayır (+5 san.), sessiyanı bağlayır | DB testi |
 | E | Müəllim başqasının məkanında dərs yaradır | Məkan sahibi və ya admin | DB testi |
+| E | Ələ keçirilmiş admin digər adminləri bloklayır və ya özünə admin yaradır | Admin özünə və başqa adminə toxuna bilmir; admin rolu API ilə verilmir (yalnız DB sahibi) | DB testi |
+| E | Dayandırılmış müəllim kod yaradır, sual dərc edir | `is_staff` dayandırılmışı istisna edir | DB testi |
+| S | Dayandırılmış istifadəçi köhnə tokenlə davam edir | GoTrue qadağası: köhnə access token dərhal 401, refresh və yeni giriş bloklanır (`user_banned`) | İnteqrasiya testi (real GoTrue) |
+| I | Admin axtarışı ilə əlaqə məlumatlarının toplu çıxarılması | Maskalı e-poçt/telefon, ən çox 20 nəticə, LIKE simvolları qaçırılır | DB testi |
+| R | Admin əməliyyatı inkar olunur | Hər admin əməliyyatı audit-də, `detail.by` ilə | DB testi |
+| D | Köhnə klient yeni API ilə səhv işləyir | `x-app-version` + `app_config.min_version` → `426 upgrade_required` | İnteqrasiya testi |
 
 ## 4. Risk reyestri
 
@@ -67,7 +73,8 @@ Versiya 0.1 · 2026-11-04. Bu sənəd heç bir şeyin "100% təhlükəsiz" oldu�
 | R-10 | Asılılıq zəiflikləri (npm) | Orta | Orta | Orta | 2026-11-04 `npm audit --omit=dev`: 6 orta (glob/minimatch, Expo build alətlərində, işləyən tətbiqdə deyil). Avtomatik düzəliş Expo-nu köhnə versiyaya endirir, ona görə Expo yeniləmələri izlənir. Dependabot (plan) |
 | R-12 | Vebdə sessiya tokeni `localStorage`-dadır (XSS olarsa oğurlana bilər) | Aşağı | Yüksək | Orta | Üçüncü tərəf skript yoxdur; istehsalda CSP başlığı; native-də SecureStore |
 | R-13 | PDF konspekt brauzerdə açılır: su nişanı yoxdur, imzalı keçid 5 dəqiqə ərzində başqasına ötürülə bilər | Orta | Orta | Orta | Mətn konspektləri tətbiqdə su nişanı ilə; PDF üçün plan: serverdə tələbə nömrəsi ilə möhürləmə və ya tətbiq daxili görüntüləyici |
-| R-11 | Müəllim/admin hesabının ələ keçirilməsi | Aşağı | Yüksək | Orta | Staff üçün MFA (Supabase Auth MFA) — plan |
+| R-11 | Müəllim/admin hesabının ələ keçirilməsi | Aşağı | Yüksək | Orta | Staff üçün MFA (Supabase Auth MFA) — plan. Zərər məhdudlaşdırılıb: admin digər adminlərə toxuna bilmir, hər əməliyyat audit-dədir |
+| R-14 | Dayandırılmış istifadəçi PostgREST ilə öz məlumatını oxumağa davam edir (JWT yerli yoxlanır, ≤ 1 saat) | Orta | Aşağı | Aşağı | Yazma əməliyyatlarının hamısı Edge API-dən keçir və dərhal bağlanır; yalnız öz məlumatı oxunur |
 
 ## 5. Sirlər
 
@@ -84,4 +91,5 @@ Repoda heç bir real sir yoxdur. Lokal test açarları (`devkey/secret`, Supabas
 
 1. Sızma şübhəsi: `audit_events`-də `client_screenshot`, `suspended_pace`, `device_replaced` axtar; su nişanındakı nömrə ilə tələbəni tap.
 2. Sir sızıbsa: dərhal rotasiya (Supabase panel, LiveKit panel), sonra `supabase secrets set`, funksiyaları yenidən deploy.
-3. Hesab bloklama: `profiles.suspended_until` (admin), canlı dərsdə `live/ban`.
+3. Hesab bloklama: **Admin otağı → İstifadəçilər → Dayandır** (səbəb məcburidir, audit-ə yazılır; GoTrue qadağası ilə dərhal qüvvəyə minir). Canlı dərsdə `live/ban`.
+4. Kütləvi problem (məs. məlumat sızması, səhv buraxılış): **Admin otağı → Tətbiq → Texniki iş rejimi** bütün API-ni bağlayır (ixrac/silmə istisna); köhnə tətbiq versiyası üçün minimum versiyanı qaldırın.

@@ -46,9 +46,26 @@ export function classroomSeat(seat: number, perRow = CLASS_PER_ROW): { x: number
   return { x: (col - (perRow - 1) / 2) * gap, z: -1.5 + row * 1.5 }
 }
 
-/** İştirakçı rəngi: identity-dən sabit (eyni tələbə hər dəfə eyni rəngdə). */
-export function colorFor(id: string): string {
+function hashOf(id: string): number {
   let h = 0
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0
-  return `hsl(${h % 360}, 45%, 55%)`
+  return h
+}
+
+/** İştirakçı rəngi: identity-dən sabit (eyni tələbə hər dəfə eyni rəngdə). */
+export function colorFor(id: string): string {
+  return `hsl(${hashOf(id) % 360}, 45%, 55%)`
+}
+
+const SKIN = ['#f1d3b3', '#e6bf98', '#d3a27a', '#b9845d', '#f5dcc6'] as const
+const HAIR = ['#2b1d14', '#4a3121', '#6b4423', '#17130f', '#8a6a3e', '#3b2b22'] as const
+
+/** Avatarın görünüşü identity-dən sabit seçilir: köynək, dəri və saç rəngi. Şəxsi məlumat istifadə olunmur. */
+export function paletteFor(id: string): { shirt: string; skin: string; hair: string } {
+  // Qısa identity-lərdə xam hash kiçik olur və yuxarı bitləri sıfırdır; murmur3 "fmix" bitləri qarışdırır.
+  let h = hashOf(id)
+  h = Math.imul(h ^ (h >>> 16), 0x85ebca6b) >>> 0
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35) >>> 0
+  h = (h ^ (h >>> 16)) >>> 0
+  return { shirt: colorFor(id), skin: SKIN[(h >>> 9) % SKIN.length]!, hair: HAIR[(h >>> 13) % HAIR.length]! }
 }

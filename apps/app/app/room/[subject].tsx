@@ -9,6 +9,7 @@ import * as WebBrowser from 'expo-web-browser'
 import { config } from '../../src/config'
 import { hasAccess, useEnrollments, useLibrary, useSubjects, useTopics } from '../../src/lib/queries'
 import { colors, font, radius, space } from '../../src/theme'
+import { fmtDate } from '../../src/lib/dates'
 
 const SIZES = [10, 20, 30, 50] as const
 const MODES: { mode: Mode; title: string; sub: string; icon: string }[] = [
@@ -72,7 +73,7 @@ export default function Room() {
     <Screen back title={name}>
       <View style={st.board} accessible accessibilityLabel={`${name} sinfi`}>
         <Text style={st.boardTxt}>{name}</Text>
-        <Text style={st.boardSub}>{access ? t.room.accessUntil(new Date(access.access_until).toLocaleDateString('az-AZ')) : t.room.noAccess}</Text>
+        <Text style={st.boardSub}>{access ? t.room.accessUntil(fmtDate(access.access_until)) : t.room.noAccess}</Text>
       </View>
       <ErrorBox message={topics.error ? (topics.error as Error).message : null} onRetry={() => topics.refetch()} />
 

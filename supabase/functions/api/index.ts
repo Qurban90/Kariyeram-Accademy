@@ -3,7 +3,9 @@
 import { ApiError } from '../_shared/errors.ts'
 import { RoomService, type LiveKitConfig } from '../_shared/livekit.ts'
 import { dispatch, type Ctx } from '../_shared/router.ts'
-import { deleteAuthUser, getUserId, restDb, restStorage } from '../_shared/supabase.ts'
+import { suspendedGate } from '../_shared/admin.ts'
+import { cachedConfig, configGate } from '../_shared/config.ts'
+import { deleteAuthUser, getAppConfig, getUser, restDb, restStorage, setAuthBan } from '../_shared/supabase.ts'
 
 const env = (k: string) => Deno.env.get(k) ?? ''
 const supa = { url: env('SUPABASE_URL'), serviceKey: env('SUPABASE_SERVICE_ROLE_KEY') }
@@ -12,8 +14,10 @@ const lk: LiveKitConfig | null = env('LIVEKIT_URL') && env('LIVEKIT_API_KEY') &&
   ? { url: env('LIVEKIT_URL'), apiKey: env('LIVEKIT_API_KEY'), apiSecret: env('LIVEKIT_API_SECRET'), publicUrl: env('LIVEKIT_PUBLIC_URL') || undefined }
   : null
 const live = { cfg: lk, rooms: lk ? new RoomService(lk) : null }
-const admin = { deleteAuthUser: (id: string) => deleteAuthUser(supa, id) }
+const admin = { deleteAuthUser: (id: string) => deleteAuthUser(supa, id), setBan: (id: string, h: number | null) => setAuthBan(supa, id, h) }
 const storage = restStorage(supa, 'library')
+// İstehsalda 30 s; lokal testlərdə qısa (APP_CONFIG_TTL_MS), ki dəyişiklik dərhal yoxlanılsın.
+const appConfig = cachedConfig(() => getAppConfig(supa), Number(env('APP_CONFIG_TTL_MS')) || 30_000)
 
 const MAX_BODY = 64 * 1024
 /** Mətn konspekti (200 000 simvola qədər) üçün yeganə istisna. */
@@ -24,7 +28,7 @@ function cors(req: Request): Record<string, string> {
   const o = req.headers.get('origin') ?? ''
   return {
     'Access-Control-Allow-Origin': origins.length === 0 ? '*' : origins.includes(o) ? o : origins[0]!,
-    'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-client-info, x-request-id',
+    'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-client-info, x-request-id, x-app-version',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     Vary: 'Origin',
   }
@@ -41,17 +45,24 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return reply({ error: 'method' }, 405)
 
   const route = new URL(req.url).pathname.split('/api/')[1] ?? ''
+  // Texniki iş və minimum versiya: auth-dan əvvəl (ucuz, keşlənir), ki texniki işdə GoTrue-ya da yük getməsin.
+  const cfg = await appConfig()
+  const blocked = configGate(route, cfg, req.headers.get('x-app-version'))
+  if (blocked) return reply({ error: blocked.code, message: cfg.message, minVersion: cfg.minVersion, requestId: rid }, blocked.status)
   const jwt = req.headers.get('authorization')?.replace(/^Bearer /, '')
   if (!jwt) return reply({ error: 'unauthorized' }, 401)
-  const userId = await getUserId(supa, jwt)
-  if (!userId) return reply({ error: 'unauthorized' }, 401)
+  const user = await getUser(supa, jwt)
+  if (!user) return reply({ error: 'unauthorized' }, 401)
+  const userId = user.id
+  // Admin tərəfindən dayandırılmış hesab: yalnız ixrac və silinmə (DB də öz yoxlamasını edir, bu birinci qatdır).
+  if (suspendedGate(route, user.bannedUntil)) return reply({ error: 'suspended', requestId: rid }, 403)
 
   const started = Date.now()
   try {
     const raw = await req.text()
     if (raw.length > (route === 'staff/library/add' ? MAX_BODY_LIBRARY : MAX_BODY)) return reply({ error: 'too_large' }, 413)
     const body = raw ? JSON.parse(raw) : {}
-    const ctx: Ctx = { db, userId, live, admin, storage }
+    const ctx: Ctx = { db, userId, live, admin, storage, log: (msg, data) => log('error', msg, { rid, ...data }) }
     const out = await dispatch(route, ctx, body)
     log('info', 'api', { rid, route, ms: Date.now() - started })
     return reply(out)

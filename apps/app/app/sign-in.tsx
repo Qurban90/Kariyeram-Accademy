@@ -16,6 +16,7 @@ const RESEND_S = 60
 
 function authErrorText(e: { status?: number; code?: string; message?: string }): string {
   const code = e.code ?? ''
+  if (code === 'user_banned') return t.auth.banned
   if (e.status === 429 || code.startsWith('over_')) return t.auth.tooMany
   if (code === 'phone_provider_disabled' || code === 'sms_send_failed') return t.auth.smsDisabled
   if (code === 'otp_expired' || code === 'invalid_credentials' || code === 'otp_disabled') return t.auth.badCode

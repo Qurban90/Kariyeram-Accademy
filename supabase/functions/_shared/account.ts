@@ -3,6 +3,8 @@ import type { Db } from './handlers.ts'
 
 export interface AdminDeps {
   deleteAuthUser(userId: string): Promise<void>
+  /** GoTrue qadağası (null = götür). */
+  setBan(userId: string, hours: number | null): Promise<void>
 }
 
 export const consent = async (db: Db, user: string, docs: string[], displayName?: string) =>

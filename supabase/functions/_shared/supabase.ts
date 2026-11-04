@@ -43,12 +43,35 @@ export function restDb(cfg: SupaConfig): Db {
   }
 }
 
-/** İstifadəçi JWT-sini GoTrue-da yoxlayır (imza, müddət, silinmiş istifadəçi). */
-export async function getUserId(cfg: SupaConfig, jwt: string): Promise<string | null> {
+export interface AuthUser { id: string; bannedUntil: string | null }
+
+/**
+ * İstifadəçi JWT-sini GoTrue-da yoxlayır (imza, müddət, silinmiş istifadəçi, ləğv olunmuş sessiya).
+ * Yerli imza yoxlamasından bir şəbəkə gedişi bahadır, amma "bütün cihazlardan çıxış" və silinmə dərhal işləyir (ADR-0007).
+ */
+export async function getUser(cfg: SupaConfig, jwt: string): Promise<AuthUser | null> {
   const r = await call(cfg, '/auth/v1/user', { method: 'GET', headers: { authorization: `Bearer ${jwt}` } })
   if (!r.ok) return null
-  const u = (await r.json()) as { id?: string }
-  return typeof u.id === 'string' ? u.id : null
+  const u = (await r.json()) as { id?: string; banned_until?: string | null }
+  return typeof u.id === 'string' ? { id: u.id, bannedUntil: typeof u.banned_until === 'string' ? u.banned_until : null } : null
+}
+
+/** Tətbiq konfiqurasiyası (tək sətir). */
+export async function getAppConfig(cfg: SupaConfig): Promise<{ minVersion: string; maintenance: boolean; message: string | null }> {
+  const r = await call(cfg, '/rest/v1/app_config?select=min_version,maintenance,message&limit=1', { method: 'GET' })
+  if (!r.ok) throw new Error(`app_config: ${r.status}`)
+  const rows = (await r.json()) as { min_version: string; maintenance: boolean; message: string | null }[]
+  const c = rows[0]
+  if (!c) throw new Error('app_config: empty')
+  return { minVersion: c.min_version, maintenance: c.maintenance, message: c.message }
+}
+
+/** GoTrue qadağası: yeni giriş və token yeniləmə bloklanır. hours = null qadağanı götürür. */
+export async function setAuthBan(cfg: SupaConfig, id: string, hours: number | null): Promise<void> {
+  const r = await call(cfg, `/auth/v1/admin/users/${encodeURIComponent(id)}`, {
+    method: 'PUT', body: JSON.stringify({ ban_duration: hours === null ? 'none' : `${hours}h` }),
+  })
+  if (!r.ok) throw new Error(`auth ban: ${r.status}`)
 }
 
 export async function deleteAuthUser(cfg: SupaConfig, id: string): Promise<void> {
