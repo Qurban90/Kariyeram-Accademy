@@ -161,6 +161,18 @@ try {
     await shot('08-gundelik')
   })
 
+  await step('şərəf lövhəsi: öz vəziyyəti, razılıq olmadan gizli, Kabinetdən açılır', async () => {
+    await page.goto(`http://127.0.0.1:${PORT}/`)
+    await tid('go-board').click()
+    await tid('board-me').waitFor({ timeout: 15000 })
+    await page.getByText('Adınız başqalarına görünmür.').waitFor()
+    await shot('09a-seref-lovhesi')
+    await page.goto(`http://127.0.0.1:${PORT}/profile`)
+    await tid('board-toggle').click()
+    await page.getByText('Şərəf lövhəsində görün: Bəli').waitFor({ timeout: 15000 })
+    expect(sql(`select show_on_board from public.profiles p join auth.users u on u.id = p.id where u.phone = '${PHONE_DB}'`) === 't', 'razılıq yazılmadı')
+  })
+
   await step('yarımçıq test: zalda "Davam et" kartı, eyni yerdən davam edir', async () => {
     await page.goto(`http://127.0.0.1:${PORT}/room/informatika`)
     await tid('mode-mixed').click()

@@ -5,6 +5,7 @@ import { ApiError, unwrap } from './errors.ts'
 import { answer, claimDevice, finish, nextQuestion, redeemCode, reviewSession, startSession, type Db } from './handlers.ts'
 import * as live from './live.ts'
 import { itemAnalysis } from './staff.ts'
+import { board } from './board.ts'
 import type { LiveDeps } from './live.ts'
 import { bool, device, int, obj, oneOf, str, uuid, uuids } from './validate.ts'
 
@@ -34,6 +35,10 @@ export const routes: Record<string, Handler> = {
   'client/event': async (c, b) => unwrap(await c.db.rpc<Record<string, unknown>>('report_client_event', {
     p_user: c.userId, p_kind: oneOf(b, 'kind', ['screenshot', 'screen_recording'])!, p_context: str(b, 'context', 0, 64, true) ?? null,
   })),
+
+  // Şərəf lövhəsi (məxfilik: yalnız razılıq verənlər görünür)
+  'board': (c, b) => board(c.db, c.userId, str(b, 'subject', 1, 40, true) ?? null),
+  'account/board': async (c, b) => unwrap(await c.db.rpc<Record<string, unknown>>('set_board_visibility', { p_user: c.userId, p_show: bool(b, 'show')! })),
 
   // Müəllim paneli (icazə DB-də yoxlanır: is_staff)
   'staff/codes': async (c, b) => unwrap(await c.db.rpc<Record<string, unknown>>('staff_create_codes', {

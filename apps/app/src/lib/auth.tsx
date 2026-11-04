@@ -14,6 +14,7 @@ export interface Profile {
   role: 'student' | 'teacher' | 'admin'
   onboarded_at: string | null
   suspended_until: string | null
+  show_on_board: boolean
 }
 
 interface AuthState {
@@ -37,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadProfile = useCallback(async (s: Session | null) => {
     if (!s) { setProfile(null); return }
     const { data, error } = await supabase.from('profiles')
-      .select('id, display_name, student_no, role, onboarded_at, suspended_until').eq('id', s.user.id).maybeSingle()
+      .select('id, display_name, student_no, role, onboarded_at, suspended_until, show_on_board').eq('id', s.user.id).maybeSingle()
     if (error) { setProfileError(error.message); return }
     setProfileError(null)
     if (!data) {

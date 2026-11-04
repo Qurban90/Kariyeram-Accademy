@@ -66,6 +66,11 @@ export default function Hall() {
           <H level={3}>{t.hall.diary}</H>
           <P dim small>{t.hall.diarySub}</P>
         </Card>
+        <Card style={{ flex: 1, minWidth: 150 }} onPress={() => router.push('/board')} label={t.hall.board} testID="go-board">
+          <Text style={st.icon}>🏆</Text>
+          <H level={3}>{t.hall.board}</H>
+          <P dim small>{t.hall.boardSub}</P>
+        </Card>
         <Card style={{ flex: 1, minWidth: 150 }} onPress={() => router.push('/profile')} label={t.hall.profile} testID="go-profile">
           <Text style={st.icon}>🗝️</Text>
           <H level={3}>{t.hall.profile}</H>

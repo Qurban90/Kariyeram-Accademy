@@ -19,7 +19,7 @@ const isDeleteWord = (v: string) => /^s[iİıI]l$/i.test(v.trim())
 const msg = (e: unknown) => (e instanceof ApiFailure ? e.message : e instanceof Error ? e.message : String(e))
 
 export default function Profile() {
-  const { profile, session, signOut } = useAuth()
+  const { profile, session, signOut, refreshProfile } = useAuth()
   const qc = useQueryClient()
   const enr = useEnrollments()
   const subjects = useSubjects()
@@ -123,6 +123,12 @@ export default function Profile() {
         <Button small variant={active('recording') ? 'primary' : 'quiet'} label={`${t.profile.recording}: ${active('recording') ? t.common.yes : t.common.no}`}
           onPress={() => toggleConsent('recording')} loading={busy === 'recording'} />
       </View>
+      <Button small testID="board-toggle" variant={profile?.show_on_board ? 'primary' : 'quiet'}
+        label={`${t.profile.board}: ${profile?.show_on_board ? t.common.yes : t.common.no}`} loading={busy === 'board'}
+        onPress={async () => {
+          setBusy('board'); setErr(null)
+          try { await api.setBoardVisibility(!profile?.show_on_board); await refreshProfile() } catch (e) { setErr(msg(e)) } finally { setBusy(null) }
+        }} />
       <P dim small>{t.profile.deviceNote}</P>
 
       <Button variant="quiet" testID="sign-out" label={t.profile.signOut} onPress={async () => { qc.clear(); await signOut() }} />

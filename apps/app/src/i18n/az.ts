@@ -110,7 +110,7 @@ export const t = {
     greeting: (n: string) => `Salam, ${n}!`, lead: 'Bu gün hansı otağa girək?',
     rooms: 'Fənn otaqları', live: 'Oxu zalı', liveSub: 'Canlı dərslər və seminarlar',
     diary: 'Gündəlik', diarySub: 'Nəticələr və zəif mövzular',
-    profile: 'Kabinet', profileSub: 'Profil, kod, cihaz',
+    profile: 'Kabinet', profileSub: 'Profil, kod, cihaz', board: 'Şərəf lövhəsi', boardSub: 'Həftənin ən dəqiqləri',
     locked: 'Pulsuz mövzular açıqdır', open: 'Açıqdır',
     studentNo: (n: string) => `Tələbə № ${n}`,
     resume: 'Yarımçıq test', resumeSub: (subject: string, done: number, total: number) => `${subject} · ${done}/${total} cavablandırılıb`, resumeBtn: 'Davam et',
@@ -163,6 +163,13 @@ export const t = {
     form: { title: 'Mövzu', venue: 'Məkan', start: 'Başlama (YYYY-AA-GG SS:DD)', duration: 'Müddət (dəq)', access: 'Kimlər qoşula bilər' },
     access: { enrolled: 'Fənnə yazılanlar', public: 'Hamı', invite: 'Dəvətlilər' },
   },
+  board: {
+    title: 'Şərəf lövhəsi', sub: 'Bu həftənin ən dəqiq tələbələri', all: 'Hamısı',
+    note: (n: number) => `Sıralama faizlə yox, etibarlılıqla: az cavabla təsadüfi 100% önə keçmir. Lövhəyə düşmək üçün bu həftə ən azı ${n} cavab lazımdır.`,
+    privacy: 'Lövhədə yalnız razılıq verən tələbələr görünür (Kabinet → Şərəf lövhəsində görün).',
+    empty: 'Bu həftə hələ lövhəyə düşən yoxdur.', you: 'Siz', notRanked: (total: number, min: number) => `Bu həftə ${total} cavab. Lövhəyə düşmək üçün ${min} lazımdır.`,
+    hidden: 'Adınız başqalarına görünmür.', score: 'bal',
+  },
   teacher: {
     title: 'Müəllim otağı', open: 'Müəllim otağı', questions: 'Yoxlamada olan suallar', codes: 'Abunə kodları',
     none: 'Yoxlamada sual yoxdur. Sualları CSV ilə idxal edin (docs/DATABASE.md).',
@@ -187,6 +194,6 @@ export const t = {
     marketing: 'Xəbər bülleteni', recording: 'Dərs yazısına razılıq',
     delete: 'Hesabı sil', deleteWarn: 'Hesab silinəndə ad, əlaqə, test tarixçəsi və gündəlik silinir. Bu geri qaytarılmır. Audit qeydləri şəxsi məlumatsız saxlanılır.',
     deleteType: 'Təsdiq üçün SİL yazın', deleteBtn: 'Hesabı birdəfəlik sil',
-    signOut: 'Çıxış', device: 'Bu cihaz', deviceNote: 'Hesab eyni anda yalnız bir cihazda aktiv olur.',
+    board: 'Şərəf lövhəsində görün', signOut: 'Çıxış', device: 'Bu cihaz', deviceNote: 'Hesab eyni anda yalnız bir cihazda aktiv olur.',
   },
 } as const

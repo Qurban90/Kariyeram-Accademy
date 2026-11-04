@@ -18,6 +18,8 @@
 | `account/revoke` | `doc: marketing\|recording` | `{ok}` | Məcburi sənədlər geri götürülmür |
 | `account/export` | — | şəxsi məlumat JSON | Cavab açarları daxil deyil |
 | `account/delete` | `confirm: "SİL"` | `{ok}` | Şəxsi məlumat silinir, audit anonim qalır |
+| `board` | `subject?` | `{since, minTotal, top[]: rank, name, score, total, me; me}` | Bu həftə; yalnız razılıq verənlər + özü |
+| `account/board` | `show: boolean` | `{show}` | Lövhədə görünmə razılığı (defolt: yox) |
 | `staff/codes` | `subject, count: 1..200, days: 1..730` | `{codes[], subject, days}` | Yalnız müəllim/admin; kodlar yalnız bu cavabda açıq görünür |
 | `staff/analysis` | `subject` | `{items[]: questionId, stem, topic, n, p, discrimination, pointBiserial, distractors, flags}` | Yalnız müəllim/admin; tələbə kimliyi yoxdur; açar şübhəsi önə |
 | `staff/question/status` | `question, status: draft\|review\|published\|retired` | `{id, status, changed}` | Yalnız müəllim/admin; audit |

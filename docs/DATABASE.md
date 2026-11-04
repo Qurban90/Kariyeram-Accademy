@@ -10,6 +10,7 @@ Migrasiyalar (`supabase/migrations`), ardıcıllıqla:
 | `20261104000003_finish_idempotent.sql` | `finish_session` təkrar çağırışda `already: true` |
 | `20261104000004_staff.sql` | `staff_create_codes`, `staff_set_question_status` (audit ilə) |
 | `20261104000005_item_analysis.sql` | `staff_item_responses` (sual analizi üçün anonim xam məlumat) |
+| `20261104000006_honor_board.sql` | `profiles.show_on_board`, `set_board_visibility`, `board_rows`, `_short_name` |
 
 ## Prinsiplər
 

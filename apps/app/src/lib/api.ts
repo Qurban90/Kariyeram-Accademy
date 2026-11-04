@@ -114,6 +114,9 @@ export interface ItemStat {
   distractors: { index: number; share: number; upperShare: number }[]; flags: string[]
 }
 
+export interface BoardRow { rank: number | null; name: string; score: number | null; total: number; me: boolean }
+export interface BoardResult { since: string; minTotal: number; top: BoardRow[]; me: BoardRow | null }
+
 export const api = {
   claimDevice: () => call<{ replaced: boolean }>('device/claim', {}, { device: true }),
   redeem: (code: string) => call<{ subject_id: string; access_until?: string; already?: boolean }>('code/redeem', { code }),
@@ -124,6 +127,8 @@ export const api = {
   staffCodes: (subject: string, count: number, days: number) => call<{ codes: string[]; subject: string; days: number }>('staff/codes', { subject, count, days }),
   setQuestionStatus: (question: string, status: 'draft' | 'review' | 'published' | 'retired') => call<{ status: string; changed: boolean }>('staff/question/status', { question, status }),
   analysis: (subject: string) => call<{ items: ItemStat[] }>('staff/analysis', { subject }),
+  board: (subject?: string) => call<BoardResult>('board', subject ? { subject } : {}),
+  setBoardVisibility: (show: boolean) => call<{ show: boolean }>('account/board', { show }),
   clientEvent: (kind: 'screenshot' | 'screen_recording', context?: string) => call('client/event', context ? { kind, context } : { kind }),
 
   start: (b: { subject: string; mode: Mode; topicIds?: string[]; size?: number }) =>
