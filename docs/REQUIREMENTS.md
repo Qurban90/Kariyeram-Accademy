@@ -124,8 +124,8 @@ Prioritet: M (Must), S (Should), C (Could).
 | PRIV-003 | Razılıq versiyaları saxlanılır | DB | Hazır |
 | TEST-001 | Alqoritm vahid testləri | Vitest | Hazır |
 | TEST-002 | DB/RLS testləri real Postgres-də | psql | Hazır |
-| TEST-003 | Lokal Supabase ilə end-to-end API testi | supabase start | Hazır (8 inteqrasiya testi) |
-| TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (29 addım) |
+| TEST-003 | Lokal Supabase ilə end-to-end API testi | supabase start | Hazır (11 inteqrasiya testi) |
+| TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (31 addım) |
 | TEST-005 | Native cihazlarda E2E | Maestro/Detox | Plan |
 | NFR-005 | Köhnə klientin məcburi yenilənməsi və texniki iş rejimi | `app_config`, `x-app-version` | Hazır (DB + API + UI, inteqrasiya testi) |
 | NFR-006 | Məlumat saxlama siyasəti (avtomatik təmizləmə) | pg_cron | Hazır (DB testi; istehsalda cron işi yoxlanmalıdır) |
