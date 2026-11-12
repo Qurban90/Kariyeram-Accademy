@@ -1,4 +1,4 @@
-# Karyeram Academy
+# Karyeram Accademy
 
 Virtual məktəb: özünü öyrənmə otaqları, canlı dərs, qorunan test bankı. Dövlət qulluğu və magistratura hazırlığı ilə başlayır.
 

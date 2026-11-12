@@ -19,7 +19,7 @@
 | `account/export` | — | şəxsi məlumat JSON | Cavab açarları daxil deyil |
 | `account/delete` | `confirm: "SİL"` | `{ok}` | Şəxsi məlumat silinir, audit anonim qalır |
 | `library/open` | `item` | mətn: `{kind, title, watermark, body}`; PDF: `{kind, title, watermark}` (fayl ünvanı yoxdur) | Pulsuz və ya abunə; audit; tələbəyə gündə 200 açılış |
-| `library/pdf` | `item` | **`application/pdf` baytları** (JSON deyil) | Server faylı oxuyur, hər səhifəyə və metadataya `Karyeram Academy - Telebe No N - tarix` yazır; ≤ 15 MB; şifrəli/pozuq PDF `422 pdf_unreadable`; audit |
+| `library/pdf` | `item` | **`application/pdf` baytları** (JSON deyil) | Server faylı oxuyur, hər səhifəyə və metadataya `Karyeram Accademy - Telebe No N - tarix` yazır; ≤ 15 MB; şifrəli/pozuq PDF `422 pdf_unreadable`; audit |
 | `staff/library/upload-url` | `subject` | `{path, token}` | Yol serverdə: `<fənn>/<uuid>.pdf`; birdəfəlik yükləmə tokeni |
 | `staff/library/add` | `subject, title, kind: text\|pdf, free, body? (≤200 000), path?, bytes?` | `{id}` | Bu marşrut üçün gövdə limiti 900 KB |
 | `staff/library/delete` | `item` | `{ok}` | Metadata, sonra fayl |

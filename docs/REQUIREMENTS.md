@@ -1,10 +1,10 @@
-# Karyeram Academy — Tələblər spesifikasiyası (SRS)
+# Karyeram Accademy — Tələblər spesifikasiyası (SRS)
 
 Versiya 0.3 · 2026-11-04. Status sütunu: **Hazır** (kod + test var), **Qismən**, **Plan** (hələ yoxdur). Status yalnız repoda yoxlanıla bilən koda əsaslanır.
 
 ## 1. Biznes məqsədi və problem
 
-Onlayn hazırlıq kursları quru siyahılardan ibarətdir (video, fayl, test), tələbə motivasiyanı itirir. Karyeram Academy telefonda və kompüterdə **virtual məktəb binası** təqdim edir: zal, otaqlar, sinif, oxu zalı. İki rejim:
+Onlayn hazırlıq kursları quru siyahılardan ibarətdir (video, fayl, test), tələbə motivasiyanı itirir. Karyeram Accademy telefonda və kompüterdə **virtual məktəb binası** təqdim edir: zal, otaqlar, sinif, oxu zalı. İki rejim:
 
 1. **Özünü öyrənmə otaqları:** fənn otağında konspekt, qorunan test bankı, səhvlərin təkrarı, gündəlik.
 2. **Oxu zalı (canlı):** müəllim (host) səhnədə/lövhədə, iştirakçılar oturacaqlarda; video, səs, ekran paylaşma, əl qaldırma, yalnız host danışır rejimi.

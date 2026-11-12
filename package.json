@@ -1,8 +1,8 @@
 {
-  "name": "karyeram-academy",
+  "name": "karyeram-accademy",
   "private": true,
   "version": "0.1.0",
-  "description": "Karyeram Academy: virtual məktəb (özünü öyrənmə otaqları, canlı dərs, qorunan test bankı)",
+  "description": "Karyeram Accademy: virtual məktəb (özünü öyrənmə otaqları, canlı dərs, qorunan test bankı)",
   "workspaces": [
     "apps/*",
     "packages/*"

@@ -257,15 +257,15 @@ otp_expiry = 3600
 # content_path = "./supabase/templates/password_changed_notification.html"
 
 [auth.email.template.confirmation]
-subject = "Karyeram Academy: təsdiq kodu"
+subject = "Karyeram Accademy: təsdiq kodu"
 content_path = "./supabase/templates/otp.html"
 
 [auth.email.template.email_change]
-subject = "Karyeram Academy: e-poçtu təsdiqləyin"
+subject = "Karyeram Accademy: e-poçtu təsdiqləyin"
 content_path = "./supabase/templates/email_change.html"
 
 [auth.email.template.magic_link]
-subject = "Karyeram Academy: giriş kodu"
+subject = "Karyeram Accademy: giriş kodu"
 content_path = "./supabase/templates/otp.html"
 
 [auth.sms]
@@ -275,7 +275,7 @@ enabled = true
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = true
 # Template for sending OTP to users
-template = "Karyeram Academy giriş kodu: {{ .Code }}. Kodu heç kimə verməyin."
+template = "Karyeram Accademy giriş kodu: {{ .Code }}. Kodu heç kimə verməyin."
 # Controls the minimum amount of time that must pass before sending another sms otp.
 max_frequency = "5s"
 

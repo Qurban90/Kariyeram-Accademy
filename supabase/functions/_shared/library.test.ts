@@ -45,7 +45,7 @@ describe('konspekt şkafı', () => {
     src.addPage([595, 842]); src.addPage([842, 595])
     const raw = await src.save()
     const text = stampText(1152, new Date(Date.UTC(2026, 10, 4)))
-    expect(text).toBe('Karyeram Academy - Telebe No 1152 - 04.11.2026')
+    expect(text).toBe('Karyeram Accademy - Telebe No 1152 - 04.11.2026')
     const out = await stampPdf(raw, text)
     const doc = await PDFDocument.load(out)
     expect(doc.getPageCount()).toBe(2)

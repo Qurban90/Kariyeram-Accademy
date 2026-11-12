@@ -26,7 +26,7 @@ npx supabase db push
 
 3. Auth ayarları (panel → Authentication):
    - E-poçt: OTP uzunluğu 6, şablonlar `supabase/templates/otp.html` ilə eyni (`{{ .Token }}`), xüsusi SMTP (göndərən domeni SPF/DKIM ilə).
-   - Telefon: provayder (Twilio/Vonage/MessageBird...), şablon `Karyeram Academy giriş kodu: {{ .Code }}`. **Test OTP nömrələri istehsalda olmamalıdır.**
+   - Telefon: provayder (Twilio/Vonage/MessageBird...), şablon `Karyeram Accademy giriş kodu: {{ .Code }}`. **Test OTP nömrələri istehsalda olmamalıdır.**
    - Rate limitlər: SMS və e-poçt üçün saatlıq limitləri büdcəyə görə təyin edin.
    - **MFA (TOTP)**: Authentication → Multi-Factor → TOTP: enroll və verify **aktiv** (lokalda `supabase/config.toml` `[auth.mfa.totp]`). Admin otağı MFA olmadan açılmır.
 4. Realtime: `live_chat` nəşrə migrasiya ilə əlavə olunur; panelədə yoxlayın.

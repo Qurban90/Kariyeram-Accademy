@@ -1,4 +1,4 @@
--- Karyeram Academy: hesab həyat dövrü (razılıq, silinmə, ixrac) və canlı oxu zalı.
+-- Karyeram Accademy: hesab həyat dövrü (razılıq, silinmə, ixrac) və canlı oxu zalı.
 
 -- ============ HESAB ============
 

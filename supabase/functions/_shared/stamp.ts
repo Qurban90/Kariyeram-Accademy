@@ -8,7 +8,7 @@ import { ApiError } from './errors.ts'
 
 export function stampText(studentNo: number | string, at: Date): string {
   const d = `${String(at.getUTCDate()).padStart(2, '0')}.${String(at.getUTCMonth() + 1).padStart(2, '0')}.${at.getUTCFullYear()}`
-  return `Karyeram Academy - Telebe No ${String(studentNo).replace(/[^0-9]/g, '')} - ${d}`
+  return `Karyeram Accademy - Telebe No ${String(studentNo).replace(/[^0-9]/g, '')} - ${d}`
 }
 
 export async function stampPdf(src: Uint8Array, text: string): Promise<Uint8Array> {
@@ -29,6 +29,6 @@ export async function stampPdf(src: Uint8Array, text: string): Promise<Uint8Arra
     page.drawText(text, { x: 18, y: 10, size: 7, font, color: rgb(0.3, 0.3, 0.3), opacity: 0.75 })
   }
   doc.setSubject(text)
-  doc.setProducer('Karyeram Academy')
+  doc.setProducer('Karyeram Accademy')
   return doc.save({ useObjectStreams: true })
 }

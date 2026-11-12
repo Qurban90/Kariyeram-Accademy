@@ -2,7 +2,7 @@
 
 Versiya 0.3 · 2026-11-04. Burada yalnız repoda olan və ya açıq şəkildə "Plan" yazılan şeylər təsvir olunur.
 
-Karyeram Academy iki rejimli virtual məktəbdir:
+Karyeram Accademy iki rejimli virtual məktəbdir:
 
 1. **Özünü öyrənmə otaqları:** hər fənnin otağı var. Tələbə girir, test işləyir, səhvlərini təkrarlayır, gündəliyə baxır. Müəllim lazım deyil.
 2. **Oxu zalı (canlı dərs):** müəllim (host) lövhədədir: kamera və ya ekran paylaşma. Tələbələr partalarda oturur (yer nömrəsi serverdə verilir). Əl qaldırma, söz vermə, "yalnız host danışır", chat.

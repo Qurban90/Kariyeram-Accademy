@@ -9,7 +9,7 @@ export const config = {
   /** Anon açar ictimaidir (RLS qoruyur); service_role heç vaxt klientə düşməməlidir. */
   supabaseAnonKey: anonKey,
   apiBase: `${url.replace(/\/+$/, '')}/functions/v1/api`,
-  brand: 'Karyeram Academy',
+  brand: 'Karyeram Accademy',
   /** app.json "version": serverə x-app-version başlığı ilə gedir (minimum versiya yoxlaması). */
   appVersion: Constants.expoConfig?.version ?? '0.0.0',
   /** Sorğu vaxt limiti (ms). */

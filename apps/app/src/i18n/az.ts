@@ -73,7 +73,7 @@ export function errorText(code: string | undefined | null): string {
 }
 
 export const t = {
-  brand: 'Karyeram Academy',
+  brand: 'Karyeram Accademy',
   system: {
     maintenanceTitle: 'Texniki iş gedir', maintenanceSub: 'Məktəb qısa müddətə bağlıdır. Məlumatlarınız qorunur.',
     upgradeTitle: 'Tətbiqi yeniləyin', upgradeSub: 'Bu versiya artıq dəstəklənmir. App Store və ya Google Play-dən yeniləyin (vebdə səhifəni yeniləyin).',

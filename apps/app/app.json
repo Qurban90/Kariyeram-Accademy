@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Karyeram Academy",
-    "slug": "karyeram-academy",
+    "name": "Karyeram Accademy",
+    "slug": "karyeram-accademy",
     "scheme": "karyeram",
     "version": "0.1.0",
     "orientation": "default",
@@ -13,7 +13,7 @@
       "backgroundColor": "#0B0A09"
     },
     "ios": {
-      "bundleIdentifier": "az.karyeram.academy",
+      "bundleIdentifier": "az.karyeram.accademy",
       "supportsTablet": true,
       "infoPlist": {
         "NSCameraUsageDescription": "Canlı dərsdə müəllim və icazə verilən tələbələr kameradan istifadə edir.",
@@ -21,7 +21,7 @@
       }
     },
     "android": {
-      "package": "az.karyeram.academy",
+      "package": "az.karyeram.accademy",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0B0A09"

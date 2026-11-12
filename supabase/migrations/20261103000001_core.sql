@@ -1,4 +1,4 @@
--- Karyeram Academy: əsas sxem
+-- Karyeram Accademy: əsas sxem
 -- Prinsip: tələbə sual cədvəlini HEÇ VAXT birbaşa oxumur. Suallar yalnız RPC ilə, bir-bir verilir;
 -- cavab açarı serverdə qalır, cavab serverdə yoxlanılır. Bütün RPC-lər yalnız service_role
 -- (Edge Functions) tərəfindən çağırılır; Edge Function istifadəçinin JWT-sini yoxlayıb p_student ötürür.
