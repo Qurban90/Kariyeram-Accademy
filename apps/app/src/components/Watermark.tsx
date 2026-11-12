@@ -2,7 +2,8 @@
  * Su nişanı: tələbə nömrəsi ekranın üzərinə çəp şəkildə təkrarlanır. Ekran şəkli sızarsa, mənbə müəyyən olunur.
  * Kredensial deyil (yalnız nömrə). pointerEvents="none": toxunmaya mane olmur. Ekran oxuyucudan gizlidir.
  */
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
+import { Text } from './Text'
 
 export function Watermark({ value }: { value: string | number | null | undefined }) {
   if (value === null || value === undefined || value === '') return null

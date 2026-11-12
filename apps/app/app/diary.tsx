@@ -2,8 +2,9 @@
 import { weakTopics, type Tally } from '@karyeram/core/src/scoring.ts'
 import { router } from 'expo-router'
 import { useMemo } from 'react'
-import { Text, View } from 'react-native'
-import { Bar, Card, ErrorBox, H, Loading, P, Screen } from '../src/components/ui'
+import { View } from 'react-native'
+import { Text } from '../src/components/Text'
+import { Badge, Bar, Card, Divider, ErrorBox, H, Icon, Loading, P, Screen } from '../src/components/ui'
 import { t } from '../src/i18n/az'
 import { progressFrom } from '../src/lib/progress'
 import { useDiary } from '../src/lib/queries'
@@ -35,18 +36,21 @@ export default function Diary() {
   return (
     <Screen back title={t.diary.title}>
       <ErrorBox message={diary.error ? (diary.error as Error).message : null} onRetry={() => diary.refetch()} />
-      <Card testID="progress">
+      <Card testID="progress" tone={prog.streak ? 'gold' : 'plain'}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
-          <Text style={{ fontSize: 34 }}>🔥</Text>
-          <View style={{ flex: 1 }}>
+          <View style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.goldWash }}>
+            <Icon name="flame" size={24} color={prog.streak ? colors.gold : colors.ivoryFaint} />
+          </View>
+          <View style={{ flex: 1, gap: 2 }}>
             <H level={3}>{prog.streak ? t.diary.streak(prog.streak) : t.diary.streakNone}</H>
             <P dim small>{t.diary.correctTotal(prog.totalCorrect)}</P>
           </View>
         </View>
+        <Divider />
         <P small dim>{t.diary.medals}</P>
         {prog.badges.length === 0 ? <P dim small>{t.diary.noMedals}</P> : (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
-            {prog.badges.map((b) => <Text key={b.id} style={{ color: colors.ink, backgroundColor: colors.brass, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4, fontWeight: '800', fontSize: font.small }}>🏅 {b.title}</Text>)}
+            {prog.badges.map((b) => <Badge key={b.id} tone="gold" icon="medal" label={b.title} />)}
           </View>
         )}
       </Card>
@@ -61,7 +65,7 @@ export default function Diary() {
         </View>
       ))}
 
-      <H level={2}>{t.diary.title}</H>
+      <H level={2}>{t.diary.entries}</H>
       {(diary.data ?? []).length === 0 && <P dim>{t.diary.empty}</P>}
       {(diary.data ?? []).map((e) => {
         const p = e.payload as { percent?: number; correct?: number; total?: number; session_id?: string; grade?: string | number; text?: string }
@@ -72,13 +76,13 @@ export default function Diary() {
             label={e.title}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: space.sm }}>
               <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.chalk, fontWeight: '700', fontSize: font.body }}>{e.title}</Text>
+                <Text style={{ color: colors.ivory, fontWeight: '600', fontSize: font.body }}>{e.title}</Text>
                 <P dim small>{date} · {e.kind === 'test' ? t.diary.test : e.kind === 'grade' ? t.diary.grade : t.diary.note}</P>
               </View>
               {e.kind === 'test' && typeof p.percent === 'number' && (
-                <Text style={{ color: p.percent >= 80 ? colors.ok : p.percent >= 50 ? colors.warn : colors.bad, fontWeight: '900', fontSize: font.h2 }}>{p.percent}%</Text>
+                <Text style={{ color: p.percent >= 80 ? colors.ok : p.percent >= 50 ? colors.warn : colors.bad, fontFamily: font.serif, fontSize: font.h2 + 2, fontVariant: ['tabular-nums'] }}>{p.percent}%</Text>
               )}
-              {e.kind === 'grade' && p.grade !== undefined && <Text style={{ color: colors.brass, fontWeight: '900', fontSize: font.h2 }}>{String(p.grade)}</Text>}
+              {e.kind === 'grade' && p.grade !== undefined && <Text style={{ color: colors.gold, fontFamily: font.serif, fontSize: font.h2 + 2 }}>{String(p.grade)}</Text>}
             </View>
             {e.kind === 'test' && typeof p.correct === 'number' && <P dim small>{p.correct}/{p.total} düz</P>}
             {p.text ? <P small>{p.text}</P> : null}

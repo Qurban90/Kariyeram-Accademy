@@ -1,6 +1,7 @@
 /** 3D dəhliz konteyneri: gec yüklənmə, WebGL xətasında 2D-yə qayıdış, əlçatan qapı siyahısı. */
 import { Component, lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { Text } from '../components/Text'
 import { Loading } from '../components/ui'
 import { t } from '../i18n/az'
 import { colors, font, radius, space } from '../theme'

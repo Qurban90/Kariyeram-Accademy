@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#13261f"
+      "backgroundColor": "#0B0A09"
     },
     "ios": {
       "bundleIdentifier": "az.karyeram.academy",
@@ -24,7 +24,7 @@
       "package": "az.karyeram.academy",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#13261f"
+        "backgroundColor": "#0B0A09"
       },
       "permissions": [
         "android.permission.CAMERA",

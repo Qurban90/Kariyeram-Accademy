@@ -6,9 +6,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { router, useLocalSearchParams } from 'expo-router'
 import { Component, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native'
+import { FlatList, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native'
+import { Text } from '../../src/components/Text'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Button, ErrorBox, Loading, P } from '../../src/components/ui'
+import { Button, ErrorBox, Icon, Loading, P, type IconName } from '../../src/components/ui'
 import { t } from '../../src/i18n/az'
 import { deskCount, initials, isHostRole, seatMap } from '../../src/live/model'
 import { supportsScreenShare } from '../../src/live/platform'
@@ -142,7 +143,7 @@ export default function LiveRoom() {
     return (
       <SafeAreaView style={st.screen}>
         <View style={{ padding: space.xl, gap: space.lg, alignItems: 'center' }}>
-          <Text style={{ fontSize: 48 }}>{lk.state.status === 'removed' ? '🚪' : '🔔'}</Text>
+          <View style={st.endIcon}><Icon name={lk.state.status === 'removed' ? 'exit' : 'bell'} size={30} color={colors.gold} /></View>
           <P>{lk.state.status === 'removed' ? t.live.removed : t.live.ended}</P>
           <Button label={t.common.back} onPress={leave} />
         </View>
@@ -175,10 +176,11 @@ export default function LiveRoom() {
       ) : null}
       {hostPeer && (
         <View style={[st.hostTag, hostPeer.speaking && { borderColor: colors.brass }]}>
-          <Text style={st.hostTagTxt}>{hostPeer.micOn ? '🎙' : '🔇'} {hostPeer.name} · {t.live.host}</Text>
+          <Icon name={hostPeer.micOn ? 'mic' : 'micOff'} size={13} color={hostPeer.micOn ? colors.ivory : colors.ivoryFaint} />
+          <Text style={st.hostTagTxt}>{hostPeer.name} · {t.live.host}</Text>
         </View>
       )}
-      {state === 'live' && <View style={st.liveDot}><Text style={st.liveDotTxt}>● {t.live.liveNow}</Text></View>}
+      {state === 'live' && <View style={st.liveDot}><View style={st.liveDotMark} /><Text style={st.liveDotTxt}>{t.live.liveNow}</Text></View>}
     </View>
   )
 
@@ -199,11 +201,11 @@ export default function LiveRoom() {
         <Pressable testID="toggle-3d-class" accessibilityRole="button" onPress={() => setView3d(!view3d)} style={st.viewBtn}>
           <Text style={{ color: colors.chalk, fontWeight: '700', fontSize: font.tiny }}>{view3d ? t.live.view2d : t.live.view3d}</Text>
         </Pressable>
-        <Text style={st.count}>{peers.length} 👤</Text>
+        <View style={st.countBox} accessibilityLabel={`${peers.length}`}><Icon name="users" size={15} color={colors.ivoryDim} /><Text style={st.count}>{peers.length}</Text></View>
       </View>
       {lk.state.status === 'reconnecting' && <Banner text={t.live.reconnecting} />}
       {state === 'scheduled' && !amHost && <Banner text={t.live.notStarted} />}
-      {lk.state.audioBlocked && <Pressable onPress={lk.startAudio} accessibilityRole="button" style={st.audioBtn}><Text style={{ color: colors.ink, fontWeight: '800' }}>{t.live.unmute}</Text></Pressable>}
+      {lk.state.audioBlocked && <Pressable onPress={lk.startAudio} accessibilityRole="button" style={st.audioBtn}><Icon name="volume" size={18} color={colors.onGold} /><Text style={{ color: colors.onGold, fontWeight: '600' }}>{t.live.unmute}</Text></Pressable>}
       {notice && <Banner text={notice} tone="ok" />}
       {(err || lk.state.error) && <View style={{ paddingHorizontal: space.md }}><ErrorBox message={err || lk.state.error} onRetry={err ? undefined : lk.state.status === 'error' ? doJoin : lk.clearError} /></View>}
 
@@ -241,14 +243,14 @@ export default function LiveRoom() {
 
       <View style={st.controls} accessibilityRole="toolbar">
         {lk.state.canPublish && (
-          <Ctl testID="ctl-mic" icon={lk.state.me?.micOn ? '🎙' : '🔇'} label={lk.state.me?.micOn ? t.live.mic : t.live.micOff} on={!!lk.state.me?.micOn} onPress={lk.toggleMic} />
+          <Ctl testID="ctl-mic" icon={lk.state.me?.micOn ? 'mic' : 'micOff'} label={lk.state.me?.micOn ? t.live.mic : t.live.micOff} on={!!lk.state.me?.micOn} onPress={lk.toggleMic} />
         )}
-        {amHost && <Ctl testID="ctl-cam" icon="📷" label={t.live.cam} on={!!lk.state.me?.camera} onPress={lk.toggleCamera} />}
-        {amHost && supportsScreenShare && <Ctl testID="ctl-screen" icon="🖥" label={t.live.screen} on={!!lk.state.me?.screen} onPress={lk.toggleScreen} />}
-        {!amHost && <Ctl testID="ctl-hand" icon="✋" label={hand ? t.live.lower : t.live.raise} on={hand} onPress={toggleHand} />}
-        <Ctl testID="ctl-chat" icon="💬" label={t.live.chat} on={panel === 'chat'} onPress={() => setPanel(panel === 'chat' ? 'none' : 'chat')} />
-        {amHost && <Ctl testID="ctl-host" icon="🎛" label={t.live.host} on={panel === 'host'} onPress={() => setPanel(panel === 'host' ? 'none' : 'host')} badge={(hands.data ?? []).length} />}
-        <Ctl testID="ctl-leave" icon="🚪" label={t.live.leave} danger onPress={leave} />
+        {amHost && <Ctl testID="ctl-cam" icon="camera" label={t.live.cam} on={!!lk.state.me?.camera} onPress={lk.toggleCamera} />}
+        {amHost && supportsScreenShare && <Ctl testID="ctl-screen" icon="screen" label={t.live.screen} on={!!lk.state.me?.screen} onPress={lk.toggleScreen} />}
+        {!amHost && <Ctl testID="ctl-hand" icon="hand" label={hand ? t.live.lower : t.live.raise} on={hand} onPress={toggleHand} />}
+        <Ctl testID="ctl-chat" icon="chat" label={t.live.chat} on={panel === 'chat'} onPress={() => setPanel(panel === 'chat' ? 'none' : 'chat')} />
+        {amHost && <Ctl testID="ctl-host" icon="sliders" label={t.live.host} on={panel === 'host'} onPress={() => setPanel(panel === 'host' ? 'none' : 'host')} badge={(hands.data ?? []).length} />}
+        <Ctl testID="ctl-leave" icon="exit" label={t.live.leave} danger onPress={leave} />
       </View>
     </SafeAreaView>
   )
@@ -262,12 +264,12 @@ function Banner({ text, tone = 'warn' }: { text: string; tone?: 'warn' | 'ok' })
   )
 }
 
-function Ctl({ icon, label, on, onPress, danger, testID, badge }: { icon: string; label: string; on?: boolean; onPress: () => void; danger?: boolean; testID?: string; badge?: number }) {
+function Ctl({ icon, label, on, onPress, danger, testID, badge }: { icon: IconName; label: string; on?: boolean; onPress: () => void; danger?: boolean; testID?: string; badge?: number }) {
   return (
     <Pressable testID={testID} onPress={onPress} accessibilityRole="button" accessibilityLabel={label} aria-selected={!!on}
-      style={({ pressed }) => [st.ctl, on && { backgroundColor: '#2f5a45' }, danger && { backgroundColor: '#7a2a22' }, pressed && { opacity: 0.8 }]}>
-      <Text style={{ fontSize: 20 }}>{icon}</Text>
-      <Text style={st.ctlTxt} numberOfLines={1}>{label}</Text>
+      style={({ pressed }) => [st.ctl, on && st.ctlOn, danger && st.ctlDanger, pressed && { opacity: 0.8 }]}>
+      <Icon name={icon} size={22} color={danger ? '#FFFFFF' : on ? colors.goldBright : colors.ivory} />
+      <Text style={[st.ctlTxt, on && { color: colors.goldBright }, danger && { color: '#FFFFFF' }]} numberOfLines={1}>{label}</Text>
       {badge ? <View style={st.badge}><Text style={{ color: colors.ink, fontSize: 11, fontWeight: '900' }}>{badge}</Text></View> : null}
     </Pressable>
   )
@@ -278,8 +280,8 @@ function Desk({ seat, peer, raised }: { seat: number; peer: Peer | null; raised:
     <View style={st.desk} accessibilityLabel={peer ? `${t.live.seat(seat)}: ${peer.name}${peer.isLocal ? ` (${t.live.you})` : ''}` : t.live.seat(seat)}>
       <View style={[st.avatar, !peer && st.avatarEmpty, peer?.speaking && st.speaking, peer?.isLocal && { borderColor: colors.brass }]}>
         {peer ? <Text style={st.avatarTxt}>{initials(peer.name)}</Text> : <Text style={st.seatNo}>{seat}</Text>}
-        {raised && <Text style={st.handIcon}>✋</Text>}
-        {peer?.role === 'speaker' && <Text style={st.micIcon}>{peer.micOn ? '🎙' : '🔇'}</Text>}
+        {raised && <View style={st.handIcon}><Icon name="hand" size={13} color={colors.onGold} strokeWidth={2.2} /></View>}
+        {peer?.role === 'speaker' && <View style={st.micIcon}><Icon name={peer.micOn ? 'mic' : 'micOff'} size={11} color={peer.micOn ? colors.ok : colors.ivoryFaint} strokeWidth={2.2} /></View>}
       </View>
       <View style={st.deskTop} />
       <Text style={st.deskName} numberOfLines={1}>{peer ? (peer.isLocal ? t.live.you : peer.name.split(' ')[0]) : ''}</Text>
@@ -336,7 +338,7 @@ function Attendance({ session }: { session: string }) {
     <View style={{ gap: 4 }} testID="attendance">
       <Text style={st.panelH}>{t.live.attendance}</Text>
       {(q.data ?? []).map((r) => (
-        <Text key={r.user_id} style={st.rowTxt}>№{r.student_no} · {r.name || '—'} · {r.minutes} {t.live.minutes}{r.banned ? ' · 🚫' : ''}</Text>
+        <Text key={r.user_id} style={st.rowTxt}>№{r.student_no} · {r.name || '—'} · {r.minutes} {t.live.minutes}{r.banned ? ` · ${t.live.bannedTag}` : ''}</Text>
       ))}
     </View>
   )
@@ -410,7 +412,7 @@ function ChatPanel({ session, enabled, peers, me }: { session: string; enabled: 
       {err ? <View style={{ paddingHorizontal: space.sm }}><ErrorBox message={err} /></View> : null}
       <View style={st.chatBar}>
         <TextInput testID="chat-input" style={st.chatInput} value={text} onChangeText={setText} placeholder={enabled ? t.live.chatPh : t.live.chatOn + ': ' + t.common.no}
-          placeholderTextColor="#7f8f86" editable={enabled} maxLength={500} onSubmitEditing={send} accessibilityLabel={t.live.chatPh} />
+          placeholderTextColor={colors.ivoryFaint} editable={enabled} maxLength={500} onSubmitEditing={send} accessibilityLabel={t.live.chatPh} />
         <Button testID="chat-send" small label={t.live.send} onPress={send} disabled={!enabled || !text.trim()} />
       </View>
     </View>
@@ -420,40 +422,45 @@ function ChatPanel({ session, enabled, peers, me }: { session: string; enabled: 
 const st = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.boardDeep },
   top: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: space.md, minHeight: 48, gap: space.sm },
-  title: { flex: 1, color: colors.chalk, fontWeight: '800', fontSize: font.h3 },
-  count: { color: colors.chalkDim, fontWeight: '700' },
-  viewBtn: { minHeight: 36, paddingHorizontal: space.md, justifyContent: 'center', borderRadius: radius.pill, borderWidth: 1, borderColor: colors.brassDeep },
+  title: { flex: 1, color: colors.ivory, fontFamily: font.serif, fontSize: font.h3 + 2 },
+  count: { color: colors.ivoryDim, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  countBox: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  endIcon: { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.goldWash, borderWidth: 1, borderColor: colors.goldLine },
+  viewBtn: { minHeight: 36, paddingHorizontal: space.md, justifyContent: 'center', borderRadius: radius.pill, borderWidth: 1, borderColor: colors.lineStrong },
   class3d: { width: '100%', maxWidth: 1100, maxHeight: 620, alignSelf: 'center', borderRadius: radius.md, overflow: 'hidden', borderWidth: 1, borderColor: colors.boardLine },
   banner: { marginHorizontal: space.md, marginBottom: space.sm, padding: space.sm, borderRadius: radius.md, borderWidth: 1, backgroundColor: colors.panel },
-  audioBtn: { alignSelf: 'center', backgroundColor: colors.brass, paddingHorizontal: space.lg, minHeight: touch, justifyContent: 'center', borderRadius: radius.pill, marginBottom: space.sm },
-  board: { aspectRatio: 16 / 9, width: '100%', maxWidth: 1100, alignSelf: 'center', backgroundColor: '#1d3b2f', borderWidth: 10, borderColor: colors.woodLight, borderRadius: radius.sm, overflow: 'hidden' },
+  audioBtn: { flexDirection: 'row', alignItems: 'center', gap: space.sm, alignSelf: 'center', backgroundColor: colors.gold, paddingHorizontal: space.lg, minHeight: touch, justifyContent: 'center', borderRadius: radius.pill, marginBottom: space.sm },
+  board: { aspectRatio: 16 / 9, width: '100%', maxWidth: 1100, alignSelf: 'center', backgroundColor: colors.nightDeep, borderWidth: 1, borderColor: colors.lineStrong, borderRadius: radius.lg, overflow: 'hidden' },
   boardEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: space.lg, gap: space.sm },
   boardTitle: { color: colors.chalk, fontSize: font.h2, fontFamily: font.serif, textAlign: 'center' },
   boardSub: { color: colors.chalkDim, fontSize: font.small, textAlign: 'center' },
   pip: { position: 'absolute', right: 8, bottom: 8, width: '24%', aspectRatio: 4 / 3, borderRadius: radius.sm, borderWidth: 2, borderColor: colors.brass },
-  hostTag: { position: 'absolute', left: 8, bottom: 8, backgroundColor: colors.overlay, borderRadius: radius.pill, paddingHorizontal: space.md, paddingVertical: 4, borderWidth: 2, borderColor: 'transparent' },
+  hostTag: { flexDirection: 'row', alignItems: 'center', gap: 6, position: 'absolute', left: 8, bottom: 8, backgroundColor: colors.overlay, borderRadius: radius.pill, paddingHorizontal: space.md, paddingVertical: 4, borderWidth: 2, borderColor: 'transparent' },
   hostTagTxt: { color: colors.chalk, fontSize: font.tiny, fontWeight: '700' },
-  liveDot: { position: 'absolute', left: 8, top: 8, backgroundColor: colors.bad, borderRadius: radius.pill, paddingHorizontal: space.sm, paddingVertical: 2 },
-  liveDotTxt: { color: '#fff', fontSize: font.tiny, fontWeight: '900' },
-  floor: { backgroundColor: '#3a2a1c', borderRadius: radius.md, padding: space.md, maxWidth: 1100, width: '100%', alignSelf: 'center' },
+  liveDot: { flexDirection: 'row', alignItems: 'center', gap: 6, position: 'absolute', left: 8, top: 8, backgroundColor: colors.badSolid, borderRadius: radius.pill, paddingHorizontal: space.md, paddingVertical: 3 },
+  liveDotMark: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#FFFFFF' },
+  liveDotTxt: { color: '#FFFFFF', fontSize: font.tiny, fontWeight: '700' },
+  floor: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, borderRadius: radius.lg, padding: space.md, maxWidth: 1100, width: '100%', alignSelf: 'center' },
   desks: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: space.md },
   desk: { width: 72, alignItems: 'center', gap: 2 },
-  avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.panel, borderWidth: 3, borderColor: colors.boardLine, alignItems: 'center', justifyContent: 'center' },
-  avatarEmpty: { backgroundColor: 'transparent', borderStyle: 'dashed', borderColor: '#6b5440' },
+  avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.panel, borderWidth: 2, borderColor: colors.lineStrong, alignItems: 'center', justifyContent: 'center' },
+  avatarEmpty: { backgroundColor: 'transparent', borderStyle: 'dashed', borderColor: colors.line },
   speaking: { borderColor: colors.ok, shadowColor: colors.ok, shadowOpacity: 0.9, shadowRadius: 8, shadowOffset: { width: 0, height: 0 } },
   avatarTxt: { color: colors.chalk, fontWeight: '800' },
-  seatNo: { color: '#8f7660', fontSize: font.tiny },
-  handIcon: { position: 'absolute', top: -10, right: -12, fontSize: 18 },
-  micIcon: { position: 'absolute', bottom: -6, right: -10, fontSize: 13 },
-  deskTop: { width: 64, height: 10, backgroundColor: colors.woodLight, borderRadius: 2 },
+  seatNo: { color: colors.ivoryFaint, fontSize: font.tiny },
+  handIcon: { position: 'absolute', top: -8, right: -10, width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.gold },
+  micIcon: { position: 'absolute', bottom: -6, right: -8, width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.nightDeep, borderWidth: 1, borderColor: colors.lineStrong },
+  deskTop: { width: 60, height: 3, backgroundColor: colors.lineStrong, borderRadius: 2, marginTop: 4 },
   deskName: { color: colors.chalkDim, fontSize: 11, maxWidth: 72 },
   side: { backgroundColor: colors.board, borderColor: colors.boardLine },
   panelH: { color: colors.chalk, fontWeight: '800', fontSize: font.body, marginTop: space.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.xs, flexWrap: 'wrap' },
   rowTxt: { color: colors.chalk, flex: 1, minWidth: 120, fontSize: font.small },
   controls: { flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: space.sm, padding: space.sm, borderTopWidth: 1, borderTopColor: colors.boardLine, backgroundColor: colors.board },
-  ctl: { minWidth: 64, minHeight: 56, paddingHorizontal: space.sm, borderRadius: radius.md, backgroundColor: colors.panel, alignItems: 'center', justifyContent: 'center' },
-  ctlTxt: { color: colors.chalk, fontSize: 11, fontWeight: '600' },
+  ctl: { minWidth: 68, minHeight: 58, gap: 3, paddingHorizontal: space.sm, borderRadius: radius.md + 2, backgroundColor: colors.surfaceHi, borderWidth: 1, borderColor: colors.line, alignItems: 'center', justifyContent: 'center' },
+  ctlOn: { backgroundColor: colors.goldWash, borderColor: colors.goldLine },
+  ctlDanger: { backgroundColor: colors.badSolid, borderColor: colors.badSolid },
+  ctlTxt: { color: colors.ivoryDim, fontSize: 11, fontWeight: '500' },
   badge: { position: 'absolute', top: 2, right: 2, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.brass, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   chatBar: { flexDirection: 'row', gap: space.sm, padding: space.sm, borderTopWidth: 1, borderTopColor: colors.boardLine, alignItems: 'center' },
   chatInput: { flex: 1, minHeight: touch, color: colors.chalk, backgroundColor: colors.boardDeep, borderRadius: radius.md, paddingHorizontal: space.md, borderWidth: 1, borderColor: colors.boardLine },

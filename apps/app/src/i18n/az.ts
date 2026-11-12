@@ -124,7 +124,7 @@ export const t = {
     profile: 'Kabinet', profileSub: 'Profil, kod, cihaz', board: 'Şərəf lövhəsi', boardSub: 'Həftənin ən dəqiqləri',
     locked: 'Pulsuz mövzular açıqdır', open: 'Açıqdır',
     studentNo: (n: string) => `Tələbə № ${n}`,
-    view3d: '🧭 3D gəzinti', view2d: '🚪 Sadə görünüş', walkHint: 'Qapıya toxunun — içəri keçək', gl3dFailed: 'Bu cihazda 3D açılmadı, sadə görünüşə qayıtdıq.',
+    view3d: '3D gəzinti', view2d: 'Sadə görünüş', walkHint: 'Qapıya toxunun — içəri keçək', gl3dFailed: 'Bu cihazda 3D açılmadı, sadə görünüşə qayıtdıq.',
     resume: 'Yarımçıq test', resumeSub: (subject: string, done: number, total: number) => `${subject} · ${done}/${total} cavablandırılıb`, resumeBtn: 'Davam et',
   },
   room: {
@@ -152,7 +152,7 @@ export const t = {
     yourAnswer: 'Sizin cavab', rightAnswer: 'Düzgün cavab', noAnswer: 'Cavab verilməyib',
   },
   diary: {
-    title: 'Gündəlik', empty: 'Hələ qeyd yoxdur. İlk testi bitirəndə burada görünəcək.',
+    title: 'Gündəlik', entries: 'Son qeydlər', empty: 'Hələ qeyd yoxdur. İlk testi bitirəndə burada görünəcək.',
     weak: 'Səhvlər harada çoxdur', weakEmpty: 'Zəif mövzu tapmaq üçün ən azı 5 cavab lazımdır.',
     grade: 'Qiymət', note: 'Qeyd', test: 'Test',
     streak: (n: number) => `${n} gün ardıcıl`, streakNone: 'Bu gün test işləyin, seriya başlasın', medals: 'Medallar', noMedals: 'İlk medal: 7 gün ardıcıl işləyin və ya bir mövzuda 50 sualda 90%-ə çatın.', correctTotal: (n: number) => `${n} düz cavab`,
@@ -172,7 +172,7 @@ export const t = {
     ended: 'Dərs bitdi.', removed: 'Dərsdən çıxarıldınız.', reconnecting: 'Bağlantı bərpa olunur…',
     chatPh: 'Mesaj yazın…', send: 'Göndər', seat: (n: number) => `Yer ${n}`,
     screenNativeNote: 'Ekran paylaşma bu versiyada yalnız veb brauzerdə işləyir.',
-    notStarted: 'Dərs hələ başlamayıb. Müəllim başladanda səs və görüntü gələcək.', unmute: '🔊 Səsi aç',
+    notStarted: 'Dərs hələ başlamayıb. Müəllim başladanda səs və görüntü gələcək.', unmute: 'Səsi aç', bannedTag: 'çıxarılıb',
     onlyHostNote: '"Yalnız host danışır" açıq olanda söz verilmiş tələbə də danışa bilmir. Söz vermək üçün əvvəlcə bunu söndürün.',
     cohost: 'Köməkçi', durationBad: 'Müddət 10–720 dəqiqə olmalıdır.', venueNoSubject: 'Bu məkan fənnə bağlı deyil: "Fənnə yazılanlar" seçilə bilməz.',
     form: { title: 'Mövzu', venue: 'Məkan', start: 'Başlama (YYYY-AA-GG SS:DD)', duration: 'Müddət (dəq)', access: 'Kimlər qoşula bilər' },

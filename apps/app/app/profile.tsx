@@ -5,7 +5,7 @@ import { router } from 'expo-router'
 import { useState } from 'react'
 import { View } from 'react-native'
 import { LinkIdentity } from '../src/components/LinkIdentity'
-import { Button, Card, ErrorBox, Field, H, P, Screen } from '../src/components/ui'
+import { Button, Card, ErrorBox, Field, H, P, Screen, Sheet } from '../src/components/ui'
 import { t } from '../src/i18n/az'
 import { api, ApiFailure } from '../src/lib/api'
 import { useAuth } from '../src/lib/auth'
@@ -144,17 +144,14 @@ export default function Profile() {
         qc.clear(); await supabase.auth.signOut({ scope: 'global' }).catch(() => {}); await signOut()
       }} />
 
-      {!showDel ? (
-        <Button variant="danger" testID="delete-open" label={t.profile.delete} onPress={() => setShowDel(true)} />
-      ) : (
-        <Card style={{ borderColor: colors.bad }}>
-          <H level={3}>{t.profile.delete}</H>
-          <P small>{t.profile.deleteWarn}</P>
-          <Field testID="delete-confirm" label={t.profile.deleteType} value={del} onChangeText={setDel} autoCapitalize="characters" autoCorrect={false} />
-          <Button variant="danger" testID="delete-go" label={t.profile.deleteBtn} disabled={!isDeleteWord(del)} onPress={deleteAccount} loading={busy === 'delete'} />
-          <Button variant="quiet" label={t.common.cancel} onPress={() => { setShowDel(false); setDel('') }} />
-        </Card>
-      )}
+      <Button variant="danger" testID="delete-open" label={t.profile.delete} onPress={() => setShowDel(true)} />
+      <Sheet visible={showDel} title={t.profile.delete} onClose={() => { setShowDel(false); setDel('') }}>
+        <P small dim>{t.profile.deleteWarn}</P>
+        <Field testID="delete-confirm" label={t.profile.deleteType} value={del} onChangeText={setDel} autoCapitalize="characters" autoCorrect={false} />
+        <ErrorBox message={err} />
+        <Button variant="danger" testID="delete-go" label={t.profile.deleteBtn} disabled={!isDeleteWord(del)} onPress={deleteAccount} loading={busy === 'delete'} />
+        <Button variant="quiet" label={t.common.cancel} onPress={() => { setShowDel(false); setDel('') }} />
+      </Sheet>
     </Screen>
   )
 }

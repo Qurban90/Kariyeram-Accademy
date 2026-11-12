@@ -434,7 +434,7 @@ try {
 
     const sp = await ctx.newPage()
     await sp.goto(`http://127.0.0.1:${PORT}/room/informatika`)
-    await sp.getByText('📘 E2E: Say sistemləri konspekti').click()
+    await sp.getByText('E2E: Say sistemləri konspekti').click()
     await sp.getByTestId('library-body').getByText('Onaltılıqda A=10, F=15.').waitFor({ timeout: 15000 })
     expect(await sp.getByText(/№ \d+/).count() > 0, 'konspektdə su nişanı yoxdur')
     await sp.goBack()
@@ -443,7 +443,7 @@ try {
     sp.on('request', (r) => { if (r.url().includes('/storage/v1/object/')) signed.push(r.url()) })
     const [resp] = await Promise.all([
       sp.waitForResponse((r) => r.url().endsWith('/functions/v1/api/library/pdf'), { timeout: 20000 }),
-      sp.getByText('📄 E2E: PDF konspekt').click(),
+      sp.getByText('E2E: PDF konspekt').click(),
     ])
     expect(resp.status() === 200 && resp.headers()['content-type'] === 'application/pdf', 'PDF cavabı deyil: ' + resp.status())
     const { PDFDocument } = require('pdf-lib')

@@ -4,12 +4,13 @@
  */
 import { isEmail, normalizeAzPhone } from '@karyeram/core/src/phone.ts'
 import { useEffect, useRef, useState } from 'react'
-import { KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native'
-import { Button, Chip, ErrorBox, Field, H, P, Screen } from '../src/components/ui'
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native'
+import { Lockup } from '../src/components/Brand'
+import { Button, ErrorBox, Field, H, P, Screen, Segmented } from '../src/components/ui'
 import { t } from '../src/i18n/az'
 import { api } from '../src/lib/api'
 import { supabase } from '../src/lib/supabase'
-import { colors, font, space } from '../src/theme'
+import { space, type } from '../src/theme'
 
 type Method = 'phone' | 'email'
 const RESEND_S = 60
@@ -84,23 +85,17 @@ export default function SignIn() {
   }
 
   return (
-    <Screen>
+    <Screen glow>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ gap: space.xl, flex: 1, justifyContent: 'center' }}>
-        <View style={st.crest} accessible accessibilityLabel={t.brand}>
-          <View style={st.roof} />
-          <View style={st.facade}>
-            {[0, 1, 2, 3].map((i) => <View key={i} style={st.column} />)}
-          </View>
-          <Text style={st.brand}>KARYERAM ACADEMY</Text>
+        <View style={st.crest}>
+          <Lockup variant="stack" />
           <P dim style={{ textAlign: 'center' }}>{t.auth.tagline}</P>
         </View>
 
         {!sentTo ? (
           <View style={{ gap: space.lg }}>
-            <View style={{ flexDirection: 'row', gap: space.sm, justifyContent: 'center' }} accessibilityRole="tablist">
-              <Chip testID="tab-phone" label={t.auth.phoneTab} selected={method === 'phone'} onPress={() => { setMethod('phone'); setFieldErr(null); setError(null) }} />
-              <Chip testID="tab-email" label={t.auth.emailTab} selected={method === 'email'} onPress={() => { setMethod('email'); setFieldErr(null); setError(null) }} />
-            </View>
+            <Segmented value={method} onChange={(m) => { setMethod(m); setFieldErr(null); setError(null) }}
+              options={[{ value: 'phone', label: t.auth.phoneTab, testID: 'tab-phone', icon: 'phone' }, { value: 'email', label: t.auth.emailTab, testID: 'tab-email', icon: 'mail' }]} />
             {method === 'phone' ? (
               <Field testID="phone" label={t.auth.phoneLabel} placeholder={t.auth.phoneHint} value={phone} onChangeText={setPhone}
                 keyboardType="phone-pad" autoComplete="tel" textContentType="telephoneNumber" error={fieldErr} onSubmitEditing={send} returnKeyType="send" />
@@ -117,7 +112,7 @@ export default function SignIn() {
             <H level={2}>{t.auth.codeLabel}</H>
             <P dim>{method === 'phone' ? t.auth.codeSentPhone(sentTo) : t.auth.codeSentEmail(sentTo)}</P>
             <Field testID="otp" label={t.auth.codeLabel} value={code} onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, 6))}
-              keyboardType="number-pad" autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={6} onSubmitEditing={verify} autoFocus />
+              keyboardType="number-pad" autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={6} onSubmitEditing={verify} autoFocus style={st.otp} />
             <ErrorBox message={error} />
             <Button testID="verify" label={t.auth.verify} onPress={verify} loading={busy} disabled={code.length !== 6} />
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: space.sm }}>
@@ -132,9 +127,6 @@ export default function SignIn() {
 }
 
 const st = StyleSheet.create({
-  crest: { alignItems: 'center', gap: space.sm },
-  roof: { width: 0, height: 0, borderLeftWidth: 90, borderRightWidth: 90, borderBottomWidth: 34, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: colors.brass },
-  facade: { flexDirection: 'row', gap: 22, backgroundColor: colors.panel, paddingHorizontal: 20, paddingVertical: 10, borderBottomWidth: 4, borderBottomColor: colors.brassDeep },
-  column: { width: 12, height: 46, backgroundColor: colors.chalk, borderRadius: 2, opacity: 0.85 },
-  brand: { color: colors.chalk, fontSize: font.h2, fontWeight: '800', letterSpacing: 3, fontFamily: font.serif, marginTop: space.sm },
+  crest: { alignItems: 'center', gap: space.md, paddingTop: space.lg },
+  otp: { textAlign: 'center', fontSize: 26, letterSpacing: 10, fontFamily: type.semibold, minHeight: 60 },
 })

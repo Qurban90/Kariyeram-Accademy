@@ -2,9 +2,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useState } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
+import { Text } from '../../src/components/Text'
 import { useScreenGuard } from '../../src/components/ScreenGuard'
-import { Bar, Button, Card, ErrorBox, H, Loading, P, Screen } from '../../src/components/ui'
+import { Badge, Bar, Button, Card, ErrorBox, H, Icon, Loading, P, Screen } from '../../src/components/ui'
 import { Watermark } from '../../src/components/Watermark'
 import { t } from '../../src/i18n/az'
 import { api, ApiFailure, type ReviewItem } from '../../src/lib/api'
@@ -39,7 +40,7 @@ export default function Result() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.board }}>
       <Screen back={() => router.replace(subject ? { pathname: '/room/[subject]', params: { subject } } : '/')} title={t.result.title}>
-        <Card style={{ alignItems: 'center' }}>
+        <Card style={{ alignItems: 'center', paddingVertical: space.xl }} tone="gold">
           <Text style={[st.pct, { color: tone }]} testID="percent">{r.percent}%</Text>
           <View style={st.row}>
             <Stat label={t.result.correct} value={r.correct} color={colors.ok} />
@@ -75,7 +76,7 @@ export default function Result() {
 function Stat({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <View style={{ alignItems: 'center', minWidth: 72 }}>
-      <Text style={{ color, fontSize: font.title, fontWeight: '800' }}>{value}</Text>
+      <Text style={{ color, fontSize: font.title, fontFamily: font.serif, fontVariant: ['tabular-nums'] }}>{value}</Text>
       <P dim small>{label}</P>
     </View>
   )
@@ -83,14 +84,13 @@ function Stat({ label, value, color }: { label: string; value: number; color: st
 
 function ReviewCard({ it }: { it: ReviewItem }) {
   return (
-    <Card style={it.trap ? { borderColor: colors.trap } : undefined} testID={`review-${it.position}`}>
+    <Card tone={it.trap ? 'trap' : 'plain'} testID={`review-${it.position}`}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: space.sm }}>
         <P small dim>{it.position}. {it.topic}</P>
-        <Text style={{ color: it.correct ? colors.ok : it.chosen_display === null ? colors.warn : colors.bad, fontWeight: '800' }}>
-          {it.correct ? '✓' : it.chosen_display === null ? '—' : '✗'}
-        </Text>
+        <Icon name={it.correct ? 'check' : it.chosen_display === null ? 'minus' : 'x'} size={18} strokeWidth={2.4}
+          color={it.correct ? colors.ok : it.chosen_display === null ? colors.warn : colors.bad} />
       </View>
-      {it.trap && <Text style={{ color: colors.trap, fontWeight: '700', fontSize: font.small }}>⚠ {t.test.trap}</Text>}
+      {it.trap && <Badge tone="trap" icon="alert" label={t.test.trap} />}
       <Text style={st.stem} selectable={false}>{it.stem}</Text>
       {it.options.map((o, i) => {
         const right = i === it.correct_display, mine = i === it.chosen_display
@@ -111,10 +111,10 @@ function ReviewCard({ it }: { it: ReviewItem }) {
 }
 
 const st = StyleSheet.create({
-  pct: { fontSize: 56, fontWeight: '900', fontFamily: font.serif },
+  pct: { fontSize: 64, lineHeight: 72, fontFamily: font.serif, fontVariant: ['tabular-nums'], letterSpacing: -1 },
   row: { flexDirection: 'row', gap: space.xl, justifyContent: 'center' },
-  stem: { color: colors.chalk, fontSize: font.body, fontWeight: '600', lineHeight: 23 },
-  opt: { borderWidth: 1, borderColor: colors.boardLine, borderRadius: radius.sm, padding: space.sm, gap: 2 },
-  optTxt: { color: colors.chalk, fontSize: font.small },
-  exp: { color: colors.chalkDim, fontSize: font.tiny, lineHeight: 17 },
+  stem: { color: colors.ivory, fontSize: font.body, fontWeight: '500', lineHeight: 24 },
+  opt: { borderWidth: 1, borderColor: colors.line, borderRadius: radius.md, padding: space.md, gap: 3 },
+  optTxt: { color: colors.ivory, fontSize: font.small, lineHeight: 20 },
+  exp: { color: colors.ivoryDim, fontSize: font.tiny + 1, lineHeight: 18 },
 })

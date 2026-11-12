@@ -1,5 +1,13 @@
 import { t } from '../src/i18n/az'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Fraunces_500Medium } from '@expo-google-fonts/fraunces/500Medium'
+import { Fraunces_500Medium_Italic } from '@expo-google-fonts/fraunces/500Medium_Italic'
+import { Fraunces_600SemiBold } from '@expo-google-fonts/fraunces/600SemiBold'
+import { HankenGrotesk_400Regular } from '@expo-google-fonts/hanken-grotesk/400Regular'
+import { HankenGrotesk_500Medium } from '@expo-google-fonts/hanken-grotesk/500Medium'
+import { HankenGrotesk_600SemiBold } from '@expo-google-fonts/hanken-grotesk/600SemiBold'
+import { HankenGrotesk_700Bold } from '@expo-google-fonts/hanken-grotesk/700Bold'
+import { useFonts } from 'expo-font'
 import { Stack, router, useSegments, type ErrorBoundaryProps } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
@@ -94,6 +102,12 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
 }
 
 export default function RootLayout() {
+  // Brend şriftləri (başlıq: Fraunces, mətn: Hanken Grotesk). Yüklənməsə sistem şrifti ilə davam edirik.
+  const [fontsLoaded, fontError] = useFonts({
+    Fraunces_500Medium, Fraunces_500Medium_Italic, Fraunces_600SemiBold,
+    HankenGrotesk_400Regular, HankenGrotesk_500Medium, HankenGrotesk_600SemiBold, HankenGrotesk_700Bold,
+  })
+  if (!fontsLoaded && !fontError) return <View style={{ flex: 1, backgroundColor: colors.night }} />
   if (configError) {
     return (
       <SafeAreaProvider>

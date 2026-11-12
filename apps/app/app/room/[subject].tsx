@@ -1,20 +1,21 @@
 /** Fənn otağı (özünü öyrənmə): mövzular, test rejimləri, sual sayı. */
 import { router, useLocalSearchParams } from 'expo-router'
 import { useMemo, useState } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
-import { Button, Card, Chip, ErrorBox, H, Loading, P, Screen } from '../../src/components/ui'
+import { StyleSheet, View } from 'react-native'
+import { Text } from '../../src/components/Text'
+import { Badge, Button, Card, Chip, ErrorBox, Group, H, Icon, ListRow, Loading, P, Screen, Section, SelectRow, type IconName } from '../../src/components/ui'
 import { t } from '../../src/i18n/az'
 import { api, ApiFailure, type Mode } from '../../src/lib/api'
 import { hasAccess, useEnrollments, useLibrary, useSubjects, useTopics } from '../../src/lib/queries'
-import { colors, font, radius, space } from '../../src/theme'
+import { colors, font, space } from '../../src/theme'
 import { fmtDate } from '../../src/lib/dates'
 
 const SIZES = [10, 20, 30, 50] as const
-const MODES: { mode: Mode; title: string; sub: string; icon: string }[] = [
-  { mode: 'topic', title: t.room.topicTest, sub: t.room.topicTestSub, icon: '📘' },
-  { mode: 'mixed', title: t.room.mixed, sub: t.room.mixedSub, icon: '🔀' },
-  { mode: 'mistakes', title: t.room.mistakes, sub: t.room.mistakesSub, icon: '🔁' },
-  { mode: 'exam', title: t.room.exam, sub: t.room.examSub, icon: '⏱️' },
+const MODES: { mode: Mode; title: string; sub: string; icon: IconName }[] = [
+  { mode: 'topic', title: t.room.topicTest, sub: t.room.topicTestSub, icon: 'book' },
+  { mode: 'mixed', title: t.room.mixed, sub: t.room.mixedSub, icon: 'shuffle' },
+  { mode: 'mistakes', title: t.room.mistakes, sub: t.room.mistakesSub, icon: 'repeat' },
+  { mode: 'exam', title: t.room.exam, sub: t.room.examSub, icon: 'timer' },
 ]
 
 export default function Room() {
@@ -64,29 +65,34 @@ export default function Room() {
   }
 
   return (
-    <Screen back title={name}>
-      <View style={st.board} accessible accessibilityLabel={`${name} sinfi`}>
-        <Text style={st.boardTxt}>{name}</Text>
-        <Text style={st.boardSub}>{access ? t.room.accessUntil(fmtDate(access.access_until)) : t.room.noAccess}</Text>
+    <Screen back title="">
+      <View style={st.hero} accessible accessibilityLabel={`${name} sinfi`}>
+        <Text style={st.heroTxt}>{name}</Text>
+        {access ? <Badge tone="gold" icon="check" label={t.room.accessUntil(fmtDate(access.access_until))} /> : (
+          <View style={st.note}>
+            <Icon name="lock" size={16} color={colors.ivoryFaint} />
+            <P dim small style={{ flex: 1 }}>{t.room.noAccess}</P>
+          </View>
+        )}
       </View>
       <ErrorBox message={topics.error ? (topics.error as Error).message : null} onRetry={() => topics.refetch()} />
 
-      <H level={2}>{t.room.topics}</H>
-      <View style={{ gap: space.sm }}>
-        {(topics.data ?? []).map((x) => {
-          const can = access || x.free
-          return (
-            <Chip key={x.id} testID={`topic-${x.sort}`} disabled={!can || mode !== 'topic'} selected={mode === 'topic' && picked.has(x.id)}
-              label={`${x.name}${!access && x.free ? ` · ${t.room.free}` : ''}${!can ? ` · 🔒 ${t.room.locked}` : ''}`} onPress={() => toggle(x.id)} />
-          )
-        })}
-      </View>
+      <Section title={t.room.topics}>
+        <Group>
+          {(topics.data ?? []).map((x) => {
+            const can = access || x.free
+            return (
+              <SelectRow key={x.id} testID={`topic-${x.sort}`} disabled={!can || mode !== 'topic'} locked={!can} selected={mode === 'topic' && picked.has(x.id)}
+                title={x.name} sub={!can ? t.room.locked : !access && x.free ? t.room.free : undefined} onPress={() => toggle(x.id)} />
+            )
+          })}
+        </Group>
+      </Section>
 
       <View style={st.modes}>
         {MODES.map((m) => (
-          <Card key={m.mode} testID={`mode-${m.mode}`} label={m.title} onPress={() => setMode(m.mode)}
-            style={[st.mode, mode === m.mode && { borderColor: colors.brass, backgroundColor: '#22402f' }]}>
-            <Text style={{ fontSize: 24 }}>{m.icon}</Text>
+          <Card key={m.mode} testID={`mode-${m.mode}`} label={m.title} onPress={() => setMode(m.mode)} tone={mode === m.mode ? 'gold' : 'plain'} style={st.mode}>
+            <Icon name={m.icon} size={22} color={mode === m.mode ? colors.gold : colors.ivoryDim} />
             <H level={3}>{m.title}</H>
             <P dim small>{m.sub}</P>
           </Card>
@@ -104,26 +110,32 @@ export default function Room() {
       <ErrorBox message={err} />
       <Button testID="start-test" label={t.room.start} onPress={start} loading={busy} />
 
-      <H level={2}>📚 {t.library.shelf}</H>
-      {(shelf.data ?? []).length === 0 && <P dim small>{t.library.empty}</P>}
-      {(shelf.data ?? []).map((it, i) => {
-        const can = !!access || it.free
-        return (
-          <Card key={it.id} testID={`shelf-${i}`} label={it.title} onPress={can ? () => openItem(it.id, it.kind, it.title) : undefined} style={!can ? { opacity: 0.55 } : undefined}>
-            <Text style={{ color: colors.chalk, fontWeight: '700' }}>{it.kind === 'pdf' ? '📄' : '📘'} {it.title}</Text>
-            <P dim small>{it.kind === 'pdf' ? t.library.pdf : t.library.text}{it.free && !access ? ` · ${t.library.free}` : ''}{!can ? ` · 🔒 ${t.library.locked}` : ''}</P>
-          </Card>
-        )
-      })}
+      <Section title={t.library.shelf}>
+        {(shelf.data ?? []).length === 0 ? <P dim small>{t.library.empty}</P> : (
+          <Group>
+            {(shelf.data ?? []).map((it, i) => {
+              const can = !!access || it.free
+              return (
+                <View key={it.id} style={!can ? { opacity: 0.5 } : undefined}>
+                  <ListRow testID={`shelf-${i}`} icon={it.kind === 'pdf' ? 'file' : 'bookOpen'} title={it.title}
+                    sub={`${it.kind === 'pdf' ? t.library.pdf : t.library.text}${it.free && !access ? ` · ${t.library.free}` : ''}${!can ? ` · ${t.library.locked}` : ''}`}
+                    onPress={can ? () => openItem(it.id, it.kind, it.title) : undefined}
+                    right={!can ? <Icon name="lock" size={18} color={colors.ivoryFaint} /> : undefined} />
+                </View>
+              )
+            })}
+          </Group>
+        )}
+      </Section>
       {(shelf.data ?? []).some((x) => x.kind === 'pdf') && <P dim small>{t.library.pdfNote}</P>}
     </Screen>
   )
 }
 
 const st = StyleSheet.create({
-  board: { backgroundColor: '#1d3b2f', borderWidth: 8, borderColor: colors.woodLight, borderRadius: radius.sm, padding: space.xl, alignItems: 'center', gap: space.sm },
-  boardTxt: { color: colors.chalk, fontSize: font.title, fontFamily: font.serif, fontWeight: '700', textAlign: 'center' },
-  boardSub: { color: colors.chalkDim, fontSize: font.small, textAlign: 'center' },
+  hero: { alignItems: 'flex-start', gap: space.md, paddingBottom: space.sm },
+  note: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm },
+  heroTxt: { color: colors.ivory, fontSize: font.display, lineHeight: 40, fontFamily: font.serif, letterSpacing: -0.4 },
   modes: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
   mode: { flexBasis: '47%', flexGrow: 1, minWidth: 150 },
 })

@@ -1,9 +1,10 @@
 /** Müəllim otağı (FR-060, FR-062): yoxlamada olan sualları dərc etmək və toplu abunə kodu yaratmaq. Icazə serverdə yoxlanır. */
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Platform, Text, View } from 'react-native'
+import { Platform, View } from 'react-native'
+import { Text } from '../src/components/Text'
 import * as DocumentPicker from 'expo-document-picker'
-import { Button, Card, Check, Chip, ErrorBox, Field, H, Loading, P, Screen } from '../src/components/ui'
+import { Button, Card, Check, Chip, ErrorBox, Field, H, Icon, Loading, P, Screen } from '../src/components/ui'
 import { t } from '../src/i18n/az'
 import { api, ApiFailure } from '../src/lib/api'
 import { useLibrary, useSubjects } from '../src/lib/queries'
@@ -60,7 +61,7 @@ function ReviewQueue() {
       {(q.data ?? []).length === 0 && <P dim>{t.teacher.none}</P>}
       {(q.data ?? []).map((x, n) => (
         <Card key={x.id} testID={`rq-${n}`}>
-          <P dim small>{x.topics?.subject_id} · {x.topics?.name} · {t.teacher.status[x.status]} · {t.test.levels[x.level]}{x.trap ? ` · ⚠ ${t.test.trap}` : ''}</P>
+          <P dim small>{x.topics?.subject_id} · {x.topics?.name} · {t.teacher.status[x.status]} · {t.test.levels[x.level]}{x.trap ? ` · ${t.test.trap}` : ''}</P>
           <Text style={{ color: colors.chalk, fontWeight: '700', fontSize: font.body }}>{x.stem}</Text>
           {x.options.map((o, i) => (
             <View key={i} style={{ gap: 2 }}>
@@ -305,7 +306,8 @@ function ShelfManager() {
 
       {(list.data ?? []).map((it) => (
         <View key={it.id} style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
-          <Text style={{ color: colors.chalk, flex: 1, fontSize: font.small }}>{it.kind === 'pdf' ? '📄' : '📘'} {it.title}{it.free ? ` · ${t.library.free}` : ''}</Text>
+          <Icon name={it.kind === 'pdf' ? 'file' : 'bookOpen'} size={18} color={colors.ivoryDim} />
+          <Text style={{ color: colors.ivory, flex: 1, fontSize: font.small }}>{it.title}{it.free ? ` · ${t.library.free}` : ''}</Text>
           <Button small variant="danger" label={t.library.remove} onPress={() => remove(it.id)} />
         </View>
       ))}

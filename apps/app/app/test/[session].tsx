@@ -4,9 +4,10 @@
  */
 import { router, useLocalSearchParams } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { Text } from '../../src/components/Text'
 import { useScreenGuard } from '../../src/components/ScreenGuard'
-import { Button, ErrorBox, Loading, P, Screen, Bar } from '../../src/components/ui'
+import { Badge, Bar, Button, ErrorBox, Loading, P, Screen } from '../../src/components/ui'
 import { Watermark } from '../../src/components/Watermark'
 import { t } from '../../src/i18n/az'
 import { api, ApiFailure, type AnswerResult, type Question } from '../../src/lib/api'
@@ -116,11 +117,11 @@ export default function TestRunner() {
     <View style={{ flex: 1, backgroundColor: colors.board }}>
       <Screen back title={t.test.question(q.position, q.total)}
         right={left !== null ? <Text style={[st.timer, left < 60 && { color: colors.bad }]} accessibilityLabel={`${t.test.timeLeft} ${mmss(left)}`}>{mmss(Math.max(0, left))}</Text> : null}>
-        <Bar value={(100 * (q.position - 1)) / q.total} color={colors.brass} />
+        <Bar value={(100 * (q.position - 1)) / q.total} />
         <View style={{ flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' }}>
-          <Text style={st.tag}>{t.test.levels[q.level]}</Text>
-          {q.trap && !exam && <Text style={[st.tag, { borderColor: colors.trap, color: colors.trap }]}>⚠ {t.test.trap}</Text>}
-          {exam && <Text style={st.tag}>{t.test.examNote}</Text>}
+          <Badge label={t.test.levels[q.level]} />
+          {q.trap && !exam && <Badge tone="trap" icon="alert" label={t.test.trap} />}
+          {exam && <Badge tone="gold" icon="timer" label={t.test.examNote} />}
         </View>
 
         <Text style={st.stem} selectable={false} testID="stem">{q.stem}</Text>
@@ -128,18 +129,18 @@ export default function TestRunner() {
         <View style={{ gap: space.sm }} accessibilityRole="radiogroup">
           {q.options.map((o, i) => {
             const isChosen = chosen === i
-            let border: string = colors.boardLine, bg: string = colors.panel
+            let border: string = colors.line, bg: string = colors.surface
             if (showResult) {
-              if (i === fb!.correct_display) { border = colors.ok; bg = '#1f4630' }
-              else if (isChosen) { border = colors.bad; bg = '#4a2420' }
-            } else if (isChosen) { border = colors.brass; bg = '#2c4a3a' }
+              if (i === fb!.correct_display) { border = colors.ok; bg = colors.okWash }
+              else if (isChosen) { border = colors.bad; bg = colors.badWash }
+            } else if (isChosen) { border = colors.gold; bg = colors.goldWash }
             const oe = showResult ? fb!.option_explanations?.[i] : undefined
             return (
               <Pressable key={i} testID={`opt-${i}`} accessibilityRole="radio" aria-checked={isChosen} aria-disabled={phase !== 'asking'}
                 accessibilityLabel={`${LETTERS[i]}. ${o}`}
                 onPress={phase === 'asking' ? () => setChosen(i) : undefined}
                 style={[st.opt, { borderColor: border, backgroundColor: bg }]}>
-                <View style={[st.letter, isChosen && { backgroundColor: colors.brass }]}><Text style={[st.letterTxt, isChosen && { color: colors.ink }]}>{LETTERS[i]}</Text></View>
+                <View style={[st.letter, isChosen && { backgroundColor: colors.gold, borderColor: colors.gold }]}><Text style={[st.letterTxt, isChosen && { color: colors.ink }]}>{LETTERS[i]}</Text></View>
                 <View style={{ flex: 1, gap: 4 }}>
                   <Text style={st.optTxt} selectable={false}>{o}</Text>
                   {oe ? <Text style={st.optExp}>{oe}</Text> : null}
@@ -177,14 +178,13 @@ export default function TestRunner() {
 }
 
 const st = StyleSheet.create({
-  timer: { color: colors.chalk, fontVariant: ['tabular-nums'], fontWeight: '800', fontSize: font.h3, paddingHorizontal: space.sm },
-  tag: { color: colors.chalkDim, borderColor: colors.boardLine, borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: space.md, paddingVertical: 4, fontSize: font.tiny, fontWeight: '700' },
-  stem: { color: colors.chalk, fontSize: 19, lineHeight: 28, fontWeight: '600' },
-  opt: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md, minHeight: touch + 8, padding: space.md, borderRadius: radius.md, borderWidth: 2 },
-  letter: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: colors.chalkDim, alignItems: 'center', justifyContent: 'center' },
-  letterTxt: { color: colors.chalk, fontWeight: '800' },
-  optTxt: { color: colors.chalk, fontSize: font.body, lineHeight: 22, paddingTop: 4 },
-  optExp: { color: colors.chalkDim, fontSize: font.small, lineHeight: 19 },
-  feedback: { borderWidth: 1, borderRadius: radius.md, padding: space.lg, gap: space.sm, backgroundColor: colors.boardDeep },
-  fbTitle: { fontSize: font.h2, fontWeight: '800' },
+  timer: { color: colors.ivory, fontVariant: ['tabular-nums'], fontFamily: font.serif, fontSize: font.h3 + 1, paddingHorizontal: space.sm },
+  stem: { color: colors.ivory, fontSize: 19, lineHeight: 29, fontWeight: '500' },
+  opt: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md, minHeight: touch + 12, padding: space.md + 2, borderRadius: radius.md + 2, borderWidth: 1 },
+  letter: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: colors.lineStrong, alignItems: 'center', justifyContent: 'center' },
+  letterTxt: { color: colors.ivoryDim, fontWeight: '600' },
+  optTxt: { color: colors.ivory, fontSize: font.body, lineHeight: 23, paddingTop: 4 },
+  optExp: { color: colors.ivoryDim, fontSize: font.small, lineHeight: 20 },
+  feedback: { borderWidth: 1, borderRadius: radius.lg, padding: space.lg, gap: space.sm, backgroundColor: colors.surface },
+  fbTitle: { fontSize: font.h2, fontFamily: font.serif },
 })

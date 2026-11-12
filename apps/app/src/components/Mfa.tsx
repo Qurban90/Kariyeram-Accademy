@@ -5,7 +5,8 @@
  * Server qaydanı özü tətbiq edir (admin/* həmişə aal2; staff/* faktor varsa və ya məcburidirsə); bu ekranlar yalnız yoldur.
  */
 import { createElement, useCallback, useEffect, useState } from 'react'
-import { Platform, Text, View } from 'react-native'
+import { Platform, View } from 'react-native'
+import { Text } from './Text'
 import { t } from '../i18n/az'
 import { supabase } from '../lib/supabase'
 import { colors, font, space } from '../theme'

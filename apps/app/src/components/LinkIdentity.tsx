@@ -9,7 +9,7 @@ import { t } from '../i18n/az'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
 import { colors, space } from '../theme'
-import { Button, ErrorBox, Field, H, P } from './ui'
+import { Button, ErrorBox, Field, H, Icon, P } from './ui'
 
 type Kind = 'email' | 'phone'
 
@@ -59,8 +59,12 @@ export function LinkIdentity() {
   return (
     <View style={{ gap: space.sm }}>
       <H level={2}>{t.link.title}</H>
-      <P small>📱 {user?.phone ? maskPhone(user.phone) : t.link.none}</P>
-      <P small>✉️ {user?.email || t.link.none}</P>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+        <Icon name="phone" size={18} color={colors.ivoryDim} /><P small>{user?.phone ? maskPhone(user.phone) : t.link.none}</P>
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+        <Icon name="mail" size={18} color={colors.ivoryDim} /><P small>{user?.email || t.link.none}</P>
+      </View>
       {done ? <P small style={{ color: colors.ok }}>{done}</P> : null}
       {!open && (
         <View style={{ flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' }}>

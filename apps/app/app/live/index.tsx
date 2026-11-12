@@ -1,12 +1,12 @@
 /** Oxu zalının qapısı: planlaşdırılmış və canlı dərslər (RLS yalnız qoşula biləcəyiniz dərsləri qaytarır). */
 import { router } from 'expo-router'
-import { Text, View } from 'react-native'
-import { Button, Card, ErrorBox, H, Loading, P, Screen } from '../../src/components/ui'
+import { View } from 'react-native'
+import { Badge, Button, Card, ErrorBox, IconButton, H, Loading, P, Screen } from '../../src/components/ui'
 import { t } from '../../src/i18n/az'
 import { canEnter } from '../../src/live/model'
 import { useAuth } from '../../src/lib/auth'
 import { useLiveSessions } from '../../src/lib/queries'
-import { colors, font, space } from '../../src/theme'
+import { space } from '../../src/theme'
 import { fmtWhen } from '../../src/lib/dates'
 
 export default function LiveList() {
@@ -15,7 +15,7 @@ export default function LiveList() {
   const staff = profile?.role === 'teacher' || profile?.role === 'admin'
 
   return (
-    <Screen back title={t.live.title} right={staff ? <Button small variant="ghost" label="+" onPress={() => router.push('/live/new')} /> : null}>
+    <Screen back title={t.live.title} right={staff ? <IconButton tone="gold" icon="plus" label={t.live.create} onPress={() => router.push('/live/new')} /> : null}>
       <H level={2}>{t.live.upcoming}</H>
       {q.isLoading && <Loading />}
       <ErrorBox message={q.error ? (q.error as Error).message : null} onRetry={() => q.refetch()} />
@@ -25,11 +25,9 @@ export default function LiveList() {
         const open = mine || canEnter(s.starts_at, s.state)
         const when = fmtWhen(s.starts_at)
         return (
-          <Card key={s.id} testID={`live-${s.id}`}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: space.sm }}>
-              <Text style={{ color: s.state === 'live' ? colors.bad : colors.chalkDim, fontWeight: '800', fontSize: font.tiny }}>
-                {s.state === 'live' ? `● ${t.live.liveNow}` : t.live.scheduled}
-              </Text>
+          <Card key={s.id} testID={`live-${s.id}`} tone={s.state === 'live' ? 'gold' : 'plain'}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space.sm }}>
+              {s.state === 'live' ? <Badge tone="live" dot label={t.live.liveNow} /> : <Badge label={t.live.scheduled} />}
               <P dim small>{s.venues?.name ?? ''}</P>
             </View>
             <H level={3}>{s.title}</H>

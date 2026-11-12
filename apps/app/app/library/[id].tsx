@@ -4,7 +4,8 @@
  */
 import { useQuery } from '@tanstack/react-query'
 import { useLocalSearchParams } from 'expo-router'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
+import { Text } from '../../src/components/Text'
 import { useScreenGuard } from '../../src/components/ScreenGuard'
 import { PdfView } from '../../src/components/PdfView'
 import { ErrorBox, Loading, Screen } from '../../src/components/ui'
