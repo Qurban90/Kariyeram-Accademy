@@ -7,11 +7,11 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '../../src/components/Text'
 import { useScreenGuard } from '../../src/components/ScreenGuard'
-import { Badge, Bar, Button, ErrorBox, Loading, P, Screen } from '../../src/components/ui'
+import { Badge, Bar, Button, ErrorBox, Loading, P, RoomTheme, Screen, usePalette, useSheet } from '../../src/components/ui'
 import { Watermark } from '../../src/components/Watermark'
 import { t } from '../../src/i18n/az'
 import { api, ApiFailure, type AnswerResult, type Question } from '../../src/lib/api'
-import { colors, font, radius, space, touch } from '../../src/theme'
+import { font, radius, space, touch, type Palette } from '../../src/theme'
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F']
 type Phase = 'loading' | 'asking' | 'sending' | 'feedback' | 'finishing' | 'blocked'
@@ -21,7 +21,9 @@ function mmss(s: number) {
   return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`
 }
 
-export default function TestRunner() {
+function TestRunnerInner() {
+  const colors = usePalette()
+  const st = useSheet(makeSt)
   const { session, subject } = useLocalSearchParams<{ session: string; subject?: string }>()
   useScreenGuard('test')
   const [phase, setPhase] = useState<Phase>('loading')
@@ -177,7 +179,7 @@ export default function TestRunner() {
   )
 }
 
-const st = StyleSheet.create({
+const makeSt = (colors: Palette) => StyleSheet.create({
   timer: { color: colors.ivory, fontVariant: ['tabular-nums'], fontFamily: font.serif, fontSize: font.h3 + 1, paddingHorizontal: space.sm },
   stem: { color: colors.ivory, fontSize: 19, lineHeight: 29, fontWeight: '500' },
   opt: { flexDirection: 'row', alignItems: 'flex-start', gap: space.md, minHeight: touch + 12, padding: space.md + 2, borderRadius: radius.md + 2, borderWidth: 1 },
@@ -188,3 +190,8 @@ const st = StyleSheet.create({
   feedback: { borderWidth: 1, borderRadius: radius.lg, padding: space.lg, gap: space.sm, backgroundColor: colors.surface },
   fbTitle: { fontSize: font.h2, fontFamily: font.serif },
 })
+
+/** Qapının arxası işıqlı sinifdir: bu ekran sinif palitrası ilə açılır. */
+export default function TestRunner() {
+  return <RoomTheme><TestRunnerInner /></RoomTheme>
+}

@@ -3,12 +3,13 @@ import { router, useLocalSearchParams } from 'expo-router'
 import { useMemo, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { Text } from '../../src/components/Text'
-import { Badge, Button, Card, Chip, ErrorBox, Group, H, Icon, ListRow, Loading, P, Screen, Section, SelectRow, type IconName } from '../../src/components/ui'
+import { Badge, Button, Card, Chip, ErrorBox, Group, H, Icon, ListRow, Loading, P, RoomTheme, Screen, Section, SelectRow, usePalette, useSheet, type IconName } from '../../src/components/ui'
 import { t } from '../../src/i18n/az'
 import { api, ApiFailure, type Mode } from '../../src/lib/api'
 import { hasAccess, useEnrollments, useLibrary, useSubjects, useTopics } from '../../src/lib/queries'
-import { colors, font, space } from '../../src/theme'
+import { font, space, type Palette } from '../../src/theme'
 import { fmtDate } from '../../src/lib/dates'
+import { RoomScene } from '../../src/components/RoomScene'
 
 const SIZES = [10, 20, 30, 50] as const
 const MODES: { mode: Mode; title: string; sub: string; icon: IconName }[] = [
@@ -18,7 +19,9 @@ const MODES: { mode: Mode; title: string; sub: string; icon: IconName }[] = [
   { mode: 'exam', title: t.room.exam, sub: t.room.examSub, icon: 'timer' },
 ]
 
-export default function Room() {
+function RoomInner() {
+  const colors = usePalette()
+  const st = useSheet(makeSt)
   const { subject } = useLocalSearchParams<{ subject: string }>()
   const subjects = useSubjects()
   const topics = useTopics(subject)
@@ -31,6 +34,8 @@ export default function Room() {
   const [err, setErr] = useState<string | null>(null)
 
   const name = subjects.data?.find((s) => s.id === subject)?.name ?? ''
+  const idx = (subjects.data ?? []).findIndex((s) => s.id === subject)
+  const roomNo = idx >= 0 ? String(101 + idx) : undefined
   const access = hasAccess(enr.data, subject)
   const open = useMemo(() => (topics.data ?? []).filter((x) => access || x.free), [topics.data, access])
 
@@ -66,15 +71,14 @@ export default function Room() {
 
   return (
     <Screen back title="">
-      <View style={st.hero} accessible accessibilityLabel={`${name} sinfi`}>
-        <Text style={st.heroTxt}>{name}</Text>
-        {access ? <Badge tone="gold" icon="check" label={t.room.accessUntil(fmtDate(access.access_until))} /> : (
-          <View style={st.note}>
-            <Icon name="lock" size={16} color={colors.ivoryFaint} />
-            <P dim small style={{ flex: 1 }}>{t.room.noAccess}</P>
-          </View>
-        )}
-      </View>
+      <RoomScene number={roomNo} name={name}
+        note={access ? t.room.accessUntil(fmtDate(access.access_until)) : open.length ? t.hall.locked : undefined} />
+      {!access ? (
+        <View style={st.note}>
+          <Icon name="lock" size={16} color={colors.ivoryFaint} />
+          <P dim small style={{ flex: 1 }}>{t.room.noAccess}</P>
+        </View>
+      ) : null}
       <ErrorBox message={topics.error ? (topics.error as Error).message : null} onRetry={() => topics.refetch()} />
 
       <Section title={t.room.topics}>
@@ -132,10 +136,13 @@ export default function Room() {
   )
 }
 
-const st = StyleSheet.create({
-  hero: { alignItems: 'flex-start', gap: space.md, paddingBottom: space.sm },
+const makeSt = (colors: Palette) => StyleSheet.create({
   note: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm },
-  heroTxt: { color: colors.ivory, fontSize: font.display, lineHeight: 40, fontFamily: font.serif, letterSpacing: -0.4 },
   modes: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
   mode: { flexBasis: '47%', flexGrow: 1, minWidth: 150 },
 })
+
+/** Qapının arxası işıqlı sinifdir: bu ekran sinif palitrası ilə açılır. */
+export default function Room() {
+  return <RoomTheme><RoomInner /></RoomTheme>
+}

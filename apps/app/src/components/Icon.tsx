@@ -3,7 +3,7 @@
  * Dekorativdir: ekran oxuyucusu üçün gizlidir, mənanı yanındakı mətn və ya düymənin etiketi daşıyır.
  */
 import Svg, { Circle, Path, Rect } from 'react-native-svg'
-import { colors } from '../theme'
+import { usePalette } from './Theme'
 
 type Shape = ['p', string] | ['c', number, number, number] | ['r', number, number, number, number, number]
 
@@ -49,10 +49,11 @@ const ICONS = {
 
 export type IconName = keyof typeof ICONS
 
-export function Icon({ name, size = 20, color = colors.ivory, strokeWidth = 1.75 }: { name: IconName; size?: number; color?: string; strokeWidth?: number }) {
+export function Icon({ name, size = 20, color, strokeWidth = 1.75 }: { name: IconName; size?: number; color?: string; strokeWidth?: number }) {
+  const palette = usePalette()
   const shapes = ICONS[name] as readonly Shape[]
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth}
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color ?? palette.ivory} strokeWidth={strokeWidth}
       strokeLinecap="round" strokeLinejoin="round" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" aria-hidden>
       {shapes.map((s, i) => s[0] === 'p' ? <Path key={i} d={s[1]} />
         : s[0] === 'c' ? <Circle key={i} cx={s[1]} cy={s[2]} r={s[3]} />

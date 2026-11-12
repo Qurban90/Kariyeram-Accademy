@@ -44,6 +44,62 @@ export const colors = {
   ink: '#1B1305',
 } as const
 
+export type Palette = { readonly [K in keyof typeof colors]: string }
+
+/**
+ * İşıqlı sinif palitrası: qapının arxası. Dəhliz gecədir, otağın içi isə lampa işığında isti divar,
+ * kağız və taxtadır. Fənn otağı, test, nəticə və konspekt ekranları bu palitra ilə açılır (bax components/Theme.tsx).
+ * Açar adları `colors` ilə eynidir: "ivory" burada tünd mürəkkəb, "night" isə divardır.
+ */
+export const roomColors: Palette = {
+  night: '#F0E7D6',          // divar
+  nightDeep: '#FCF8F0',      // giriş sahələri (ağ kağız)
+  surface: '#FBF6EC',        // kağız vərəq
+  surfaceHi: '#F3EADA',
+  surfaceTop: '#FFFDF8',
+  line: '#E1D5BF',
+  lineStrong: '#C9B998',
+  ivory: '#221B11',          // əsas mətn (divar üzərində 13.9:1)
+  ivoryDim: '#5A4F3F',       // 6.6:1
+  ivoryFaint: '#75684F',     // 4.6:1
+  gold: '#B07A12',           // seçim, ikon (qrafik element: 3.4:1)
+  goldBright: '#7E5507',     // qızılı mətn (6.1:1)
+  goldDeep: '#7E5507',
+  goldWash: 'rgba(176,122,18,0.13)',
+  goldLine: 'rgba(176,122,18,0.5)',
+  onGold: '#1B1305',
+  ok: '#256E45',
+  okWash: 'rgba(37,110,69,0.12)',
+  bad: '#A8392A',
+  badWash: 'rgba(168,57,42,0.1)',
+  badSolid: '#A63A2C',
+  warn: '#9A5516',
+  trap: '#6E44A6',
+  live: '#C8402F',
+  overlay: 'rgba(34,27,17,0.55)',
+
+  board: '#F0E7D6',
+  boardDeep: '#FCF8F0',
+  boardLine: '#E1D5BF',
+  panel: '#FBF6EC',
+  chalk: '#221B11',
+  chalkDim: '#5A4F3F',
+  brass: '#B07A12',
+  brassDeep: '#7E5507',
+  wood: '#F3EADA',
+  woodLight: '#C9B998',
+  ink: '#1B1305',
+}
+
+/** Sinifdəki real materiallar (yazı lövhəsi, taxta, mis): illüstrasiyalar üçün. */
+export const materials = {
+  slate: '#22362E', slateDeep: '#182821', slateLine: 'rgba(240,236,224,0.16)',
+  chalk: '#F2EEE3', chalkDim: 'rgba(242,238,227,0.72)',
+  walnut: '#6B4426', walnutLight: '#8A5C36', walnutDeep: '#42270F',
+  wallLight: '#F7F0E2', wallShade: '#E4D8C2',
+  brass: '#C9A14A', brassDeep: '#8E6B21',
+} as const
+
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 } as const
 export const radius = { sm: 8, md: 12, lg: 18, xl: 26, pill: 999 } as const
 
@@ -78,6 +134,20 @@ export const fx = {
   sheen: 'linear-gradient(180deg, rgba(246,237,224,0.045) 0%, rgba(246,237,224,0) 46%)',
   lift: '0px 14px 40px rgba(0,0,0,0.55)',
 } as const
+
+/** Palitraya görə səth effektləri: gecədə işıq parıltısı, işıqlı otaqda kağızın yumşaq kölgəsi. */
+export function fxOf(c: Palette) {
+  const light = c === roomColors
+  return {
+    light,
+    sheen: light ? 'linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 60%)' : fx.sheen,
+    beam: light ? 'linear-gradient(135deg, rgba(233,178,60,0.3) 0%, rgba(233,178,60,0.08) 46%, rgba(233,178,60,0) 72%)' : fx.beam,
+    cardShadow: light ? '0px 1px 2px rgba(74,52,18,0.10), 0px 10px 24px rgba(74,52,18,0.09)' : 'none',
+    goldGlow: light ? '0px 6px 16px rgba(160,108,10,0.28)' : fx.goldGlow,
+    lift: light ? '0px 18px 48px rgba(52,36,12,0.28)' : fx.lift,
+    focusRing: light ? '0px 0px 0px 3px rgba(176,122,18,0.22)' : '0px 0px 0px 3px rgba(233,178,60,0.16)',
+  }
+}
 
 type Weight = string | number | undefined
 

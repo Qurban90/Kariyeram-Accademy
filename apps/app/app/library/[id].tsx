@@ -8,13 +8,14 @@ import { View } from 'react-native'
 import { Text } from '../../src/components/Text'
 import { useScreenGuard } from '../../src/components/ScreenGuard'
 import { PdfView } from '../../src/components/PdfView'
-import { ErrorBox, Loading, Screen } from '../../src/components/ui'
+import { ErrorBox, Loading, RoomTheme, Screen, usePalette, useSheet } from '../../src/components/ui'
 import { Watermark } from '../../src/components/Watermark'
 import { api } from '../../src/lib/api'
 import { t } from '../../src/i18n/az'
-import { colors, font, space } from '../../src/theme'
+import { font, space, type Palette } from '../../src/theme'
 
-export default function LibraryText() {
+function LibraryTextInner() {
+  const colors = usePalette()
   const { id, kind, title } = useLocalSearchParams<{ id: string; kind?: string; title?: string }>()
   const isPdf = kind === 'pdf'
   useScreenGuard('library')
@@ -39,4 +40,9 @@ export default function LibraryText() {
       <Watermark value={q.data?.watermark} />
     </View>
   )
+}
+
+/** Qapının arxası işıqlı sinifdir: bu ekran sinif palitrası ilə açılır. */
+export default function LibraryText() {
+  return <RoomTheme><LibraryTextInner /></RoomTheme>
 }

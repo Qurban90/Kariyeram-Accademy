@@ -10,12 +10,15 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { t } from '../i18n/az'
-import { colors, font, fx, radius, space, touch, type } from '../theme'
+import { StatusBar } from 'expo-status-bar'
+import { font, fx, fxOf, radius, roomColors, space, touch, type, type Palette } from '../theme'
 import { Icon, type IconName } from './Icon'
 import { Text } from './Text'
+import { usePalette, useSheet } from './Theme'
 
 export { Icon, type IconName } from './Icon'
 export { Text } from './Text'
+export { RoomTheme, usePalette, useSheet } from './Theme'
 
 /* ───────────────────────── Konteynerlər ───────────────────────── */
 
@@ -24,9 +27,12 @@ export function Screen({ children, scroll = true, title, back, right, padded = t
   /** Yuxarıdan düşən fənər işığı: giriş və məktəb zalı kimi "qarşılama" ekranları üçün. */
   glow?: boolean
 }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   const body = <View style={[padded && s.pad, { gap: space.lg, flexGrow: 1 }]}>{children}</View>
   return (
     <SafeAreaView style={s.screen} edges={['top', 'left', 'right', 'bottom']}>
+      <StatusBar style={colors === roomColors ? 'dark' : 'light'} />
       {glow ? <View style={s.lamp} /> : null}
       {(title || back) && (
         <View style={s.header}>
@@ -50,6 +56,8 @@ export function Screen({ children, scroll = true, title, back, right, padded = t
 
 /** Səhifə bölməsi: serif başlıq, sağda istəyə bağlı əməl, altında məzmun. */
 export function Section({ title, right, children, gap = space.md, testID }: { title: string; right?: ReactNode; children?: ReactNode; gap?: number; testID?: string }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   return (
     <View style={{ gap }} testID={testID}>
       <View style={s.sectionHead}>
@@ -65,6 +73,8 @@ type CardTone = 'plain' | 'gold' | 'bad' | 'trap'
 export function Card({ children, style, onPress, label, testID, tone = 'plain' }: {
   children: ReactNode; style?: StyleProp<ViewStyle>; onPress?: () => void; label?: string; testID?: string; tone?: CardTone
 }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   const base = [s.card, tone === 'gold' && s.cardGold, tone === 'bad' && { borderColor: colors.bad }, tone === 'trap' && { borderColor: colors.trap }]
   if (!onPress) return <View style={[base, style]} testID={testID}>{children}</View>
   return (
@@ -77,6 +87,8 @@ export function Card({ children, style, onPress, label, testID, tone = 'plain' }
 
 /** Bir neçə sətri bir səthdə birləşdirir (aralarında incə xətt). Kart içində kart əvəzinə işlənir. */
 export function Group({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   const items = (Array.isArray(children) ? children : [children]).flat().filter(Boolean)
   return (
     <View style={[s.group, style]}>
@@ -93,6 +105,8 @@ export function Group({ children, style }: { children: ReactNode; style?: StyleP
 export function ListRow({ icon, title, sub, onPress, right, testID, label }: {
   icon?: IconName; title: string; sub?: string; onPress?: () => void; right?: ReactNode; testID?: string; label?: string
 }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   const inner = (
     <>
       {icon ? <View style={s.rowIcon}><Icon name={icon} size={20} color={colors.gold} /></View> : null}
@@ -116,6 +130,8 @@ export function ListRow({ icon, title, sub, onPress, right, testID, label }: {
 export function SelectRow({ title, sub, selected, onPress, disabled, locked, testID }: {
   title: string; sub?: string; selected?: boolean; onPress: () => void; disabled?: boolean; locked?: boolean; testID?: string
 }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   return (
     <Pressable testID={testID} accessibilityRole="checkbox" accessibilityLabel={sub ? `${title}, ${sub}` : title} aria-checked={!!selected} aria-disabled={!!disabled} disabled={!!disabled}
       onPress={disabled ? undefined : onPress}
@@ -134,11 +150,15 @@ export function SelectRow({ title, sub, selected, onPress, disabled, locked, tes
 }
 
 export function Divider() {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   return <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: colors.lineStrong }} />
 }
 
 /** Modal pəncərə: telefonda aşağıdan qalxan vərəq, enli ekranda mərkəzdə dialoq. Fona toxunmaq və ya "Bağla" bağlayır. */
 export function Sheet({ visible, onClose, title, children, testID }: { visible: boolean; onClose: () => void; title: string; children: ReactNode; testID?: string }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   const { width } = useWindowDimensions()
   const wide = width >= 640
   return (
@@ -164,9 +184,13 @@ export function Sheet({ visible, onClose, title, children, testID }: { visible: 
 /* ───────────────────────── Mətn ───────────────────────── */
 
 export function H({ children, level = 1, style }: { children: ReactNode; level?: 1 | 2 | 3; style?: StyleProp<TextStyle> }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   return <Text accessibilityRole="header" style={[level === 1 ? s.h1 : level === 2 ? s.h2 : s.h3, style]}>{children}</Text>
 }
 export function P({ children, dim, style, small }: { children: ReactNode; dim?: boolean; small?: boolean; style?: StyleProp<TextStyle> }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   return <Text style={[s.p, dim && { color: colors.ivoryDim }, small && s.pSmall, style]}>{children}</Text>
 }
 
@@ -177,6 +201,8 @@ export function Button({ label, onPress, variant = 'primary', disabled, loading,
   label: string; onPress: () => void; variant?: Variant; disabled?: boolean; loading?: boolean
   style?: StyleProp<ViewStyle>; testID?: string; small?: boolean; icon?: IconName
 }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   const off = disabled || loading
   const fg = variant === 'primary' ? colors.onGold : variant === 'danger' ? '#FFFFFF' : colors.ivory
   return (
@@ -197,6 +223,8 @@ export function Button({ label, onPress, variant = 'primary', disabled, loading,
 
 /** Yalnız ikonlu dairəvi düymə; `label` ekran oxuyucusu üçündür. */
 export function IconButton({ icon, label, onPress, testID, tone = 'plain' }: { icon: IconName; label: string; onPress: () => void; testID?: string; tone?: 'plain' | 'gold' }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   return (
     <Pressable testID={testID} accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={6}
       style={({ pressed }) => [s.backBtn, tone === 'gold' && { borderColor: colors.goldLine, backgroundColor: colors.goldWash }, pressed && { backgroundColor: colors.surfaceHi }]}>
@@ -208,6 +236,8 @@ export function IconButton({ icon, label, onPress, testID, tone = 'plain' }: { i
 export function Chip({ label, selected, onPress, disabled, testID, icon }: {
   label: string; selected?: boolean; onPress: () => void; disabled?: boolean; testID?: string; icon?: IconName
 }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   const fg = selected ? colors.goldBright : colors.ivory
   return (
     <Pressable testID={testID} accessibilityRole="checkbox" accessibilityLabel={label} aria-checked={!!selected} aria-disabled={!!disabled} disabled={!!disabled}
@@ -223,6 +253,8 @@ export function Chip({ label, selected, onPress, disabled, testID, icon }: {
 export function Segmented<T extends string>({ value, onChange, options }: {
   value: T; onChange: (v: T) => void; options: { value: T; label: string; testID?: string; icon?: IconName }[]
 }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   return (
     <View style={s.seg} accessibilityRole="tablist">
       {options.map((o) => {
@@ -240,6 +272,8 @@ export function Segmented<T extends string>({ value, onChange, options }: {
 }
 
 export function Check({ label, value, onChange, testID }: { label: string; value: boolean; onChange: (v: boolean) => void; testID?: string }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   return (
     <Pressable testID={testID} accessibilityRole="checkbox" accessibilityLabel={label} aria-checked={value}
       onPress={() => onChange(!value)} style={s.check}>
@@ -254,6 +288,8 @@ export function Check({ label, value, onChange, testID }: { label: string; value
 /* ───────────────────────── Forma və vəziyyət ───────────────────────── */
 
 export function Field({ label, error, hint, style, onFocus, onBlur, ...rest }: TextInputProps & { label: string; error?: string | null; hint?: string }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   const [focused, setFocused] = useState(false)
   return (
     <View style={{ gap: space.xs + 2 }}>
@@ -270,6 +306,8 @@ export function Field({ label, error, hint, style, onFocus, onBlur, ...rest }: T
 }
 
 export function ErrorBox({ message, onRetry }: { message: string | null | undefined; onRetry?: () => void }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   if (!message) return null
   return (
     <View style={s.errBox} accessibilityRole="alert">
@@ -281,6 +319,8 @@ export function ErrorBox({ message, onRetry }: { message: string | null | undefi
 }
 
 export function Loading({ label = t.common.loading }: { label?: string }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.md, padding: space.xl }} accessibilityLiveRegion="polite">
       <ActivityIndicator color={colors.gold} size="large" />
@@ -292,7 +332,7 @@ export function Loading({ label = t.common.loading }: { label?: string }) {
 /* ───────────────────────── Vidjetlər ───────────────────────── */
 
 type Tone = 'neutral' | 'gold' | 'ok' | 'bad' | 'trap' | 'live' | 'warn'
-const TONE: Record<Tone, { fg: string; bg: string; line: string }> = {
+const toneOf = (colors: Palette): Record<Tone, { fg: string; bg: string; line: string }> => ({
   neutral: { fg: colors.ivoryDim, bg: 'transparent', line: colors.lineStrong },
   gold: { fg: colors.goldBright, bg: colors.goldWash, line: colors.goldLine },
   ok: { fg: colors.ok, bg: colors.okWash, line: 'rgba(140,203,160,0.4)' },
@@ -300,10 +340,12 @@ const TONE: Record<Tone, { fg: string; bg: string; line: string }> = {
   warn: { fg: colors.warn, bg: 'rgba(232,154,91,0.12)', line: 'rgba(232,154,91,0.4)' },
   trap: { fg: colors.trap, bg: 'rgba(200,162,232,0.12)', line: 'rgba(200,162,232,0.45)' },
   live: { fg: '#FFFFFF', bg: colors.badSolid, line: colors.live },
-}
+})
 
 export function Badge({ label, tone = 'neutral', icon, dot, testID }: { label: string; tone?: Tone; icon?: IconName; dot?: boolean; testID?: string }) {
-  const c = TONE[tone]
+  const colors = usePalette()
+  const s = useSheet(makeS)
+  const c = toneOf(colors)[tone]
   return (
     <View testID={testID} style={[s.badge, { backgroundColor: c.bg, borderColor: c.line }]}>
       {dot ? <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: c.fg }} /> : null}
@@ -314,25 +356,31 @@ export function Badge({ label, tone = 'neutral', icon, dot, testID }: { label: s
 }
 
 /** Böyük rəqəm və altında izahı (nəticə, seriya, xal). */
-export function Stat({ value, label, color = colors.ivory, align = 'center' }: { value: string | number; label: string; color?: string; align?: 'center' | 'left' }) {
+export function Stat({ value, label, color, align = 'center' }: { value: string | number; label: string; color?: string; align?: 'center' | 'left' }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   return (
     <View style={{ alignItems: align === 'center' ? 'center' : 'flex-start', minWidth: 72, gap: 2 }}>
-      <Text style={{ color, fontFamily: type.display, fontSize: font.title, lineHeight: 34, fontVariant: ['tabular-nums'] }}>{value}</Text>
+      <Text style={{ color: color ?? colors.ivory, fontFamily: type.display, fontSize: font.title, lineHeight: 34, fontVariant: ['tabular-nums'] }}>{value}</Text>
       <Text style={{ color: colors.ivoryDim, fontSize: font.tiny, fontWeight: '500', letterSpacing: 0.3 }}>{label}</Text>
     </View>
   )
 }
 
-export function Bar({ value, color = colors.gold }: { value: number; color?: string }) {
+export function Bar({ value, color }: { value: number; color?: string }) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
   const v = Math.max(0, Math.min(100, value))
   return (
     <View style={s.bar} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(v) }}>
-      <View style={{ width: `${v}%`, height: '100%', backgroundColor: color, borderRadius: radius.pill }} />
+      <View style={{ width: `${v}%`, height: '100%', backgroundColor: color ?? colors.gold, borderRadius: radius.pill }} />
     </View>
   )
 }
 
-const s = StyleSheet.create({
+const makeS = (colors: Palette) => {
+  const f = fxOf(colors)
+  return StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.night },
   lamp: { position: 'absolute', top: 0, left: 0, right: 0, height: 420, backgroundImage: fx.lamp, pointerEvents: 'none' },
   pad: { padding: space.lg, paddingBottom: space.xxl, maxWidth: 760, width: '100%', alignSelf: 'center' },
@@ -341,10 +389,10 @@ const s = StyleSheet.create({
   headerTitle: { flex: 1, color: colors.ivory, fontFamily: type.display, fontSize: 19, textAlign: 'center' },
   sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, flexWrap: 'wrap' },
 
-  card: { backgroundColor: colors.surface, backgroundImage: fx.sheen, borderRadius: radius.lg, padding: space.lg + 2, borderWidth: 1, borderColor: colors.line, gap: space.sm },
-  cardGold: { borderColor: colors.goldLine, backgroundImage: fx.beam },
+  card: { backgroundColor: colors.surface, backgroundImage: f.sheen, boxShadow: f.cardShadow, borderRadius: radius.lg, padding: space.lg + 2, borderWidth: 1, borderColor: colors.line, gap: space.sm },
+  cardGold: { borderColor: colors.goldLine, backgroundImage: f.beam },
   cardPressed: { backgroundColor: colors.surfaceHi, transform: [{ scale: 0.992 }] },
-  group: { backgroundColor: colors.surface, backgroundImage: fx.sheen, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.line, overflow: 'hidden' },
+  group: { backgroundColor: colors.surface, backgroundImage: f.sheen, boxShadow: f.cardShadow, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.line, overflow: 'hidden' },
   groupLine: { height: 1, backgroundColor: colors.line, marginLeft: space.lg },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.md + 2, minHeight: touch + 16 },
   rowIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.goldWash },
@@ -352,7 +400,7 @@ const s = StyleSheet.create({
   rowSub: { color: colors.ivoryDim, fontSize: font.small, lineHeight: 19 },
 
   scrim: { flex: 1, backgroundColor: colors.overlay },
-  sheet: { backgroundColor: colors.surfaceTop, borderColor: colors.lineStrong, borderWidth: 1, padding: space.xl, gap: space.lg, maxHeight: '88%', boxShadow: fx.lift },
+  sheet: { backgroundColor: colors.surfaceTop, borderColor: colors.lineStrong, borderWidth: 1, padding: space.xl, gap: space.lg, maxHeight: '88%', boxShadow: f.lift },
   sheetNarrow: { borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, borderBottomWidth: 0, paddingTop: space.md, paddingBottom: space.xxl },
   sheetWide: { borderRadius: radius.xl, width: '100%', maxWidth: 460 },
   sheetHead: { flexDirection: 'row', alignItems: 'center', gap: space.md },
@@ -368,7 +416,7 @@ const s = StyleSheet.create({
   btn: { minHeight: touch + 8, paddingHorizontal: space.xl, borderRadius: radius.md + 2, alignItems: 'center', justifyContent: 'center' },
   btnSmall: { minHeight: touch, paddingHorizontal: space.lg, borderRadius: radius.md },
   btnInner: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  btn_primary: { backgroundColor: colors.gold, backgroundImage: fx.goldFill, boxShadow: fx.goldGlow },
+  btn_primary: { backgroundColor: '#E9B23C', backgroundImage: fx.goldFill, boxShadow: f.goldGlow },
   btn_ghost: { borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: 'transparent' },
   btn_danger: { backgroundColor: colors.badSolid },
   btn_quiet: { backgroundColor: colors.surfaceHi },
@@ -387,7 +435,7 @@ const s = StyleSheet.create({
 
   label: { color: colors.ivoryDim, fontSize: font.small, fontWeight: '500' },
   input: { minHeight: touch + 8, borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: colors.nightDeep, color: colors.ivory, borderRadius: radius.md, paddingHorizontal: space.lg, fontSize: 17, fontFamily: type.body, outlineWidth: 0 },
-  inputFocus: { borderColor: colors.gold, boxShadow: '0px 0px 0px 3px rgba(233,178,60,0.16)' },
+  inputFocus: { borderColor: colors.gold, boxShadow: f.focusRing },
   err: { color: colors.bad, fontSize: font.small },
   hint: { color: colors.ivoryFaint, fontSize: font.tiny },
   errBox: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.badWash, borderColor: 'rgba(236,130,114,0.4)', borderWidth: 1, borderRadius: radius.md, padding: space.md },
@@ -395,3 +443,4 @@ const s = StyleSheet.create({
   badge: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
   bar: { height: 6, borderRadius: radius.pill, backgroundColor: colors.line, overflow: 'hidden' },
 })
+}

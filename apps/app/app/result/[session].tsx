@@ -5,15 +5,17 @@ import { useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { Text } from '../../src/components/Text'
 import { useScreenGuard } from '../../src/components/ScreenGuard'
-import { Badge, Bar, Button, Card, ErrorBox, H, Icon, Loading, P, Screen } from '../../src/components/ui'
+import { Badge, Bar, Button, Card, ErrorBox, H, Icon, Loading, P, RoomTheme, Screen, usePalette, useSheet } from '../../src/components/ui'
 import { Watermark } from '../../src/components/Watermark'
 import { t } from '../../src/i18n/az'
 import { api, ApiFailure, type ReviewItem } from '../../src/lib/api'
-import { colors, font, radius, space } from '../../src/theme'
+import { font, radius, space, type Palette } from '../../src/theme'
 
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F']
 
-export default function Result() {
+function ResultInner() {
+  const colors = usePalette()
+  const st = useSheet(makeSt)
   const { session, subject } = useLocalSearchParams<{ session: string; subject?: string }>()
   useScreenGuard('review')
   const res = useQuery({ queryKey: ['result', session], queryFn: () => api.finish(session) })
@@ -74,6 +76,8 @@ export default function Result() {
 }
 
 function Stat({ label, value, color }: { label: string; value: number; color: string }) {
+  const colors = usePalette()
+  const st = useSheet(makeSt)
   return (
     <View style={{ alignItems: 'center', minWidth: 72 }}>
       <Text style={{ color, fontSize: font.title, fontFamily: font.serif, fontVariant: ['tabular-nums'] }}>{value}</Text>
@@ -83,6 +87,8 @@ function Stat({ label, value, color }: { label: string; value: number; color: st
 }
 
 function ReviewCard({ it }: { it: ReviewItem }) {
+  const colors = usePalette()
+  const st = useSheet(makeSt)
   return (
     <Card tone={it.trap ? 'trap' : 'plain'} testID={`review-${it.position}`}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: space.sm }}>
@@ -110,7 +116,7 @@ function ReviewCard({ it }: { it: ReviewItem }) {
   )
 }
 
-const st = StyleSheet.create({
+const makeSt = (colors: Palette) => StyleSheet.create({
   pct: { fontSize: 64, lineHeight: 72, fontFamily: font.serif, fontVariant: ['tabular-nums'], letterSpacing: -1 },
   row: { flexDirection: 'row', gap: space.xl, justifyContent: 'center' },
   stem: { color: colors.ivory, fontSize: font.body, fontWeight: '500', lineHeight: 24 },
@@ -118,3 +124,8 @@ const st = StyleSheet.create({
   optTxt: { color: colors.ivory, fontSize: font.small, lineHeight: 20 },
   exp: { color: colors.ivoryDim, fontSize: font.tiny + 1, lineHeight: 18 },
 })
+
+/** Qapının arxası işıqlı sinifdir: bu ekran sinif palitrası ilə açılır. */
+export default function Result() {
+  return <RoomTheme><ResultInner /></RoomTheme>
+}
