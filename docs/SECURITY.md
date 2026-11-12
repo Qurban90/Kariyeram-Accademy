@@ -39,7 +39,7 @@ Versiya 0.1 · 2026-11-04. Bu sənəd heç bir şeyin "100% təhlükəsiz" oldu�
 | I | Ödənişli konspekti abunəsiz oxumaq | Gövdə klientə bağlı cədvəldə; `library_open` icazə yoxlayır; PDF şəxsi bucket-də, yalnız 5 dəq imzalı URL | DB + E2E (imzasız URL rədd) |
 | T | Yükləmə yolu ilə başqa fayla yazmaq | Yolu server yaradır, DB `<fənn>/<uuid>.pdf` formatını tələb edir | DB testi |
 | I | Başqasının chat/iştirakçı məlumatı | RLS: yalnız iştirakçı və host | İnteqrasiya + E2E (Realtime) |
-| I | Sirlərin repoya düşməsi | `.env*` gitignore, CI-də gitleaks | gitleaks konfiqurasiya olunub, **CI-də hələ işləməyib** |
+| I | Sirlərin repoya düşməsi | `.env*` gitignore, CI-də gitleaks | gitleaks GitHub Actions-da hər push-da işləyir (2026-11-12: tapılan yeganə hal RFC 6238 açıq test açarıdır, `.gitleaksignore`-da) |
 | **D**enial of service | Böyük gövdə | 64 KB limit | Kod |
 | D | Chat spam | 10 saniyədə 5 mesaj, 500 simvol | DB testi |
 | D | Boş test sessiyaları ilə DB-ni doldurmaq | Saatda ən çox 60 sessiya | DB testi |

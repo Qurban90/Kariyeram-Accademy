@@ -1,0 +1,3 @@
+# gitleaks yanlış həyəcanları (false positive). Hər sətir gitleaks çıxışındakı "Fingerprint" dəyəridir.
+# RFC 6238 Əlavə B-dəki açıq test açarı ("12345678901234567890", base32). Real sirr deyil.
+343e5f052b3063ab98223db57b261e7b4a0a7250:tests/util/totp.test.mjs:generic-api-key:6
