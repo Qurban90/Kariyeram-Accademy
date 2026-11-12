@@ -40,7 +40,16 @@ export function Door({ number, title, status, statusTone = 'dim', onOpen, testID
   )
 }
 
+/**
+ * Qapıların sayı tək olanda sonuncu sıraya qoyulan görünməz doldurucu: boş yeri o tutur,
+ * sonuncu qapı bütün eni tutub böyümür.
+ */
+export function DoorSpacer() {
+  return <View style={st.spacer} />
+}
+
 const st = StyleSheet.create({
+  spacer: { width: '47%', minWidth: 140, flexGrow: 1 },
   wrap: { width: '47%', minWidth: 140, flexGrow: 1, gap: space.xs },
   frame: { aspectRatio: 0.95, backgroundColor: '#2b1d12', borderRadius: radius.sm, borderWidth: 5, borderColor: colors.woodLight, overflow: 'hidden' },
   inside: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#e9dfc4', alignItems: 'center', justifyContent: 'center', padding: space.sm },

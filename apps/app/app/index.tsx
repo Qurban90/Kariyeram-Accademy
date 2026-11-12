@@ -2,7 +2,7 @@
 import { router, useFocusEffect } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
-import { Door } from '../src/components/Door'
+import { Door, DoorSpacer } from '../src/components/Door'
 import { Corridor3D } from '../src/school3d/Corridor3D'
 import { secureStorage } from '../src/lib/storage'
 import { Button, Card, Chip, ErrorBox, H, Loading, P, Screen } from '../src/components/ui'
@@ -72,6 +72,7 @@ export default function Hall() {
               onOpen={() => router.push({ pathname: '/room/[subject]', params: { subject: s.id } })} />
           )
         })}
+        {(subjects.data?.length ?? 0) % 2 === 1 ? <DoorSpacer /> : null}
       </View>
 
       <Door wide testID="door-live" number="ZAL" title={t.hall.live}
