@@ -33,9 +33,18 @@ jobs:
       - name: Native layihəni yarat (expo prebuild)
         working-directory: apps/app
         run: npx expo prebuild --platform android --no-install
+      # Pilot APK-da kod kiçiltməsi (R8) söndürülür: ilk yığım məhz R8 addımında dayanmışdı və kiçiltmə pilot üçün
+      # lazım deyil. Mağaza buraxılışından əvvəl R8 yenidən yandırılıb qaydaları (proguard) düzəldilməlidir.
+      - name: Kod kiçiltməsini söndür
+        working-directory: apps/app/android
+        run: |
+          f=app/build.gradle; [[ -f app/build.gradle.kts ]] && f=app/build.gradle.kts
+          sed -i -E 's/^(\s*)minifyEnabled .*/\1minifyEnabled false/; s/^(\s*)shrinkResources .*/\1shrinkResources false/; s/^(\s*)isMinifyEnabled = .*/\1isMinifyEnabled = false/; s/^(\s*)isShrinkResources = .*/\1isShrinkResources = false/' "$f"
+          grep -nE 'minifyEnabled|shrinkResources|isMinifyEnabled|isShrinkResources' "$f" || true
+      - uses: gradle/actions/setup-gradle@v4
       - name: APK yığ
         working-directory: apps/app/android
-        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a,armeabi-v7a --no-daemon --stacktrace
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a,armeabi-v7a --no-daemon
       - name: APK-nı adlandır
         run: |
           mkdir -p out
