@@ -24,19 +24,21 @@ Son tam yoxlama 2026-11-12, lokal mühit: tip yoxlaması xətasız, vahid 104/10
 - Real SMS, real e-poçt çatdırılması, LiveKit Cloud.
 - Yük: yalnız lokal ölçmə (2026-11-04, `docs/PERFORMANCE.md`).
 
-## Davam edən iş: pilot (10-a yaxın tələbə)
+## Pilot (2026-11-15-də yerləşdirildi)
 
-Məqsəd: mağazasız sınaq. Veb tətbiq GitHub Pages-də, Android üçün APK, giriş yalnız e-poçtla. Addımlar və sirlərin siyahısı: `docs/DEPLOYMENT.md`, "Pilot" bölməsi.
+Mağazasız sınaq, 10-a yaxın tələbə. Giriş yalnız e-poçtla. Addımlar və sirlər: , "Pilot" bölməsi.
 
-| Addım | Vəziyyət |
+| Hissə | Vəziyyət |
 | --- | --- |
-| Android APK yığımı (`android-apk.yml`) | Yığım işləyir: 3-cü cəhd (2026-11-15, run 43701066192) uğurlu oldu, təxminən 30 dəqiqə. R8 kiçiltməsi söndürülüb (2-ci cəhd R8 addımında dayanmışdı, dəqiq xəta oxunmayıb). Bu APK placeholder server ünvanı ilə yığılıb və heç bir cihazda quraşdırılıb açılmayıb. Sirlərdən sonra yenidən yığılmalı, "pilot" buraxılışına əlavə olunmalı və real telefonda yoxlanmalıdır |
-| Sahib: Supabase layihəsi, e-poçt göndərən hesab, LiveKit Cloud, GitHub sirləri | Gözlənilir |
-| Server deploy, veb deploy | Sirlərdən sonra; ilk işə salınmada xətalar gözlənilir (bax "Risklər") |
-| İlk admin (SQL), müəllim rolları (admin otağından) | Deploydan sonra |
-| Məzmun idxalı | Aşağıda |
+| Server (Supabase, pulsuz plan, Frankfurt) |  uğurlu. Management API ilə yoxlanıb: 16 migrasiya, 5 fənn, 6 məkan, cron işi, storage bucket, Auth-da SMTP və OTP şablonları, TOTP aktiv, iki funksiya ACTIVE |
+| Veb |  uğurlu: https://qurban90.github.io/Kariyeram-Accademy/ . Səhifənin açıldığını və girişin işlədiyini AI yoxlaya bilməyib (şəbəkə məhdudiyyəti); sahibin təsdiqi gözlənilir |
+| E-poçt kodu | SMTP (Gmail) ayarlanıb; real məktubun çatması hələ təsdiqlənməyib |
+| Android APK | Yığım işləyir (R8 kiçiltməsi söndürülüb: 2-ci cəhd R8 addımında dayanmışdı, dəqiq xəta oxunmayıb). Real serverli yığım main-də işə salınıb; nəticə və "pilot" buraxılışı (Releases) yoxlanmalıdır. Heç bir cihazda açılmayıb |
+| İlk admin | Hələ heç kim qeydiyyatdan keçməyib. Sahib daxil olandan sonra SQL ilə admin edilməlidir () |
+| LiveKit | Sirlər funksiyalara yazılıb; real dərs sınanmayıb. Webhook LiveKit panelində hələ təyin olunmayıb (davamiyyət üçün) |
+|  | Dəyişən təyin olunmayıbsa CORS hər mənbəyə açıqdır (R-08); deploy jurnalındakı xəbərdarlığa bax |
 
-Risklər (ilk deployda yoxla): Edge Functions-ın `packages/core` və `_vendor`-u `--use-api` ilə düzgün paketləməsi; `pg_cron` migrasiyası pulsuz planda; Auth e-poçt şablonlarının OTP kodu göstərməsi; veb tətbiqin alt qovluqda (`/Kariyeram-Accademy/`) marşrutları; Pages-in aktivləşməsi.
+İlk deployda çıxan və düzəldilən xətalar:  yox idi; Supabase tokeninin formatı (); Supabase CLI 3-də  üçün  lazımdır.
 
 ## Məzmun (repoya yazılmır)
 
@@ -45,8 +47,9 @@ Mənbə sahibin Google Drive qovluğudur (fənlər üzrə alt qovluqlar). 2026-1
 - İnformatika: 16 mövzu üzrə test PDF-ləri və ayrıca "test izah" PDF-ləri (hər mövzuda təxminən 50 sual; izah faylında `nömrə → hərf ona görə ki ...` formatı), konspektlər (PDF və Word).
 - Qanunvericilik: 20 test PDF-i, test izahları, konspektlər. Azərbaycan dili: test, test izahı, konspekt. Dünyagörüşü: müsahibə materialları. Məntiq: boşdur.
 - Test PDF-lərinin mətn çıxarışı keyfiyyətsizdir (skan): üst indekslər itir (2³⁶ → "236"), bəzi variantlar və sual mətnləri düşür, sıra qarışır. Avtomatik çevirmə etibarlı deyil. Üsul: yalnız mətni və dörd variantı tam oxunan sualı götür, cavabı izah faylı ilə (hesablama suallarında özün hesablayaraq) təsdiqlə, şübhəli sualı kənarda saxla, heç nə uydurma.
-- İnformatika 1-ci mövzu ("İnformatikanın əsasları") bu üsulla hazırlanıb: 50 sualdan 39-u; `--dry-run` validasiyadan keçib, bazaya hələ yazılmayıb.
-- Heç bir sual hələ bazaya idxal olunmayıb. İdxal üçün test PDF-i (sual və variantlar) izah PDF-i ilə (düzgün cavab və izah) birləşdirilib `docs/templates/suallar-sablon.csv` formatına salınmalıdır; fayl repodan kənarda saxlanılır. Variant üzrə ayrıca izah mənbədə yoxdur, yalnız ümumi izah var.
+- Bazada (dərc olunub, mövzular pulsuzdur): İnformatika "İnformatikanın əsasları" 39 sual (50-dən; skan PDF, əl ilə təmizlənib); Qanunvericilik "Konstitusiya: maddə 1–23" 106 sual və "Konstitusiya: maddə 24–51" 102 sual (hamısı; cavab açarı izah faylı ilə üst-üstə düşür). Variant üzrə izah yoxdur, yalnız ümumi izah.
+- Qanunvericilik PDF-ləri təmiz mətnlidir və  ilə avtomatik çevrilir (etalon cavabı izah faylı ilə tutuşdurur, uyğun gəlməyəni atır). İdxal:  (Management API, HTTPS). Qalan 18 Qanunvericilik faylı eyni üsulla yüklənə bilər.
+- İnformatikanın qalan 15 mövzusu skandır: hər biri əl ilə təmizlənməlidir.
 - Müəllif hüququ: materialların müəllifi fayllarda göstərilib; şirkətə məxsus olduğunun yazılı təsdiqi hələ alınmayıb (`docs/MANAGER.md`).
 
 ## Qərarlar (sahib təsdiqləyib)
