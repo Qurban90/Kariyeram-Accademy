@@ -2,6 +2,36 @@
 
 Status: **heç vaxt istehsala deploy edilməyib.** Aşağıdakı addımlar Supabase və LiveKit sənədlərinə əsaslanan plandır; ilk deploy zamanı yoxlanıb düzəldilməlidir.
 
+## Pilot (mağazasız sınaq): GitHub Actions ilə
+
+Pilot üçün pulsuz planlar kifayətdir: Supabase Free, LiveKit Cloud pulsuz plan, GitHub Pages, GitHub Actions. Giriş yalnız e-poçtladır (SMS provayderi qoşulana qədər). Deploy sirləri GitHub-da saxlanılır (Settings → Secrets and variables → Actions), çata və repoya yazılmır.
+
+| Sirr (Secrets) | Haradan | Məcburi |
+| --- | --- | --- |
+| `SUPABASE_ACCESS_TOKEN` | supabase.com/dashboard/account/tokens | bəli |
+| `SUPABASE_PROJECT_REF` | Layihə ünvanındakı kod (Settings → General → Project ID) | bəli |
+| `SUPABASE_DB_PASSWORD` | Layihə yaradılanda təyin olunan baza parolu | bəli |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_SENDER` | E-poçt göndərən hesab (məs. Gmail: `smtp.gmail.com`, `587`, ünvan, tətbiq parolu, ünvan) | tələbələrə kod getməsi üçün bəli |
+| `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` | cloud.livekit.io → Settings → Keys | canlı dərs üçün |
+
+| Dəyişən (Variables) | Dəyər |
+| --- | --- |
+| `APP_ORIGINS` | Veb tətbiqin ünvanı, məs. `https://qurban90.github.io` (CORS) |
+| `AUTH_METHODS` | Defolt `email`; SMS qoşulanda `phone,email` |
+
+İş axınları (Actions bölməsində əl ilə işə salınır):
+
+1. **Server deploy (Supabase)**: migrasiyalar, `supabase/prod/base.sql` (fənlər, məkanlar), Auth ayarları (`.github/scripts/auth-config.mjs`: OTP şablonları, TOTP, SMTP), funksiya sirləri, funksiyalar. `supabase config push` qəsdən işlədilmir: `config.toml` lokal mühit üçündür və test OTP nömrələri var.
+2. **Veb deploy (GitHub Pages)**: veb tətbiq `https://<istifadəçi>.github.io/<repo>/` ünvanında.
+3. **Android APK**: quraşdırıla bilən APK, "pilot" buraxılışına (Releases) əlavə olunur.
+
+İlk admin: admin tətbiqə bir dəfə daxil olandan sonra Supabase paneli → SQL Editor:
+`update public.profiles set role = 'admin' where id = (select id from auth.users where email = '<e-poçt>');`
+
+LiveKit webhook (davamiyyət üçün): LiveKit paneli → Settings → Webhooks → `https://<ref>.supabase.co/functions/v1/livekit-webhook`.
+
+Məzmun (suallar, konspektlər) repoya yazılmır: `npm run import:questions` ilə birbaşa bazaya və ya Müəllim otağından yüklənir.
+
 ## 0. Buraxılış bloklayıcıları
 
 - [ ] Hüquqşünasın yazdığı istifadə şərtləri və məxfilik siyasəti (`legal_documents`-ə yeni versiya kimi). Risk R-02.
