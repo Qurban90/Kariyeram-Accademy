@@ -5,13 +5,14 @@ Son yeniləmə: 2026-11-15. Dəyişməyən qaydalar `CLAUDE.md`-dədir; burada y
 ## Budaqlar
 
 - `main`: buraxılış budağı. `karyeram/foundation`: iş budağı. Köhnə "Pillə" tətbiqi silinib (yalnız git tarixçəsindədir).
-- 2026-11-15-də `foundation` `main`-dən irəlidədir (pilot deploy axınları, ikonlar, bu sənədlər). `main`-ə push üçün sahibdən icazə al.
+- 2026-11-15 axşamı `foundation` `main`-dən irəlidədir: 3D gəzinti (aşağıda), məzmun alətləri, sənədlər. Veb və APK `main`-dən yığılır, yəni sahib 3D-ni yalnız `main`-ə push və yenidən deploydan sonra görəcək. `main`-ə push üçün sahibdən icazə al.
 
 ## Hazır olanlar (testlə təsdiqlənib)
 
-Son tam yoxlama 2026-11-12, lokal mühit: tip yoxlaması xətasız, vahid 104/104, DB 277 yoxlama (12 fayl), inteqrasiya 11/11 (real lokal Supabase + LiveKit), veb E2E 31/31 addım. 2026-11-15-dəki dəyişikliklərdən sonra yalnız tip yoxlaması və vahid testlər (104/104) təkrar işə salınıb.
+Son tam yoxlama 2026-11-15 (3D gəzintidən sonra), lokal mühit: tip yoxlaması xətasız, vahid 114/114, DB 277 yoxlama (12 fayl), inteqrasiya 11/11 (real lokal Supabase + LiveKit), veb E2E 32/32 addım (brauzer proqram renderi ilə, real telefon deyil).
 
 - Giriş: telefon və e-poçt OTP (parolsuz), razılıqlar, hesab silmə və ixrac, ikinci giriş üsulu bağlama.
+- 3D məktəb (defolt görünüş, ADR 0008): tam ekran dəhlizdə joystiklə gəzinti, qapının yanında "Daxil ol", fənn sinfində 12 partadan istədiyinə oturma (yaxınlaşıb və ya üstünə toxunub), partada açılan pəncərə (mövzular, test, konspekt), ayağa qalxma, dəhlizə çıxış; testdən sonra tələbə oturduğu partaya qayıdır. Menyuda sadə (2D) görünüş və yüngül rejim.
 - Özünü öyrənmə: fənn otaqları, mövzu / qarışıq / səhvlər / sınaq imtahanı, izahlar, FSRS təkrar, gündəlik, seriya və medallar, şərəf lövhəsi, konspekt şkafı (mətn və serverdə möhürlənən PDF).
 - Canlı dərs: LiveKit, yer nömrəsi, əl qaldırma, söz vermə, "yalnız host danışır", chat, davamiyyət, 2D və 3D sinif.
 - Müəllim otağı (sual dərci, sual analizi, abunə kodları, qiymət, konspekt), admin otağı (dayandırma, rol, audit, texniki iş rejimi), müəllim/admin üçün TOTP.
@@ -32,7 +33,7 @@ Mağazasız sınaq, 10-a yaxın tələbə. Giriş yalnız e-poçtla. Addımlar v
 | Server (Supabase, pulsuz plan, Frankfurt) | `deploy-backend.yml` uğurlu. Management API ilə yoxlanıb: 16 migrasiya, 5 fənn, 6 məkan, cron işi, storage bucket, Auth-da SMTP və OTP şablonları, TOTP aktiv, iki funksiya ACTIVE |
 | Veb | `deploy-web.yml` uğurlu: https://qurban90.github.io/Kariyeram-Accademy/ . Sahib 2026-11-15-də real e-poçt kodu ilə qeydiyyatdan keçdi və razılıqları verdi (bazada təsdiqlənib). AI səhifəni özü aça bilmir (şəbəkə məhdudiyyəti), ona görə görünüş yalnız sahibin sözü ilə təsdiqlənir |
 | E-poçt kodu | SMTP (Gmail) işləyir: sahibin qeydiyyatı real kodla keçdi |
-| Android APK | Yığım işləyir (R8 kiçiltməsi söndürülüb: 2-ci cəhd R8 addımında dayanmışdı, dəqiq xəta oxunmayıb). Real serverli yığım `main`-də işə salınıb; nəticə və "pilot" buraxılışı (Releases) yoxlanmalıdır. Heç bir cihazda açılmayıb |
+| Android APK | Yığım işləyir (R8 kiçiltməsi söndürülüb: 2-ci cəhd R8 addımında dayanmışdı, dəqiq xəta oxunmayıb). Real serverli yığım uğurlu (2026-11-15 15:20 UTC), fayl "pilot" buraxılışındadır: https://github.com/Qurban90/Kariyeram-Accademy/releases/tag/pilot . Bu fayl 3D gəzintidən əvvəlki koddur (köhnə 2D zal): `main` yenilənəndən sonra yenidən yığılmalıdır. Heç bir cihazda açılmayıb |
 | İlk admin | Sahibin hesabı (tələbə № 1) SQL ilə admin edilib. Admin otağı TOTP tələb edir: sahib Kabinetdən iki mərhələli qorumanı qoşmalıdır |
 | LiveKit | Sirlər funksiyalara yazılıb; real dərs sınanmayıb. Webhook LiveKit panelində hələ təyin olunmayıb (davamiyyət üçün) |
 | `APP_ORIGINS` | Dəyişən təyin olunmayıbsa CORS hər mənbəyə açıqdır (R-08); deploy jurnalındakı xəbərdarlığa bax |
@@ -56,10 +57,15 @@ Mənbə sahibin Google Drive qovluğudur (fənlər üzrə alt qovluqlar). 2026-1
 - Ad hər yerdə "Karyeram Accademy"; mağaza identifikatoru `az.karyeram.accademy`.
 - Sahibin istəmədən əlavə olunmuş funksiyalar (admin otağı, TOTP, PDF möhürü, şərəf lövhəsi, medallar, FSRS) qalır.
 - Giriş: həm telefon, həm e-poçt; pilotda yalnız e-poçt (`EXPO_PUBLIC_AUTH_METHODS=email`).
-- Dizayn: dəhliz gecə, otağın içi işıqlı sinif. Canlı dərs ekranı tünd qalır. 3D dəhliz və 3D sinifə toxunulmayıb.
+- Dizayn: sadə görünüşdə dəhliz gecə, otağın içi işıqlı sinif. Canlı dərs ekranı tünd qalır.
+- 3D gəzinti defoltdur (2026-11-15, ADR 0008). Səbəb: sahibin prototipi (claude.ai artefaktı "Karyeram Academy") və müdirin tələbi: tələbə özü gəzsin, istədiyi otağa girsin, istədiyi partaya otursun, pəncərə açılsın. Prototipdən götürülən məntiq: sol joystik / sağ baxış, toxunuşla əşya seçimi, özü yeriyən keçidlər, oturanda məhdud baxış, yüngül rejim, WebGL-siz ehtiyat. Prototipdən fərq: bir ümumi sinif yox, hər fənnin öz sinfi; suallar yalnız serverdən gəlir.
 - Mağazalara çıxış 2027 yanvara planlaşdırılır; Apple Developer və Google Play ödənişləri ondan əvvəl.
 
 ## Bilinən problemlər və borclar
+
+- 3D native-də (Android/iOS, expo-gl) heç vaxt işə salınmayıb. APK-da 3D açılmasa tətbiq sadə görünüşə keçməlidir, amma bu da cihazda yoxlanmayıb. İlk APK sınağında ilk baxılacaq şey budur.
+- 3D-də prototipdəki bəzi əşyalar yoxdur: fəxri məzunlar, müsahibə otağı (105), sinifdə digər tələbələrin avatarları. Qapı lövhəciyində yalnız nömrə var (3D şrifti yalnız rəqəm çəkir); fənnin adı "Daxil ol" düyməsində yazılır.
+- Canlı dərsin 3D sinfində yeri server verir; tələbə orada partanı özü seçmir.
 
 - Loqo: tətbiqdəki nişan (`Brand.tsx`) və ikonlar loqonun əl ilə çəkilmiş vektor surətidir. Rəsmi fayl (SVG və ya şəffaf PNG) gələndə əvəz olunmalıdır.
 - Hüquqi mətnlər yazılmayıb, amma razılıq toplanır (R-02, kritik). Pilotdan əvvəl ən azı qaralama lazımdır.
@@ -71,6 +77,7 @@ Mənbə sahibin Google Drive qovluğudur (fənlər üzrə alt qovluqlar). 2026-1
 
 ## Əsas fayllar
 
+- 3D məktəb: `apps/app/src/school3d/` (`walk.ts` məntiq və test, `Corridor3D.tsx`, `SchoolCorridor.tsx`, `Room3D.tsx`, `StudyRoom.tsx`, `WalkPad.tsx`, `Rig.tsx`, `Hud.tsx`), `src/lib/view3d.ts`, `src/room/RoomPanel.tsx`.
 - Dizayn: `apps/app/src/theme.ts`, `src/components/ui.tsx`, `Theme.tsx`, `Text.tsx`, `Icon.tsx`, `Brand.tsx`, `Door.tsx`, `RoomScene.tsx`.
 - Ekranlar: `apps/app/app/` (`index` zal, `sign-in`, `room/[subject]`, `test/[session]`, `result/[session]`, `live/[id]`, `teacher`, `admin`, `profile`).
 - Server: `supabase/functions/_shared/handlers.ts` (API), `router.ts`, `live.ts`, `staff.ts`, `admin.ts`; `supabase/migrations/`.

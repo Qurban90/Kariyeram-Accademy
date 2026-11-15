@@ -62,6 +62,12 @@ npm run db:test
 - E2E `testID`-lərə bağlıdır: mövcud `testID`-ləri dəyişmə, yeni interaktiv elementə `testID` ver.
 - Hər interaktiv element: `accessibilityRole`, etiket, ən azı 44 px toxunma sahəsi. Kontrast WCAG AA.
 
+## 3D məktəb (defolt görünüş, ADR 0008)
+
+- Tələbə joystiklə dəhlizdə gəzir, qapıdan sinfə girir, istədiyi partaya oturur, pəncərə partada açılır. Kod: `apps/app/src/school3d/` (`walk.ts` saf məntiq, `Corridor3D`/`SchoolCorridor` dəhliz, `Room3D`/`StudyRoom` sinif, `WalkPad` giriş, `Hud` düymələr).
+- Sadə (2D) görünüş həmişə işlək qalmalıdır (`src/lib/view3d.ts`): WebGL açılmayan cihaz və ekran oxuyucusu üçün yeganə yoldur. Yeni funksiya hər iki görünüşdə əlçatan olmalıdır.
+- 3D-də şəkil və şrift faylı yüklənmir (prosedur teksturalar, `texgen.ts`); mətn ekran üstü qatda (HUD) göstərilir.
+
 ## Dizayn sistemi (dəyişmə, genişləndir)
 
 - Mənbə: `apps/app/src/theme.ts`. İki palitra: `colors` (gecə: dəhliz, giriş, canlı dərs) və `roomColors` (işıqlı sinif: fənn otağı, test, nəticə, konspekt). Qızılı yalnız seçimi və növbəti addımı göstərir.

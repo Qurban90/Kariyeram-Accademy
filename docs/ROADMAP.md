@@ -5,7 +5,7 @@ Müddətlər təxminidir və bir developer + Claude üçündür. Hər mərhələ
 | Mərhələ | Nə | Bitdi şərti |
 | --- | --- | --- |
 | M0 Təməl ✅ | Alqoritmlər, DB sxemi, RLS, qorunan sual RPC-ləri, API qatı, testlər | Vahid və DB testləri keçir |
-| M1 Tətbiq qabığı 🟡 | Expo tətbiqi, telefon/e-poçt OTP, razılıqlar, cihaz və kod, 2D məktəb zalı, fənn otaqları, test, nəticə və izahlar, səhvlərim, gündəlik, kabinet, ekran qoruması. **Hazırdır və veb E2E ilə yoxlanıb.** Qalan: native build, real cihaz testi, real məzmun, 3D dəhliz | 5 pilot tələbə Android-də real suallarla işləyir |
+| M1 Tətbiq qabığı 🟡 | Expo tətbiqi, telefon/e-poçt OTP, razılıqlar, cihaz və kod, 2D məktəb zalı, fənn otaqları, test, nəticə və izahlar, səhvlərim, gündəlik, kabinet, ekran qoruması. **Hazırdır və veb E2E ilə yoxlanıb.** Qalan: real cihaz testi (3D gəzinti daxil), real məzmunun qalanı | 5 pilot tələbə Android-də real suallarla işləyir |
 | M2 Məzmun və müəllim paneli 🟡 (CSV idxalı, dərc ekranı, toplu kod hazırdır) | Word/PDF/Excel idxalı, yoxlama və dərc, sual analizi paneli, kod idarəsi, qiymət və qeyd | Bir fənnin bankı tam yüklənib, müəllim analizləri görür |
 | M3 Motivasiya 🟡 (şərəf lövhəsi hazırdır) | İmtahan zalı, Müəllimə sual, şərəf lövhəsi, medallar, bildirişlər | Həftəlik lövhə real məlumatla işləyir |
 | M4 Canlı dərs 🟡 | LiveKit, əl qaldırma, icazə, yalnız host danışır, chat, davamiyyət (API). **2D oxu zalı hazırdır və real LiveKit ilə E2E yoxlanıb.** Qalan: 3D sinif, dərs yazısı, davamiyyət UI-si, native ekran paylaşma, yük testi | 1 pilot dərs 20+ tələbə ilə |

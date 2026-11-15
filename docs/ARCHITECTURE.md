@@ -167,11 +167,12 @@ Chat: göndərmə `live/chat` (rate limit, uzunluq), oxuma RLS ilə `live_chat`,
 | [0003](adr/0003-server-side-question-delivery.md) | Suallar yalnız serverdən bir-bir, cavab serverdə yoxlanır |
 | [0004](adr/0004-livekit.md) | Canlı dərs üçün LiveKit, icazələr server tərəfdə |
 | [0005](adr/0005-passwordless-otp.md) | Parolsuz giriş: telefon SMS OTP və e-poçt OTP |
-| [0006](adr/0006-2d-first-3d-later.md) | Əvvəl 2D məktəb (qapılar, lövhə, partalar), 3D sonra |
+| [0006](adr/0006-2d-first-3d-later.md) | Əvvəl 2D məktəb (qapılar, lövhə, partalar), 3D sonra (0008 ilə dəyişdirilib) |
+| [0008](adr/0008-3d-walk-default.md) | 3D gəzinti defolt görünüşdür: joystik, qapıya giriş, partaya oturma, pəncərə |
 
 ## 8. Plan (hələ yoxdur)
 
-- Native-də 3D lövhəyə video teksturası (expo-gl + WebRTC kadrları). 3D dəhliz və 3D sinif vebdə hazırdır (`src/school3d`, istəyə bağlı, defolt 2D).
+- Native-də 3D lövhəyə video teksturası (expo-gl + WebRTC kadrları). 3D məktəb (dəhliz, fənn sinfi, canlı sinif) vebdə hazırdır (`src/school3d`, defolt görünüş; sadə 2D görünüş menyudan).
 - Dərs yazısı (LiveKit Egress). Konspekt şkafı hazırdır.
 - Native ekran paylaşma (iOS broadcast extension, Android foreground service).
 - Ödəniş.

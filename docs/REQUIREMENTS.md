@@ -81,6 +81,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | FR-048 | Davamiyyət: qoşulma/ayrılma, dəqiqə | S | Webhook əsasında | Hazır (API/DB + host panelində UI, E2E) |
 | FR-049 | Dərsin yazılması və şkafa düşməsi | C | Razılıqla | Plan |
 | FR-050 | 3D zal/sinif: iştirakçılar oturacaqlarda, host səhnədə | S | Zəif cihazda 2D | Qismən (3D dəhliz və 3D sinif vebdə E2E ilə; lövhədə müəllim videosu yalnız vebdə; native-də yoxlanmayıb) |
+| FR-052 | 3D gəzinti (defolt görünüş): tələbə joystiklə dəhlizdə gəzir, istədiyi fənn otağına girir, istədiyi partaya oturur, pəncərə (mövzular, test, konspekt) partada açılır | M | Sadə (2D) görünüş menyudan; WebGL xətasında avtomatik 2D; yüngül rejim | Hazır vebdə (vahid testlər + E2E); native-də yoxlanmayıb (ADR 0008) |
 | FR-051 | İştirakçını çıxarmaq/bloklamaq | M | Host/admin | Hazır (API + UI) |
 
 ### Motivasiya
@@ -106,7 +107,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | --- | --- | --- | --- |
 | NFR-001 | Platformalar: Android, iOS, veb bir kod bazası | Expo | Qismən (veb build + E2E; native build yoxlanmayıb) |
 | NFR-002 | Dil: Azərbaycan (i18n strukturu ilə) | Bütün mətnlər bir yerdə | Hazır (apps/app/src/i18n/az.ts; yalnız konfiqurasiya xətası mətni config.ts-dədir) |
-| NFR-003 | Zəif cihaz dəstəyi: 3D söndürülə bilir | 2D rejim | Hazır (3D istəyə bağlıdır, defolt 2D; WebGL xətasında avtomatik 2D) |
+| NFR-003 | Zəif cihaz dəstəyi: 3D söndürülə bilir | 2D rejim | Hazır (defolt 3D, menyudan sadə görünüş və yüngül rejim; WebGL xətasında avtomatik 2D) |
 | PERF-001 | API p95 < 400 ms (normal yük) | Yük skripti | Lokal ölçülüb: 50 tələbəyə qədər qarşılanır, 100-də yox (PERFORMANCE.md); istehsalda ölçülməyib |
 | PERF-002 | 500 eyni vaxtlı istifadəçi (test və gündəlik) | Yük skripti | Lokal tavan ~140 sorğu/san (100 tələbə tam uğurlu); 500 istehsalda ölçülməlidir |
 | PERF-003 | Canlı sinifdə 30–50 iştirakçı | LiveKit SFU | Ölçülməyib |
@@ -125,7 +126,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | TEST-001 | Alqoritm vahid testləri | Vitest | Hazır |
 | TEST-002 | DB/RLS testləri real Postgres-də | psql | Hazır |
 | TEST-003 | Lokal Supabase ilə end-to-end API testi | supabase start | Hazır (11 inteqrasiya testi) |
-| TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (31 addım) |
+| TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (32 addım) |
 | TEST-005 | Native cihazlarda E2E | Maestro/Detox | Plan |
 | NFR-005 | Köhnə klientin məcburi yenilənməsi və texniki iş rejimi | `app_config`, `x-app-version` | Hazır (DB + API + UI, inteqrasiya testi) |
 | NFR-006 | Məlumat saxlama siyasəti (avtomatik təmizləmə) | pg_cron | Hazır (DB testi; istehsalda cron işi yoxlanmalıdır) |
