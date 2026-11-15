@@ -8,6 +8,7 @@ import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native'
 import { Lockup } from '../src/components/Brand'
 import { Button, ErrorBox, Field, H, P, Screen, Segmented } from '../src/components/ui'
 import { t } from '../src/i18n/az'
+import { config } from '../src/config'
 import { api } from '../src/lib/api'
 import { supabase } from '../src/lib/supabase'
 import { space, type } from '../src/theme'
@@ -27,7 +28,7 @@ function authErrorText(e: { status?: number; code?: string; message?: string }):
 }
 
 export default function SignIn() {
-  const [method, setMethod] = useState<Method>('phone')
+  const [method, setMethod] = useState<Method>(config.authPhone ? 'phone' : 'email')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [fieldErr, setFieldErr] = useState<string | null>(null)
@@ -94,8 +95,10 @@ export default function SignIn() {
 
         {!sentTo ? (
           <View style={{ gap: space.lg }}>
-            <Segmented value={method} onChange={(m) => { setMethod(m); setFieldErr(null); setError(null) }}
-              options={[{ value: 'phone', label: t.auth.phoneTab, testID: 'tab-phone', icon: 'phone' }, { value: 'email', label: t.auth.emailTab, testID: 'tab-email', icon: 'mail' }]} />
+            {config.authPhone && config.authEmail ? (
+              <Segmented value={method} onChange={(m) => { setMethod(m); setFieldErr(null); setError(null) }}
+                options={[{ value: 'phone', label: t.auth.phoneTab, testID: 'tab-phone', icon: 'phone' }, { value: 'email', label: t.auth.emailTab, testID: 'tab-email', icon: 'mail' }]} />
+            ) : null}
             {method === 'phone' ? (
               <Field testID="phone" label={t.auth.phoneLabel} placeholder={t.auth.phoneHint} value={phone} onChangeText={setPhone}
                 keyboardType="phone-pad" autoComplete="tel" textContentType="telephoneNumber" error={fieldErr} onSubmitEditing={send} returnKeyType="send" />

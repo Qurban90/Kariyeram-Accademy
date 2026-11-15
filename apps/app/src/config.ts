@@ -3,6 +3,8 @@ import Constants from 'expo-constants'
 
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL ?? ''
 const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? ''
+// Giriş üsulları: "phone,email" (defolt) və ya yalnız "email" / "phone". SMS provayderi qoşulmayıbsa "email".
+const methods = (process.env.EXPO_PUBLIC_AUTH_METHODS ?? 'phone,email').split(',').map((x: string) => x.trim())
 
 export const config = {
   supabaseUrl: url.replace(/\/+$/, ''),
@@ -10,6 +12,8 @@ export const config = {
   supabaseAnonKey: anonKey,
   apiBase: `${url.replace(/\/+$/, '')}/functions/v1/api`,
   brand: 'Karyeram Accademy',
+  authPhone: methods.includes('phone'),
+  authEmail: methods.includes('email') || !methods.includes('phone'),
   /** app.json "version": serverə x-app-version başlığı ilə gedir (minimum versiya yoxlaması). */
   appVersion: Constants.expoConfig?.version ?? '0.0.0',
   /** Sorğu vaxt limiti (ms). */

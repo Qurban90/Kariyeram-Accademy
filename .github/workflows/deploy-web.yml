@@ -1,0 +1,51 @@
+name: Veb deploy (GitHub Pages)
+# Veb tətbiqi yığıb GitHub Pages-də yerləşdirir. Telefonun brauzerində açılır, iPhone-da da işləyir.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency: deploy-web
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      EXPO_PUBLIC_AUTH_METHODS: ${{ vars.AUTH_METHODS || 'email' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: .github/scripts/public-env.sh
+      - name: Real server tələb olunur
+        run: '[[ "$KARYERAM_REAL_BACKEND" == "1" ]] || { echo "::error::Supabase sirləri yoxdur, veb deploy mənasızdır"; exit 1; }'
+      - id: pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Veb build
+        working-directory: apps/app
+        env:
+          EXPO_BASE_URL: ${{ steps.pages.outputs.base_path }}
+        run: |
+          npx expo export --platform web --output-dir dist
+          cp dist/index.html dist/404.html   # SPA: birbaşa açılan daxili ünvanlar da tətbiqi yükləsin
+          touch dist/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/app/dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

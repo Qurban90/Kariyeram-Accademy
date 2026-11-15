@@ -5,6 +5,7 @@
 import { isEmail, maskPhone, normalizeAzPhone } from '@karyeram/core/src/phone.ts'
 import { useState } from 'react'
 import { View } from 'react-native'
+import { config } from '../config'
 import { t } from '../i18n/az'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
@@ -69,7 +70,7 @@ export function LinkIdentity() {
       {!open && (
         <View style={{ flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' }}>
           {!user?.email && <Button small variant="ghost" testID="link-email" label={t.link.addEmail} onPress={() => { setDone(null); setOpen('email') }} />}
-          {!user?.phone && <Button small variant="ghost" testID="link-phone" label={t.link.addPhone} onPress={() => { setDone(null); setOpen('phone') }} />}
+          {!user?.phone && config.authPhone && <Button small variant="ghost" testID="link-phone" label={t.link.addPhone} onPress={() => { setDone(null); setOpen('phone') }} />}
         </View>
       )}
       {open && !target && (

@@ -1,0 +1,73 @@
+name: Server deploy (Supabase)
+# Bazanı (migrasiyalar + əsas məlumat), Auth ayarlarını və funksiyaları Supabase layihəsinə yazır.
+# Əl ilə işə salınır. Lazım olan sirlər: docs/DEPLOYMENT.md, "Pilot" bölməsi.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency: deploy-backend
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_YES: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Sirləri yoxla
+        run: |
+          for v in SUPABASE_ACCESS_TOKEN SUPABASE_PROJECT_REF SUPABASE_DB_PASSWORD; do
+            [[ -n "${!v}" ]] || { echo "::error::$v sirri təyin olunmayıb (Settings → Secrets and variables → Actions)"; exit 1; }
+          done
+      - name: Layihəyə qoşul
+        run: npx supabase link --project-ref "$SUPABASE_PROJECT_REF"
+      - name: Migrasiyalar
+        run: npx supabase db push --password "$SUPABASE_DB_PASSWORD" --yes
+      - name: Əsas məlumat (fənlər, məkanlar)
+        run: |
+          curl -fsS -X POST "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query" \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" \
+            --data "$(node -e 'console.log(JSON.stringify({query:require("fs").readFileSync("supabase/prod/base.sql","utf8")}))')" >/dev/null
+          echo "Əsas məlumat yazıldı."
+      - name: Auth ayarları (OTP şablonları, TOTP, SMTP)
+        env:
+          SITE_URL: ${{ vars.APP_URL }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_SENDER: ${{ secrets.SMTP_SENDER }}
+        run: node .github/scripts/auth-config.mjs
+      - name: Funksiya sirləri
+        env:
+          LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
+          LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+          APP_ORIGINS: ${{ vars.APP_ORIGINS }}
+        run: |
+          : > /tmp/fn.env
+          if [[ -n "$LIVEKIT_URL" && -n "$LIVEKIT_API_KEY" && -n "$LIVEKIT_API_SECRET" ]]; then
+            WSS="${LIVEKIT_URL/#https:/wss:}"; HTTPS="${WSS/#wss:/https:}"
+            { echo "LIVEKIT_URL=$HTTPS"; echo "LIVEKIT_PUBLIC_URL=$WSS"; echo "LIVEKIT_API_KEY=$LIVEKIT_API_KEY"; echo "LIVEKIT_API_SECRET=$LIVEKIT_API_SECRET"; } >> /tmp/fn.env
+          else
+            echo "::warning::LiveKit sirləri yoxdur: canlı dərs işləməyəcək, qalan hər şey işləyir."
+          fi
+          [[ -n "$APP_ORIGINS" ]] && echo "APP_ORIGINS=$APP_ORIGINS" >> /tmp/fn.env || echo "::warning::APP_ORIGINS təyin olunmayıb: CORS hər mənbəyə açıqdır (risk R-08)."
+          if [[ -s /tmp/fn.env ]]; then npx supabase secrets set --env-file /tmp/fn.env; fi
+          rm -f /tmp/fn.env
+      - name: Funksiyalar
+        run: |
+          npx supabase functions deploy api --use-api
+          npx supabase functions deploy livekit-webhook --no-verify-jwt --use-api
+      - name: Yoxlama
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' "https://$SUPABASE_PROJECT_REF.supabase.co/functions/v1/api/health" || true)
+          echo "API cavab kodu: $code (401/404 də funksiyanın işlədiyini göstərir; 5xx problemdir)"
