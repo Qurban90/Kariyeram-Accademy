@@ -23,10 +23,39 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Sirləri yoxla
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_SENDER: ${{ secrets.SMTP_SENDER }}
+          LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
+          LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
         run: |
-          for v in SUPABASE_ACCESS_TOKEN SUPABASE_PROJECT_REF SUPABASE_DB_PASSWORD; do
-            [[ -n "${!v}" ]] || { echo "::error::$v sirri təyin olunmayıb (Settings → Secrets and variables → Actions)"; exit 1; }
-          done
+          # Dəyərlər çap olunmur: yalnız "var/yoxdur" və formatın uyğunluğu yoxlanır ki, bütün səhvlər bir dəfəyə görünsün.
+          bad=0
+          err() { echo "::error::$1"; bad=1; }
+          warn() { echo "::warning::$1"; }
+          [[ "$SUPABASE_ACCESS_TOKEN" =~ ^sbp_[A-Za-z0-9_]+$ ]] || err "SUPABASE_ACCESS_TOKEN səhvdir: 'sbp_' ilə başlamalıdır (Supabase: profil → Account → Access Tokens → Generate new token). Layihənin API açarı deyil."
+          [[ "$SUPABASE_PROJECT_REF" =~ ^[a-z0-9]{20}$ ]] || err "SUPABASE_PROJECT_REF səhvdir: 20 kiçik hərf/rəqəm olmalıdır (Project Settings → General → Project ID), ünvan və ya ad deyil."
+          [[ -n "$SUPABASE_DB_PASSWORD" ]] || err "SUPABASE_DB_PASSWORD boşdur."
+          if [[ -n "$SMTP_HOST$SMTP_USER$SMTP_PASS" ]]; then
+            [[ "$SMTP_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || err "SMTP_HOST səhvdir (məs. smtp.gmail.com)."
+            [[ "$SMTP_PORT" =~ ^[0-9]+$ ]] || err "SMTP_PORT rəqəm olmalıdır (məs. 587)."
+            [[ "$SMTP_USER" == *@* ]] || err "SMTP_USER e-poçt ünvanı olmalıdır."
+            [[ "$SMTP_SENDER" == *@* ]] || err "SMTP_SENDER e-poçt ünvanı olmalıdır."
+            [[ -n "$SMTP_PASS" && "$SMTP_PASS" != *" "* ]] || err "SMTP_PASS boşdur və ya içində boşluq var (tətbiq parolunu boşluqsuz yazın)."
+          else
+            warn "SMTP sirləri yoxdur: tələbələrə giriş kodu getməyəcək."
+          fi
+          if [[ -n "$LIVEKIT_URL$LIVEKIT_API_KEY$LIVEKIT_API_SECRET" ]]; then
+            [[ "$LIVEKIT_URL" =~ ^(wss|https)://[A-Za-z0-9.-]+$ ]] || err "LIVEKIT_URL səhvdir: wss://<ad>.livekit.cloud formatında olmalıdır (sonda '/' olmadan)."
+            [[ -n "$LIVEKIT_API_KEY" && -n "$LIVEKIT_API_SECRET" ]] || err "LIVEKIT_API_KEY və ya LIVEKIT_API_SECRET boşdur."
+          else
+            warn "LiveKit sirləri yoxdur: canlı dərs işləməyəcək."
+          fi
+          exit $bad
       - name: Layihəyə qoşul
         run: npx supabase link --project-ref "$SUPABASE_PROJECT_REF"
       - name: Migrasiyalar
