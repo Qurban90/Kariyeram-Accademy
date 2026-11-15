@@ -30,7 +30,7 @@ Məqsəd: mağazasız sınaq. Veb tətbiq GitHub Pages-də, Android üçün APK,
 
 | Addım | Vəziyyət |
 | --- | --- |
-| Android APK yığımı (`android-apk.yml`) | Hələ uğurlu yığım yoxdur. 1-ci cəhd: `adaptive-icon.png` yox idi (düzəldildi). 2-ci cəhd: bütün native kod yığıldı (766 tapşırıq, 25 dəq), son R8 kiçiltmə addımında dayandı; dəqiq R8 xətası oxunmayıb. 3-cü cəhd R8 söndürülmüş halda işə salınıb: nəticəni Actions-da yoxla və bu sətri yenilə |
+| Android APK yığımı (`android-apk.yml`) | Yığım işləyir: 3-cü cəhd (2026-11-15, run 43701066192) uğurlu oldu, təxminən 30 dəqiqə. R8 kiçiltməsi söndürülüb (2-ci cəhd R8 addımında dayanmışdı, dəqiq xəta oxunmayıb). Bu APK placeholder server ünvanı ilə yığılıb və heç bir cihazda quraşdırılıb açılmayıb. Sirlərdən sonra yenidən yığılmalı, "pilot" buraxılışına əlavə olunmalı və real telefonda yoxlanmalıdır |
 | Sahib: Supabase layihəsi, e-poçt göndərən hesab, LiveKit Cloud, GitHub sirləri | Gözlənilir |
 | Server deploy, veb deploy | Sirlərdən sonra; ilk işə salınmada xətalar gözlənilir (bax "Risklər") |
 | İlk admin (SQL), müəllim rolları (admin otağından) | Deploydan sonra |
