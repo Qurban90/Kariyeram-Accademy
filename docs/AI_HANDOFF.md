@@ -44,7 +44,9 @@ Mənbə sahibin Google Drive qovluğudur (fənlər üzrə alt qovluqlar). 2026-1
 
 - İnformatika: 16 mövzu üzrə test PDF-ləri və ayrıca "test izah" PDF-ləri (hər mövzuda təxminən 50 sual; izah faylında `nömrə → hərf ona görə ki ...` formatı), konspektlər (PDF və Word).
 - Qanunvericilik: 20 test PDF-i, test izahları, konspektlər. Azərbaycan dili: test, test izahı, konspekt. Dünyagörüşü: müsahibə materialları. Məntiq: boşdur.
-- Heç bir sual hələ idxal olunmayıb. İdxal üçün test PDF-i (sual və variantlar) izah PDF-i ilə (düzgün cavab və izah) birləşdirilib `docs/templates/suallar-sablon.csv` formatına salınmalıdır; fayl repodan kənarda saxlanılır. Variant üzrə ayrıca izah mənbədə yoxdur, yalnız ümumi izah var.
+- Test PDF-lərinin mətn çıxarışı keyfiyyətsizdir (skan): üst indekslər itir (2³⁶ → "236"), bəzi variantlar və sual mətnləri düşür, sıra qarışır. Avtomatik çevirmə etibarlı deyil. Üsul: yalnız mətni və dörd variantı tam oxunan sualı götür, cavabı izah faylı ilə (hesablama suallarında özün hesablayaraq) təsdiqlə, şübhəli sualı kənarda saxla, heç nə uydurma.
+- İnformatika 1-ci mövzu ("İnformatikanın əsasları") bu üsulla hazırlanıb: 50 sualdan 39-u; `--dry-run` validasiyadan keçib, bazaya hələ yazılmayıb.
+- Heç bir sual hələ bazaya idxal olunmayıb. İdxal üçün test PDF-i (sual və variantlar) izah PDF-i ilə (düzgün cavab və izah) birləşdirilib `docs/templates/suallar-sablon.csv` formatına salınmalıdır; fayl repodan kənarda saxlanılır. Variant üzrə ayrıca izah mənbədə yoxdur, yalnız ümumi izah var.
 - Müəllif hüququ: materialların müəllifi fayllarda göstərilib; şirkətə məxsus olduğunun yazılı təsdiqi hələ alınmayıb (`docs/MANAGER.md`).
 
 ## Qərarlar (sahib təsdiqləyib)
