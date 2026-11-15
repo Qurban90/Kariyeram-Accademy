@@ -59,7 +59,7 @@ jobs:
       - name: Layihəyə qoşul
         run: npx supabase link --project-ref "$SUPABASE_PROJECT_REF"
       - name: Migrasiyalar
-        run: npx supabase db push --password "$SUPABASE_DB_PASSWORD" --yes
+        run: npx supabase db push --remote --password "$SUPABASE_DB_PASSWORD" --yes
       - name: Əsas məlumat (fənlər, məkanlar)
         run: |
           curl -fsS -X POST "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/database/query" \
