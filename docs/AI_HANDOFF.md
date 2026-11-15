@@ -30,10 +30,10 @@ Mağazasız sınaq, 10-a yaxın tələbə. Giriş yalnız e-poçtla. Addımlar v
 | Hissə | Vəziyyət |
 | --- | --- |
 | Server (Supabase, pulsuz plan, Frankfurt) | `deploy-backend.yml` uğurlu. Management API ilə yoxlanıb: 16 migrasiya, 5 fənn, 6 məkan, cron işi, storage bucket, Auth-da SMTP və OTP şablonları, TOTP aktiv, iki funksiya ACTIVE |
-| Veb | `deploy-web.yml` uğurlu: https://qurban90.github.io/Kariyeram-Accademy/ . Səhifənin açıldığını və girişin işlədiyini AI yoxlaya bilməyib (şəbəkə məhdudiyyəti); sahibin təsdiqi gözlənilir |
-| E-poçt kodu | SMTP (Gmail) ayarlanıb; real məktubun çatması hələ təsdiqlənməyib |
+| Veb | `deploy-web.yml` uğurlu: https://qurban90.github.io/Kariyeram-Accademy/ . Sahib 2026-11-15-də real e-poçt kodu ilə qeydiyyatdan keçdi və razılıqları verdi (bazada təsdiqlənib). AI səhifəni özü aça bilmir (şəbəkə məhdudiyyəti), ona görə görünüş yalnız sahibin sözü ilə təsdiqlənir |
+| E-poçt kodu | SMTP (Gmail) işləyir: sahibin qeydiyyatı real kodla keçdi |
 | Android APK | Yığım işləyir (R8 kiçiltməsi söndürülüb: 2-ci cəhd R8 addımında dayanmışdı, dəqiq xəta oxunmayıb). Real serverli yığım `main`-də işə salınıb; nəticə və "pilot" buraxılışı (Releases) yoxlanmalıdır. Heç bir cihazda açılmayıb |
-| İlk admin | Hələ heç kim qeydiyyatdan keçməyib. Sahib daxil olandan sonra SQL ilə admin edilməlidir (`docs/DEPLOYMENT.md`) |
+| İlk admin | Sahibin hesabı (tələbə № 1) SQL ilə admin edilib. Admin otağı TOTP tələb edir: sahib Kabinetdən iki mərhələli qorumanı qoşmalıdır |
 | LiveKit | Sirlər funksiyalara yazılıb; real dərs sınanmayıb. Webhook LiveKit panelində hələ təyin olunmayıb (davamiyyət üçün) |
 | `APP_ORIGINS` | Dəyişən təyin olunmayıbsa CORS hər mənbəyə açıqdır (R-08); deploy jurnalındakı xəbərdarlığa bax |
 
