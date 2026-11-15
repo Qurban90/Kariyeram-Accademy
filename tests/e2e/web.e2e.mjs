@@ -65,6 +65,9 @@ sql(`delete from public.questions q where q.stem = '[E2E] Yoxlama sualı' and no
 
 const browser = await chromium.launch({ args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--autoplay-policy=no-user-gesture-required'] })
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, locale: 'az-AZ', acceptDownloads: true })
+// Tətbiq defolt olaraq 3D məktəblə açılır. Köhnə addımlar sadə (2D) görünüşdə gedir; 3D ayrıca addımda yoxlanır.
+const simpleView = () => { try { if (localStorage.getItem('karyeram.view3d') === null) localStorage.setItem('karyeram.view3d', '0') } catch { /* yaddaş yoxdur */ } }
+await ctx.addInitScript(simpleView)
 const page = await ctx.newPage()
 const consoleErrors = []
 page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()) })
@@ -128,22 +131,94 @@ try {
     await shot('04-mekteb-zali')
   })
 
-  await step('3D dəhliz: WebGL səhnəsi, qapı seçimi kameranı aparır və otağa keçir', async () => {
+  const canvasReady = (id) => page.waitForFunction((x) => { const c = document.querySelector(`[data-testid="${x}"] canvas`); return !!c && c.width > 0 }, id, { timeout: 30000 })
+  const walkerState = () => page.evaluate(() => { const w = globalThis.__karyeramWalker; return w ? { x: w.x, z: w.z, yaw: w.yaw, eye: w.eye, mode: w.mode } : null })
+  /** Giriş qatına barmaq hadisələri göndərir (joystik: sol tərəf, baxış: sağ tərəf). */
+  const drag = (pad, id, x0, y0, x1, y1, holdMs) => page.evaluate(async ([padId, pid, a, b, c, d, ms]) => {
+    const el = document.querySelector(`[data-testid="${padId}"]`)
+    const r = el.getBoundingClientRect()
+    const ev = (type, x, y) => el.dispatchEvent(new PointerEvent(type, { pointerId: pid, pointerType: 'touch', clientX: r.left + x, clientY: r.top + y, bubbles: true }))
+    ev('pointerdown', a, b)
+    for (let i = 1; i <= 5; i++) { ev('pointermove', a + ((c - a) * i) / 5, b + ((d - b) * i) / 5); await new Promise((res) => setTimeout(res, 16)) }
+    await new Promise((res) => setTimeout(res, ms))
+    ev('pointerup', c, d)
+  }, [pad, id, x0, y0, x1, y1, holdMs])
+
+  await step('3D məktəb: joystiklə dəhlizdə gəzinti və baxış', async () => {
     await tid('toggle-3d').click()
-    await page.waitForFunction(() => { const c = document.querySelector('[data-testid="corridor-3d"] canvas'); return !!c && c.width > 0 }, null, { timeout: 30000 })
+    await canvasReady('corridor-3d')
+    await page.waitForFunction(() => !!globalThis.__karyeramWalker, null, { timeout: 30000 })
     await page.waitForTimeout(1500)
-    // Kətan boş deyil: mərkəzdə fon rəngindən fərqli piksellər (dəhliz çəkilib)
-    const drawn = await page.evaluate(() => {
-      const c = document.querySelector('[data-testid="corridor-3d"] canvas')
-      const gl = c.getContext('webgl2', { preserveDrawingBuffer: true }) || c.getContext('webgl')
-      return !!gl
-    })
-    expect(drawn, 'WebGL konteksti yoxdur')
+    const start = await walkerState()
     await shot('04b-3d-dehliz')
-    await tid('door3d-informatika').click()
-    await page.waitForURL('**/room/informatika', { timeout: 10000 })
-    await page.goBack()
-    await tid('toggle-3d').click() // növbəti addımlar üçün 2D-yə qayıt (seçim yadda saxlanılır)
+    await drag('walk-pad', 11, 80, 640, 80, 580, 2000) // joystik irəli (proqram renderində kadr sürəti aşağıdır, ona görə 2 san)
+    const moved = await walkerState()
+    expect(moved.z < start.z - 0.5, `joystik irəli aparmadı: ${start.z} → ${moved.z}`)
+    // Qapıya yaxınlaşanda "Daxil ol" düyməsi çıxır.
+    for (let i = 0; i < 20 && (await walkerState()).z > -2.4; i++) await drag('walk-pad', 20 + i, 80, 640, 80, 580, 300)
+    await tid('hud-main').waitFor({ timeout: 5000 })
+    expect(/Daxil ol/.test(await tid('hud-main').innerText()), 'qapının yanında "Daxil ol" çıxmadı')
+    await shot('04b2-3d-qapi')
+    const atDoor = await walkerState()
+    await drag('walk-pad', 12, 300, 400, 240, 400, 50) // sağ tərəfdə sürüşdürmə: baxış dönür
+    const turned = await walkerState()
+    expect(Math.abs(turned.yaw - atDoor.yaw) > 0.1, 'baxış dönmədi')
+    expect(Math.abs(turned.z - atDoor.z) < 0.05, 'baxış sürüşdürməsi yeri dəyişdi')
+  })
+
+  await step('3D məktəb: qapıdan sinfə giriş, partaya oturma, pəncərə, ayağa qalxma, dəhlizə çıxış', async () => {
+    await tid('hud-menu').click()
+    await tid('door3d-informatika').click() // tələbə qapıya özü yeriyir, qapı açılır
+    await page.waitForURL('**/room/informatika', { timeout: 40000 }).catch(async (e) => { throw new Error(`otağa keçmədi: ${JSON.stringify(await walkerState())} ${e.message.split('\n')[0]}`) })
+    await canvasReady('room-3d')
+    await page.waitForFunction(() => globalThis.__karyeramWalker?.z > 4, null, { timeout: 30000 }) // sinfin qapısında
+    await page.waitForTimeout(1200)
+    await shot('04c-3d-sinif')
+    await tid('sit-desk').click()
+    await tid('desk-window').waitFor({ timeout: 20000 }) // partaya gedir, oturur, pəncərə açılır
+    const seated = await walkerState()
+    expect(seated.mode === 'seated' && seated.eye < 1.3, `oturmadı: ${JSON.stringify(seated)}`)
+    await tid('topic-1').waitFor()
+    await tid('start-test').waitFor()
+    await page.waitForTimeout(500)
+    await shot('04d-3d-pencere')
+    await tid('window-close').click()
+    await tid('open-window').waitFor()
+    await page.waitForTimeout(300)
+    await shot('04e-3d-partada')
+    await drag('room-pad', 13, 80, 640, 80, 580, 500) // oturanda joystik yerindən tərpətmir
+    await drag('room-pad', 14, 300, 400, 260, 400, 50) // amma ətrafa baxmaq olur
+    const still = await walkerState()
+    expect(Math.abs(still.z - seated.z) < 0.01, 'oturan tələbə yerindən tərpəndi')
+    expect(Math.abs(still.yaw - seated.yaw) > 0.05, 'oturanda baxış dönmədi')
+    await tid('open-window').click()
+    await tid('topic-1').waitFor()
+    await tid('window-close').click()
+    await tid('stand-up').click()
+    await tid('sit-desk').waitFor({ timeout: 10000 })
+    expect((await walkerState()).mode === 'walk', 'ayağa qalxmadı')
+    // Partanın üstünə toxunmaq: tələbə həmin partaya gedib oturur (səhnədə əşya seçimi).
+    const tapped = await page.evaluate(async () => {
+      const el = document.querySelector('[data-testid="room-pad"]'), r = el.getBoundingClientRect()
+      const ev = (type, x, y) => el.dispatchEvent(new PointerEvent(type, { pointerId: 40, pointerType: 'touch', clientX: r.left + x, clientY: r.top + y, bubbles: true }))
+      for (const [fx, fy] of [[0.3, 0.62], [0.2, 0.66], [0.4, 0.6], [0.3, 0.7], [0.12, 0.6], [0.5, 0.64], [0.25, 0.56]]) {
+        ev('pointerdown', r.width * fx, r.height * fy); ev('pointerup', r.width * fx, r.height * fy)
+        await new Promise((res) => setTimeout(res, 250))
+        if (globalThis.__karyeramWalker.mode !== 'walk') return true
+      }
+      return false
+    })
+    expect(tapped, 'partaya toxunuş seçilmədi')
+    await tid('desk-window').waitFor({ timeout: 20000 })
+    expect((await walkerState()).mode === 'seated', 'toxunulan partaya oturmadı')
+    await shot('04f-3d-secilen-parta')
+    await tid('window-close').click()
+    await tid('room-menu-open').click()
+    await tid('menu-exit').click()
+    await page.waitForURL((u) => u.pathname === '/', { timeout: 15000 })
+    await canvasReady('corridor-3d')
+    await tid('hud-menu').click()
+    await tid('toggle-3d').click() // növbəti addımlar üçün sadə görünüşə qayıt (seçim yadda saxlanılır)
     await tid('door-informatika').waitFor({ timeout: 10000 })
   })
 
@@ -261,6 +336,7 @@ try {
 
   // ---- Müəllim (host) ↔ tələbə: iki ayrı brauzer konteksti, eyni LiveKit otağı ----
   const hctx = await browser.newContext({ viewport: { width: 1280, height: 860 }, deviceScaleFactor: 1, locale: 'az-AZ', permissions: ['camera', 'microphone'] })
+  await hctx.addInitScript(simpleView)
   const host = await hctx.newPage()
   const htid = (id) => host.getByTestId(id)
   let hostLive = ''
@@ -371,6 +447,7 @@ try {
     expect(sql(`select count(*) from auth.mfa_factors f join auth.users u on u.id = f.user_id where u.phone = '${HOST_DB}' and f.status = 'verified'`) === '1', 'faktor təsdiqlənmədi')
     // Yeni cihazda giriş: telefon OTP-dən sonra autentifikator kodu soruşulur.
     const c2 = await browser.newContext({ viewport: { width: 390, height: 844 }, locale: 'az-AZ' })
+    await c2.addInitScript(simpleView)
     const p2 = await c2.newPage()
     await p2.goto(`http://127.0.0.1:${PORT}/sign-in`)
     await p2.getByTestId('phone').fill(HOST_LOCAL)

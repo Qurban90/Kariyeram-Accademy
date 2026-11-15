@@ -19,18 +19,18 @@ const NEEDED: SurfaceKey[] = ['planks', 'plaster', 'grain', 'darkGrain', 'ceilin
 const W = 10, H = 4.5 // otağın eni və hündürlüyü
 
 /** Parta + stul hissələri (parta mərkəzinə nisbətən). Tələbə +Z tərəfdə oturur, -Z-yə (lövhəyə) baxır. */
-const DESK_WOOD: BoxPart[] = [
+export const DESK_WOOD: BoxPart[] = [
   { p: [0, 0.745, -0.35], s: [1.0, 0.04, 0.52] }, // üst
   { p: [0, 0.56, -0.6], s: [0.94, 0.3, 0.02] }, // ön panel
   { p: [0, 0.455, 0.2], s: [0.42, 0.035, 0.4] }, // stulun oturacağı
   { p: [0, 0.8, 0.39], s: [0.42, 0.26, 0.025] }, // stulun söykənəcəyi
 ]
-const DESK_METAL: BoxPart[] = [
+export const DESK_METAL: BoxPart[] = [
   ...[-0.46, 0.46].flatMap((x) => [-0.56, -0.14].map((z): BoxPart => ({ p: [x, 0.36, z], s: [0.035, 0.72, 0.035] }))),
   ...[-0.18, 0.18].flatMap((x) => [0.03, 0.37].map((z): BoxPart => ({ p: [x, 0.22, z], s: [0.03, 0.44, 0.03] }))),
   ...[-0.18, 0.18].map((x): BoxPart => ({ p: [x, 0.64, 0.39], s: [0.03, 0.4, 0.03] })),
 ]
-const at = (parts: BoxPart[], x: number, z: number): BoxPart[] => parts.map((b) => ({ p: [b.p[0] + x, b.p[1], b.p[2] + z], s: b.s }))
+export const at = (parts: BoxPart[], x: number, z: number): BoxPart[] => parts.map((b) => ({ p: [b.p[0] + x, b.p[1], b.p[2] + z], s: b.s }))
 
 /** Kamera: ekranın eninə görə uzaqlaşır ki, dar telefonda da bütün sıra görünsün. */
 function CameraRig({ backZ }: { backZ: number }) {
@@ -50,7 +50,7 @@ function CameraRig({ backZ }: { backZ: number }) {
   return null
 }
 
-function Board({ texture, mats }: { texture: THREE.Texture | null; mats: Mats }) {
+export function Board({ texture, mats }: { texture: THREE.Texture | null; mats: Mats }) {
   return (
     <group position={[0, 2.05, -4.55]}>
       <mesh material={mats.darkWood}><boxGeometry args={[4.75, 2.85, 0.08]} /></mesh>
@@ -72,7 +72,7 @@ function Board({ texture, mats }: { texture: THREE.Texture | null; mats: Mats })
 }
 
 /** Divar saatı: əqrəblər real vaxtı göstərir. */
-function Clock() {
+export function Clock() {
   const hr = useRef<THREE.Group>(null), mn = useRef<THREE.Group>(null)
   useFrame(() => {
     const d = new Date()
@@ -96,7 +96,7 @@ function Clock() {
   )
 }
 
-function Window({ z, mats }: { z: number; mats: Mats }) {
+export function Window({ z, mats }: { z: number; mats: Mats }) {
   return (
     <group position={[-W / 2 + 0.01, 2.35, z]} rotation={[0, Math.PI / 2, 0]}>
       <mesh position={[0, 0, 0.01]}><planeGeometry args={[1.5, 1.9]} /><meshBasicMaterial map={mat('window').map} toneMapped={false} color="#e9f0f2" /></mesh>
@@ -154,10 +154,10 @@ function makeMats() {
     trim: new THREE.MeshStandardMaterial({ ...mat('darkGrain', 6, 1), roughness: 0.55 }),
   }
 }
-type Mats = ReturnType<typeof makeMats>
+export type Mats = ReturnType<typeof makeMats>
 let cachedMats: Mats | null = null
 /** Səhnənin sabit materialları (bir dəfə yaradılır, səhnələr arasında paylaşılır). */
-function sharedMats(): Mats {
+export function sharedMats(): Mats {
   return (cachedMats ??= makeMats())
 }
 

@@ -1,11 +1,12 @@
 /** Məktəb zalı: dəhlizdə fənn qapıları, oxu zalının ikiqat qapısı, gündəlik və kabinet. */
 import { router, useFocusEffect } from 'expo-router'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { StyleSheet, View, useWindowDimensions } from 'react-native'
 import { Lockup } from '../src/components/Brand'
 import { Door, DoorSpacer } from '../src/components/Door'
 import { Corridor3D } from '../src/school3d/Corridor3D'
-import { secureStorage } from '../src/lib/storage'
+import { useView3d } from '../src/lib/view3d'
+import { StatusBar } from 'expo-status-bar'
 import { Badge, Bar, Button, Card, Chip, ErrorBox, Group, H, Icon, ListRow, Loading, P, Screen, Section } from '../src/components/ui'
 import { t } from '../src/i18n/az'
 import { useAuth } from '../src/lib/auth'
@@ -19,15 +20,14 @@ export default function Hall() {
   const enr = useEnrollments()
   const live = useLiveSessions()
   const active = useActiveSession()
-  const [view3d, setView3d] = useState(false)
+  const [view3d, setView] = useView3d()
   const [glErr, setGlErr] = useState<string | null>(null)
+  const [focused, setFocused] = useState(true)
   const { width } = useWindowDimensions()
   const cols = width >= 700 ? 4 : 2
-  useEffect(() => { secureStorage.getItem('karyeram.view3d').then((v) => setView3d(v === '1')).catch(() => {}) }, [])
-  const setView = (v: boolean) => { setView3d(v); setGlErr(null); secureStorage.setItem('karyeram.view3d', v ? '1' : '0').catch(() => {}) }
-  useFocusEffect(useCallback(() => { void active.refetch() }, [active.refetch]))
+  useFocusEffect(useCallback(() => { setFocused(true); void active.refetch(); return () => setFocused(false) }, [active.refetch]))
 
-  if (subjects.isLoading) return <Screen><Loading /></Screen>
+  if (subjects.isLoading || view3d === null) return <Screen><Loading /></Screen>
   const liveNow = (live.data ?? []).filter((s) => s.state === 'live').length
   const first = profile?.display_name?.split(' ')[0] || ''
 
@@ -36,6 +36,37 @@ export default function Hall() {
   const basis = cols === 4 ? '22%' : '47%'
   const n = subjects.data?.length ?? 0
   const spacers = (cols - (n % cols)) % cols
+
+  const resume = active.data
+    ? () => router.push({ pathname: '/test/[session]', params: { session: active.data!.id, subject: active.data!.subject_id } })
+    : null
+  const resumeSub = active.data
+    ? t.hall.resumeSub(subjects.data?.find((s) => s.id === active.data!.subject_id)?.name ?? active.data.subject_id, active.data.cursor, resumeTotal)
+    : ''
+
+  // 3D məktəb: tam ekran dəhliz, tələbə özü gəzir.
+  if (view3d) {
+    return (
+      <>
+        <StatusBar style="light" />
+        <Corridor3D
+          active={focused}
+          greeting={t.hall.greeting(first)}
+          doors={(subjects.data ?? []).map((s, i) => {
+            const acc = hasAccess(enr.data, s.id)
+            const freeCount = (topics.data ?? []).filter((x) => x.subject_id === s.id && x.free).length
+            return { key: s.id, number: String(101 + i), title: s.name, status: acc ? t.hall.open : freeCount ? t.hall.locked : undefined }
+          })}
+          hallLive={liveNow > 0}
+          resume={resume ? { sub: resumeSub, onPress: resume } : null}
+          onEnter={(k) => (k === 'hall' ? router.push('/live') : router.push({ pathname: '/room/[subject]', params: { subject: k } }))}
+          onGo={(w) => router.push(`/${w}`)}
+          onSimple={() => { setGlErr(null); setView(false) }}
+          onFail={() => { setView(false, false); setGlErr(t.hall.gl3dFailed) }}
+        />
+      </>
+    )
+  }
 
   return (
     <Screen glow>
@@ -55,26 +86,17 @@ export default function Hall() {
             <View style={st.resumeIcon}><Icon name="stairs" size={20} color={colors.gold} /></View>
             <View style={{ flex: 1, gap: 2 }}>
               <H level={3}>{t.hall.resume}</H>
-              <P dim small>{t.hall.resumeSub(subjects.data?.find((s) => s.id === active.data!.subject_id)?.name ?? active.data.subject_id, active.data.cursor, resumeTotal)}</P>
+              <P dim small>{resumeSub}</P>
             </View>
           </View>
           <Bar value={resumeTotal ? (100 * active.data.cursor) / resumeTotal : 0} />
-          <Button testID="resume-test" label={t.hall.resumeBtn}
-            onPress={() => router.push({ pathname: '/test/[session]', params: { session: active.data!.id, subject: active.data!.subject_id } })} />
+          <Button testID="resume-test" label={t.hall.resumeBtn} onPress={resume!} />
         </Card>
       )}
 
       <Section title={t.hall.rooms} gap={space.lg}
-        right={<Chip testID="toggle-3d" icon={view3d ? 'door' : 'compass'} label={view3d ? t.hall.view2d : t.hall.view3d} selected={view3d} onPress={() => setView(!view3d)} />}>
+        right={<Chip testID="toggle-3d" icon="compass" label={t.hall.view3d} onPress={() => { setGlErr(null); setView(true) }} />}>
         {glErr ? <P dim small>{glErr}</P> : null}
-        {view3d ? (
-          <Corridor3D
-            doors={(subjects.data ?? []).map((s, i) => ({ key: s.id, number: String(101 + i), title: s.name }))}
-            hallLive={liveNow > 0}
-            onEnter={(k) => (k === 'hall' ? router.push('/live') : router.push({ pathname: '/room/[subject]', params: { subject: k } }))}
-            onFail={() => { setView3d(false); setGlErr(t.hall.gl3dFailed) }}
-          />
-        ) : (<>
           <View style={st.corridor}>
             {(subjects.data ?? []).map((s, i) => {
               const acc = hasAccess(enr.data, s.id)
@@ -91,7 +113,6 @@ export default function Hall() {
           <Door wide testID="door-live" number="ZAL" title={t.hall.live}
             status={liveNow ? `${liveNow} ${t.live.liveNow}` : t.hall.liveSub} statusTone={liveNow ? 'live' : 'dim'}
             onOpen={() => router.push('/live')} />
-        </>)}
       </Section>
 
       <Group>

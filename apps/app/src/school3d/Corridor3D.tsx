@@ -1,68 +1,123 @@
-/** 3D dəhliz konteyneri: gec yüklənmə, WebGL xətasında 2D-yə qayıdış, əlçatan qapı siyahısı. */
-import { Component, lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
-import { Pressable, StyleSheet, View } from 'react-native'
-import { Text } from '../components/Text'
-import { Loading } from '../components/ui'
+/**
+ * 3D məktəb: tam ekran dəhliz. Tələbə joystiklə özü gəzir, istədiyi qapıya yaxınlaşıb içəri keçir.
+ * Gec yüklənmə (three.js ayrıca paketdədir), WebGL xətasında sadə görünüşə qayıdış, menyuda əlçatan otaq siyahısı.
+ */
+import { Component, lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { StyleSheet, View } from 'react-native'
+import { Button, Group, ListRow, Loading, P, Sheet } from '../components/ui'
 import { t } from '../i18n/az'
-import { colors, font, radius, space } from '../theme'
+import { colors } from '../theme'
+import { finePointer, Hud, HudButton, useToast } from './Hud'
+import { WalkPad } from './WalkPad'
+import { corridorStand, corridorTargets, corridorWalk, CORRIDOR_START, Walker, type PickFn } from './walk'
 
 const SchoolCorridor = lazy(() => import('./SchoolCorridor').then((m) => ({ default: m.SchoolCorridor })))
 
-class GLBoundary extends Component<{ onFail: (e: Error) => void; children: ReactNode }, { failed: boolean }> {
+export class GLBoundary extends Component<{ onFail: (e: Error) => void; children: ReactNode }, { failed: boolean }> {
   state = { failed: false }
   static getDerivedStateFromError() { return { failed: true } }
   componentDidCatch(e: Error) { this.props.onFail(e) }
   render() { return this.state.failed ? null : this.props.children }
 }
 
-export interface DoorInfo { key: string; number: string; title: string }
+export interface DoorInfo { key: string; number: string; title: string; status?: string }
 
-export function Corridor3D({ doors, hallLive, onEnter, onFail }: {
-  doors: DoorInfo[]; hallLive: boolean; onEnter: (key: string | 'hall') => void; onFail: () => void
+export function Corridor3D({ doors, hallLive, active, greeting, resume, onEnter, onGo, onSimple, onFail }: {
+  doors: DoorInfo[]; hallLive: boolean
+  /** Ekran fokusdadır (başqa səhifə açıq olanda çəkiliş dayanır). */
+  active: boolean
+  greeting: string
+  resume?: { sub: string; onPress: () => void } | null
+  onEnter: (key: string | 'hall') => void
+  onGo: (where: 'diary' | 'board' | 'profile') => void
+  /** Sadə (2D) görünüşə keçid. */
+  onSimple: () => void
+  onFail: () => void
 }) {
+  const n = doors.length
+  const walker = useMemo(() => { const w = corridorWalk(n); return new Walker(CORRIDOR_START, w.areas, w.blocks) }, [n])
+  const targets = useMemo(() => corridorTargets(n), [n])
+  const pick = useRef<PickFn | null>(null)
+  const [near, setNear] = useState<string | null>(null)
   const [selected, setSelected] = useState<number | 'hall' | null>(null)
+  const [menu, setMenu] = useState(false)
+  const [low, setLow] = useState(false)
+  const [coach, setCoach] = useState(true)
+  const [toast, showToast] = useToast()
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
+  useEffect(() => { const id = setTimeout(() => setCoach(false), 7000); return () => { clearTimeout(id); if (timer.current) clearTimeout(timer.current) } }, [])
+  // Otaqdan qayıdanda qapı bağlanır, tələbə qapının qarşısında qalır.
+  useEffect(() => { if (active) setSelected(null) }, [active])
+  useEffect(() => { walker.frozen = menu }, [menu, walker])
 
-  const pick = (i: number | 'hall') => {
-    setSelected(i)
-    if (timer.current) clearTimeout(timer.current)
-    // Kamera qapıya çatsın, qapı açılsın, sonra otağa keçək.
-    timer.current = setTimeout(() => { onEnter(i === 'hall' ? 'hall' : doors[i]!.key); setSelected(null) }, 1100)
+  /** Hədəfə özü yeriyir, sonra əməl icra olunur (qapı açılır və içəri keçir). */
+  const go = (id: string) => {
+    if (walker.mode !== 'walk' || selected !== null) return
+    setMenu(false)
+    const s = corridorStand(id, n)
+    walker.walkTo([s], s.yaw, () => {
+      if (id === 'board') { onGo('board'); return }
+      const key = id === 'hall' ? 'hall' : doors[Number(id)]?.key
+      if (!key) return
+      setSelected(id === 'hall' ? 'hall' : Number(id))
+      if (timer.current) clearTimeout(timer.current)
+      timer.current = setTimeout(() => onEnter(key), 700)
+    })
   }
+  const onTap = (nx: number, ny: number) => {
+    const act = pick.current?.(nx, ny)
+    if (!act) return
+    go(act.startsWith('door:') ? act.slice(5) : act)
+  }
+
+  const nearDoor = near !== null && near !== 'hall' && near !== 'board' ? doors[Number(near)] : null
+  const cta = selected !== null ? null
+    : nearDoor ? { sub: `${nearDoor.number} · ${nearDoor.title}`, label: t.walk.enter, icon: 'door' as const }
+    : near === 'hall' ? { sub: hallLive ? t.live.liveNow : t.hall.liveSub, label: t.hall.live, icon: 'door' as const }
+    : near === 'board' ? { sub: t.hall.boardSub, label: t.hall.board, icon: 'compass' as const }
+    : null
 
   return (
     <View style={st.wrap}>
-      <View style={st.canvas} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" testID="corridor-3d">
+      <View style={StyleSheet.absoluteFill} testID="corridor-3d">
         <GLBoundary onFail={onFail}>
-          <Suspense fallback={<Loading />}>
-            <SchoolCorridor doors={doors.map((d) => ({ key: d.key, label: d.number }))} selected={selected} onPick={pick} hallLive={hallLive} />
+          <Suspense fallback={<Loading label={t.walk.building} />}>
+            <SchoolCorridor doors={doors.map((d) => ({ key: d.key, label: d.number }))} selected={selected} hallLive={hallLive}
+              walker={walker} targets={targets} onNear={setNear} pick={pick} low={low} active={active}
+              onSlow={() => { setLow(true); showToast(t.walk.lowAuto) }} />
           </Suspense>
         </GLBoundary>
-        <Text style={st.hint} pointerEvents="none">{t.hall.walkHint}</Text>
       </View>
-      <View style={st.legend}>
-        {doors.map((d, i) => (
-          <Pressable key={d.key} testID={`door3d-${d.key}`} accessibilityRole="button" accessibilityLabel={`${d.number}. ${d.title}`}
-            onPress={() => pick(i)} style={[st.tag, selected === i && st.tagOn]}>
-            <Text style={st.tagNo}>{d.number}</Text><Text style={st.tagTxt} numberOfLines={1}>{d.title}</Text>
-          </Pressable>
-        ))}
-        <Pressable testID="door3d-hall" accessibilityRole="button" accessibilityLabel={t.hall.live} onPress={() => pick('hall')} style={[st.tag, selected === 'hall' && st.tagOn]}>
-          <Text style={st.tagNo}>{hallLive ? '●' : 'ZAL'}</Text><Text style={st.tagTxt}>{t.hall.live}</Text>
-        </Pressable>
-      </View>
+      <WalkPad walker={walker} onTap={onTap} enabled={active && !menu} testID="walk-pad" />
+      <Hud hint={finePointer ? t.walk.hintKeys : t.walk.hintTouch} onMenu={() => setMenu(true)} toast={toast} showStick={coach && !finePointer}>
+        {resume ? <HudButton testID="resume-test" ghost icon="stairs" sub={resume.sub} label={t.hall.resumeBtn} onPress={resume.onPress} /> : null}
+        {cta ? <HudButton testID="hud-main" icon={cta.icon} sub={cta.sub} label={cta.label} onPress={() => near && go(near)} /> : null}
+      </Hud>
+
+      <Sheet visible={menu} onClose={() => setMenu(false)} title={greeting} testID="school-menu">
+        <P dim small>{t.walk.menuLead}</P>
+        <Group>
+          {doors.map((d, i) => (
+            <ListRow key={d.key} testID={`door3d-${d.key}`} icon="door" title={`${d.number} · ${d.title}`} sub={d.status} onPress={() => go(String(i))} />
+          ))}
+          <ListRow testID="door3d-hall" icon="users" title={t.hall.live} sub={hallLive ? t.live.liveNow : t.hall.liveSub} onPress={() => go('hall')} />
+        </Group>
+        <Group>
+          <ListRow icon="notebook" title={t.hall.diary} sub={t.hall.diarySub} onPress={() => { setMenu(false); onGo('diary') }} testID="go-diary" />
+          <ListRow icon="trophy" title={t.hall.board} sub={t.hall.boardSub} onPress={() => { setMenu(false); onGo('board') }} testID="go-board" />
+          <ListRow icon="user" title={t.hall.profile} sub={t.hall.profileSub} onPress={() => { setMenu(false); onGo('profile') }} testID="go-profile" />
+        </Group>
+        <View style={st.row}>
+          <Button testID="toggle-low" small variant="ghost" style={{ flex: 1 }} label={low ? t.walk.lowOn : t.walk.lowOff} onPress={() => setLow(!low)} />
+          <Button testID="toggle-3d" small variant="ghost" style={{ flex: 1 }} label={t.hall.view2d} onPress={() => { setMenu(false); onSimple() }} />
+        </View>
+        <P dim small>{t.walk.lowNote}</P>
+      </Sheet>
     </View>
   )
 }
 
 const st = StyleSheet.create({
-  wrap: { gap: space.sm },
-  canvas: { height: 360, borderRadius: radius.lg, overflow: 'hidden', backgroundColor: colors.boardDeep, borderWidth: 1, borderColor: colors.boardLine },
-  hint: { position: 'absolute', bottom: 8, alignSelf: 'center', color: colors.chalk, backgroundColor: colors.overlay, paddingHorizontal: space.md, paddingVertical: 4, borderRadius: radius.pill, fontSize: font.tiny },
-  legend: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  tag: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: space.md, borderRadius: radius.pill, backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.boardLine, maxWidth: '100%' },
-  tagOn: { borderColor: colors.brass, backgroundColor: '#2c4a3a' },
-  tagNo: { color: colors.brass, fontWeight: '900', fontSize: font.small },
-  tagTxt: { color: colors.chalk, fontWeight: '600', fontSize: font.small, flexShrink: 1 },
+  wrap: { flex: 1, backgroundColor: colors.nightDeep },
+  row: { flexDirection: 'row', gap: 12 },
 })

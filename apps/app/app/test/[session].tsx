@@ -24,7 +24,7 @@ function mmss(s: number) {
 function TestRunnerInner() {
   const colors = usePalette()
   const st = useSheet(makeSt)
-  const { session, subject } = useLocalSearchParams<{ session: string; subject?: string }>()
+  const { session, subject, from } = useLocalSearchParams<{ session: string; subject?: string; from?: string }>()
   useScreenGuard('test')
   const [phase, setPhase] = useState<Phase>('loading')
   const [q, setQ] = useState<Question | null>(null)
@@ -41,12 +41,12 @@ function TestRunnerInner() {
     setPhase('finishing')
     try {
       await api.finish(session)
-      router.replace({ pathname: '/result/[session]', params: { session, subject: subject ?? '' } })
+      router.replace({ pathname: '/result/[session]', params: { session, subject: subject ?? '', from: from ?? '' } })
     } catch (e) {
       finishing.current = false
       setErr(e as ApiFailure); setPhase('blocked')
     }
-  }, [session, subject])
+  }, [session, subject, from])
 
   const load = useCallback(async () => {
     setPhase('loading'); setErr(null); setFb(null); setChosen(null)
@@ -59,10 +59,10 @@ function TestRunnerInner() {
       setPhase('asking')
     } catch (e) {
       const f = e as ApiFailure
-      if (f.code === 'session_closed') { router.replace({ pathname: '/result/[session]', params: { session, subject: subject ?? '' } }); return }
+      if (f.code === 'session_closed') { router.replace({ pathname: '/result/[session]', params: { session, subject: subject ?? '', from: from ?? '' } }); return }
       setErr(f); setPhase('blocked')
     }
-  }, [session, subject, finish])
+  }, [session, subject, from, finish])
 
   useEffect(() => { void load() }, [load])
 

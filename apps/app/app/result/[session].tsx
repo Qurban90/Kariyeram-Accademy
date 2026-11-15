@@ -16,7 +16,7 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F']
 function ResultInner() {
   const colors = usePalette()
   const st = useSheet(makeSt)
-  const { session, subject } = useLocalSearchParams<{ session: string; subject?: string }>()
+  const { session, subject, from } = useLocalSearchParams<{ session: string; subject?: string; from?: string }>()
   useScreenGuard('review')
   const res = useQuery({ queryKey: ['result', session], queryFn: () => api.finish(session) })
   const rev = useQuery({ queryKey: ['review', session], queryFn: () => api.review(session) })
@@ -28,12 +28,18 @@ function ResultInner() {
   const r = res.data
   const tone = r.percent >= 80 ? colors.ok : r.percent >= 50 ? colors.warn : colors.bad
 
+  // Test otaqdan başladılıbsa otaq hələ açıqdır: geri qayıdırıq ki, tələbə oturduğu partada qalsın.
+  const toRoom = () => {
+    if (from === 'room' && router.canGoBack()) router.back()
+    else router.replace(subject ? { pathname: '/room/[subject]', params: { subject } } : '/')
+  }
+
   const retryMistakes = async () => {
     if (!subject) return
     setBusy(true); setErr(null)
     try {
       const s = await api.start({ subject, mode: 'mistakes', size: 20 })
-      router.replace({ pathname: '/test/[session]', params: { session: s.session_id, subject } })
+      router.replace({ pathname: '/test/[session]', params: { session: s.session_id, subject, from: from ?? '' } })
     } catch (e) {
       setErr(e instanceof ApiFailure ? e.message : String(e))
     } finally { setBusy(false) }
@@ -41,7 +47,7 @@ function ResultInner() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.board }}>
-      <Screen back={() => router.replace(subject ? { pathname: '/room/[subject]', params: { subject } } : '/')} title={t.result.title}>
+      <Screen back={toRoom} title={t.result.title}>
         <Card style={{ alignItems: 'center', paddingVertical: space.xl }} tone="gold">
           <Text style={[st.pct, { color: tone }]} testID="percent">{r.percent}%</Text>
           <View style={st.row}>
@@ -63,7 +69,7 @@ function ResultInner() {
 
         <ErrorBox message={err} />
         {r.wrong + r.blank > 0 && subject ? <Button testID="retry-mistakes" label={t.result.retryMistakes} onPress={retryMistakes} loading={busy} /> : null}
-        <Button variant="ghost" label={t.result.backToRoom} onPress={() => router.replace(subject ? { pathname: '/room/[subject]', params: { subject } } : '/')} />
+        <Button variant="ghost" label={t.result.backToRoom} onPress={toRoom} />
 
         <H level={2}>{t.result.review}</H>
         {rev.isLoading && <Loading />}
