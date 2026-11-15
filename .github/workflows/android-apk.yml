@@ -1,0 +1,54 @@
+name: Android APK
+# Pilot üçün quraşdırıla bilən APK yığır (mağazasız). Əl ilə işə salınır; nəticə "pilot" buraxılışına əlavə olunur.
+on:
+  workflow_dispatch:
+  push:
+    branches: [karyeram/foundation]
+    paths: ['.github/workflows/android-apk.yml']
+permissions:
+  contents: write
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      EXPO_PUBLIC_AUTH_METHODS: ${{ vars.AUTH_METHODS || 'email' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: npm ci
+      - run: .github/scripts/public-env.sh
+      - name: Native layihəni yarat (expo prebuild)
+        working-directory: apps/app
+        run: npx expo prebuild --platform android --no-install
+      - name: APK yığ
+        working-directory: apps/app/android
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a,armeabi-v7a --no-daemon --stacktrace
+      - name: APK-nı adlandır
+        run: |
+          mkdir -p out
+          cp apps/app/android/app/build/outputs/apk/release/app-release.apk "out/karyeram-accademy-pilot.apk"
+          ls -la out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: karyeram-accademy-apk
+          path: out/*.apk
+      - name: "\"pilot\" buraxılışına əlavə et"
+        if: env.KARYERAM_REAL_BACKEND == '1' && github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view pilot >/dev/null 2>&1 || gh release create pilot --prerelease --title "Pilot (sınaq) buraxılışı" --notes "Pilot tələbələr üçün Android APK. Mağaza buraxılışı deyil."
+          gh release upload pilot out/karyeram-accademy-pilot.apk --clobber
