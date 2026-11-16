@@ -9,10 +9,12 @@ Son yeniləmə: 2026-11-15. Dəyişməyən qaydalar `CLAUDE.md`-dədir; burada y
 
 ## Hazır olanlar (testlə təsdiqlənib)
 
-Son tam yoxlama 2026-11-15 (3D gəzintidən sonra), lokal mühit: tip yoxlaması xətasız, vahid 114/114, DB 277 yoxlama (12 fayl), inteqrasiya 11/11 (real lokal Supabase + LiveKit), veb E2E 32/32 addım (brauzer proqram renderi ilə, real telefon deyil).
+Son yoxlama 2026-11-16 (qapıdan keçid və auditoriyadan sonra), lokal mühit: tip yoxlaması xətasız, vahid 120/120, veb E2E 33/33 addım (bu qaçışdan sonra yalnız sinifdən çıxışda görünən dəhliz divarının istiqaməti düzəldilib; təkrar qaçışın nəticəsi növbəti commit-də). DB 277 yoxlama və inteqrasiya 11/11 sonuncu dəfə 2026-11-15-də keçib (server kodu o vaxtdan dəyişməyib). E2E brauzerin proqram renderi ilədir, real telefon deyil.
 
 - Giriş: telefon və e-poçt OTP (parolsuz), razılıqlar, hesab silmə və ixrac, ikinci giriş üsulu bağlama.
 - 3D məktəb (defolt görünüş, ADR 0008): tam ekran dəhlizdə joystiklə gəzinti, qapının yanında "Daxil ol", fənn sinfində 12 partadan istədiyinə oturma (yaxınlaşıb və ya üstünə toxunub), partada açılan pəncərə (mövzular, test, konspekt), ayağa qalxma, dəhlizə çıxış; testdən sonra tələbə oturduğu partaya qayıdır. Menyuda sadə (2D) görünüş və yüngül rejim.
+- Qapıdan keçid (2026-11-16, sahibin rəyi ilə): qapı açılanda arxasında sinfin/zalın özü görünür, tələbə qapıdan yeriyib keçir, çıxanda dəhliz görünür və dəhlizdə həmin qapıdan çıxır.
+- Oxu zalı pilləli auditoriyadır (126 yer): yuxarıdan giriş, keçidlə eniş, istədiyin yerə oturma, pəncərədə dərslərin siyahısı. Zaldakı canlı dərsin 3D görünüşü də bu auditoriyadır.
 - Özünü öyrənmə: fənn otaqları, mövzu / qarışıq / səhvlər / sınaq imtahanı, izahlar, FSRS təkrar, gündəlik, seriya və medallar, şərəf lövhəsi, konspekt şkafı (mətn və serverdə möhürlənən PDF).
 - Canlı dərs: LiveKit, yer nömrəsi, əl qaldırma, söz vermə, "yalnız host danışır", chat, davamiyyət, 2D və 3D sinif.
 - Müəllim otağı (sual dərci, sual analizi, abunə kodları, qiymət, konspekt), admin otağı (dayandırma, rol, audit, texniki iş rejimi), müəllim/admin üçün TOTP.
@@ -33,7 +35,7 @@ Mağazasız sınaq, 10-a yaxın tələbə. Giriş yalnız e-poçtla. Addımlar v
 | Server (Supabase, pulsuz plan, Frankfurt) | `deploy-backend.yml` uğurlu. Management API ilə yoxlanıb: 16 migrasiya, 5 fənn, 6 məkan, cron işi, storage bucket, Auth-da SMTP və OTP şablonları, TOTP aktiv, iki funksiya ACTIVE |
 | Veb | `deploy-web.yml` uğurlu: https://qurban90.github.io/Kariyeram-Accademy/ . Sahib 2026-11-15-də real e-poçt kodu ilə qeydiyyatdan keçdi və razılıqları verdi (bazada təsdiqlənib). AI səhifəni özü aça bilmir (şəbəkə məhdudiyyəti), ona görə görünüş yalnız sahibin sözü ilə təsdiqlənir |
 | E-poçt kodu | SMTP (Gmail) işləyir: sahibin qeydiyyatı real kodla keçdi |
-| Android APK | Yığım işləyir (R8 kiçiltməsi söndürülüb: 2-ci cəhd R8 addımında dayanmışdı, dəqiq xəta oxunmayıb). Real serverli yığım uğurlu (2026-11-15 15:20 UTC), fayl "pilot" buraxılışındadır: https://github.com/Qurban90/Kariyeram-Accademy/releases/tag/pilot . Bu fayl 3D gəzintidən əvvəlki koddur (köhnə 2D zal): `main` yenilənəndən sonra yenidən yığılmalıdır. Heç bir cihazda açılmayıb |
+| Android APK | Yığım işləyir (R8 kiçiltməsi söndürülüb: 2-ci cəhd R8 addımında dayanmışdı, dəqiq xəta oxunmayıb). "pilot" buraxılışındakı fayl 2026-11-15 20:42 UTC yığımıdır (`e6221f6`: ilk 3D gəzinti, qapıdan keçid və auditoriya hələ yox): https://github.com/Qurban90/Kariyeram-Accademy/releases/tag/pilot . `main` yenilənəndən sonra yenidən yığılmalıdır. Heç bir cihazda açılmayıb |
 | İlk admin | Sahibin hesabı (tələbə № 1) SQL ilə admin edilib. Admin otağı TOTP tələb edir: sahib Kabinetdən iki mərhələli qorumanı qoşmalıdır |
 | LiveKit | Sirlər funksiyalara yazılıb; real dərs sınanmayıb. Webhook LiveKit panelində hələ təyin olunmayıb (davamiyyət üçün) |
 | `APP_ORIGINS` | Dəyişən təyin olunmayıbsa CORS hər mənbəyə açıqdır (R-08); deploy jurnalındakı xəbərdarlığa bax |
@@ -65,7 +67,8 @@ Mənbə sahibin Google Drive qovluğudur (fənlər üzrə alt qovluqlar). 2026-1
 
 - 3D native-də (Android/iOS, expo-gl) heç vaxt işə salınmayıb. APK-da 3D açılmasa tətbiq sadə görünüşə keçməlidir, amma bu da cihazda yoxlanmayıb. İlk APK sınağında ilk baxılacaq şey budur.
 - 3D-də prototipdəki bəzi əşyalar yoxdur: fəxri məzunlar, müsahibə otağı (105), sinifdə digər tələbələrin avatarları. Qapı lövhəciyində yalnız nömrə var (3D şrifti yalnız rəqəm çəkir); fənnin adı "Daxil ol" düyməsində yazılır.
-- Canlı dərsin 3D sinfində yeri server verir; tələbə orada partanı özü seçmir.
+- Canlı dərsdə yeri server verir; tələbə orada yeri özü seçmir (zalın girişində isə sərbəst oturur). Canlı dərs ekranı defolt 2D-dir, 3D düymə ilə açılır.
+- Auditoriyanın yan divarları sadədir (pəncərə, panel yoxdur); zalda digər tələbələrin fiqurları yalnız canlı dərsdə görünür.
 
 - Loqo: tətbiqdəki nişan (`Brand.tsx`) və ikonlar loqonun əl ilə çəkilmiş vektor surətidir. Rəsmi fayl (SVG və ya şəffaf PNG) gələndə əvəz olunmalıdır.
 - Hüquqi mətnlər yazılmayıb, amma razılıq toplanır (R-02, kritik). Pilotdan əvvəl ən azı qaralama lazımdır.
@@ -77,7 +80,7 @@ Mənbə sahibin Google Drive qovluğudur (fənlər üzrə alt qovluqlar). 2026-1
 
 ## Əsas fayllar
 
-- 3D məktəb: `apps/app/src/school3d/` (`walk.ts` məntiq və test, `Corridor3D.tsx`, `SchoolCorridor.tsx`, `Room3D.tsx`, `StudyRoom.tsx`, `WalkPad.tsx`, `Rig.tsx`, `Hud.tsx`), `src/lib/view3d.ts`, `src/room/RoomPanel.tsx`.
+- 3D məktəb: `apps/app/src/school3d/` (`walk.ts` məntiq və test, `Corridor3D.tsx`, `SchoolCorridor.tsx`, `Room3D.tsx`, `StudyRoom.tsx`, `Auditorium.tsx`, `walls.tsx`, `WalkPad.tsx`, `Rig.tsx`, `Hud.tsx`), `src/lib/view3d.ts`, `src/room/RoomPanel.tsx`, `src/live/LiveListPanel.tsx`.
 - Dizayn: `apps/app/src/theme.ts`, `src/components/ui.tsx`, `Theme.tsx`, `Text.tsx`, `Icon.tsx`, `Brand.tsx`, `Door.tsx`, `RoomScene.tsx`.
 - Ekranlar: `apps/app/app/` (`index` zal, `sign-in`, `room/[subject]`, `test/[session]`, `result/[session]`, `live/[id]`, `teacher`, `admin`, `profile`).
 - Server: `supabase/functions/_shared/handlers.ts` (API), `router.ts`, `live.ts`, `staff.ts`, `admin.ts`; `supabase/migrations/`.

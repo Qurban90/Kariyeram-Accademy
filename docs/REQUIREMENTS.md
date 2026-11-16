@@ -82,6 +82,8 @@ Prioritet: M (Must), S (Should), C (Could).
 | FR-049 | Dərsin yazılması və şkafa düşməsi | C | Razılıqla | Plan |
 | FR-050 | 3D zal/sinif: iştirakçılar oturacaqlarda, host səhnədə | S | Zəif cihazda 2D | Qismən (3D dəhliz və 3D sinif vebdə E2E ilə; lövhədə müəllim videosu yalnız vebdə; native-də yoxlanmayıb) |
 | FR-052 | 3D gəzinti (defolt görünüş): tələbə joystiklə dəhlizdə gəzir, istədiyi fənn otağına girir, istədiyi partaya oturur, pəncərə (mövzular, test, konspekt) partada açılır | M | Sadə (2D) görünüş menyudan; WebGL xətasında avtomatik 2D; yüngül rejim | Hazır vebdə (vahid testlər + E2E); native-də yoxlanmayıb (ADR 0008) |
+| FR-053 | 3D-də qapıdan keçid: qapı açılanda arxasındakı məkan görünür, tələbə qapıdan yeriyib keçir (girişdə və çıxışda), kəsilmə yumşaq pərdə ilə örtülür | M | Yüngül rejimdə də işləyir | Hazır vebdə (E2E) |
+| FR-054 | Oxu zalı pilləli auditoriyadır (126 yer): yuxarıdan giriş, keçidlərlə eniş, istədiyin yerə oturma, pəncərədə dərslərin siyahısı; zaldakı canlı dərsin 3D görünüşü də auditoriyadır | M | Sadə görünüşdə siyahı səhifəsi | Hazır vebdə (vahid testlər + E2E) |
 | FR-051 | İştirakçını çıxarmaq/bloklamaq | M | Host/admin | Hazır (API + UI) |
 
 ### Motivasiya
@@ -126,7 +128,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | TEST-001 | Alqoritm vahid testləri | Vitest | Hazır |
 | TEST-002 | DB/RLS testləri real Postgres-də | psql | Hazır |
 | TEST-003 | Lokal Supabase ilə end-to-end API testi | supabase start | Hazır (11 inteqrasiya testi) |
-| TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (32 addım) |
+| TEST-004 | Brauzerdə tətbiq E2E (real stek) | Playwright | Hazır (33 addım) |
 | TEST-005 | Native cihazlarda E2E | Maestro/Detox | Plan |
 | NFR-005 | Köhnə klientin məcburi yenilənməsi və texniki iş rejimi | `app_config`, `x-app-version` | Hazır (DB + API + UI, inteqrasiya testi) |
 | NFR-006 | Məlumat saxlama siyasəti (avtomatik təmizləmə) | pg_cron | Hazır (DB testi; istehsalda cron işi yoxlanmalıdır) |

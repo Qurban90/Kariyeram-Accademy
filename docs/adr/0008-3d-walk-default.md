@@ -11,6 +11,11 @@ Sahibin ilkin prototipində (claude.ai artefaktı "Karyeram Academy", 2026-11-03
 - 2D "Sadə görünüş" qalır: menyudan seçilir, WebGL açılmayan cihazda avtomatik işə düşür, ekran oxuyucusu ilə istifadə üçün əsas yoldur. Kadr sürəti aşağıdırsa "Yüngül rejim" özü açılır.
 - Marşrutlar dəyişmir (`/` dəhliz, `/room/[subject]` sinif, `/test/[session]`): 3D yalnız görünüş qatıdır, bütün icazə və məzmun məntiqi əvvəlki kimidir.
 
+## Əlavə (2026-11-16): qapıdan keçid və oxu zalı
+Sahibin ilk rəyi: otağa girəndə və çıxanda keçid "portal" kimi hiss olunurdu; oxu zalı universitet auditoriyası kimi pilləli olmalıdır.
+- Divarlar qapı yerləri açıq parçalardan yığılır (`walls.tsx`). Qapı açılanda arxasında həmin sinfin və ya zalın öz interyeri çəkilir, tələbə qapıdan yeriyib keçir; səhnə dəyişən anı qısa yumşaq pərdə örtür, o tayda tələbə eyni yerdən içəri addımlamağa davam edir. Çıxışda eyni qayda: qapının arxasında dəhliz görünür, dəhlizdə tələbə həmin qapıdan çıxır.
+- Oxu zalı pilləli auditoriyadır (`Auditorium.tsx`): 9 sıra × 14 yer (126), giriş yuxarı meydançadan, keçidlərlə enilir, böyük lövhə səhnədədir. Zalda da istədiyin yerə oturursan, pəncərədə dərslərin siyahısı açılır. Zalda keçən canlı dərsin 3D görünüşü də bu auditoriyadır (yer nömrəsini server verir).
+
 ## Nəticələr
 - Gəzinti məntiqi saf moduldadır (`apps/app/src/school3d/walk.ts`) və vahid testlərlə yoxlanır; veb E2E joystiki, qapıya girişi, oturmanı və pəncərəni yoxlayır.
 - Native-də (expo-gl) 3D heç bir cihazda yoxlanmayıb: real telefonda sınaq pilotun şərtidir. Açılmasa tətbiq sadə görünüşə keçir.

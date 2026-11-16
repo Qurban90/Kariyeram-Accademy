@@ -64,7 +64,8 @@ npm run db:test
 
 ## 3D məktəb (defolt görünüş, ADR 0008)
 
-- Tələbə joystiklə dəhlizdə gəzir, qapıdan sinfə girir, istədiyi partaya oturur, pəncərə partada açılır. Kod: `apps/app/src/school3d/` (`walk.ts` saf məntiq, `Corridor3D`/`SchoolCorridor` dəhliz, `Room3D`/`StudyRoom` sinif, `WalkPad` giriş, `Hud` düymələr).
+- Tələbə joystiklə dəhlizdə gəzir, qapıdan sinfə girir, istədiyi partaya oturur, pəncərə partada açılır. Kod: `apps/app/src/school3d/` (`walk.ts` saf məntiq, `Corridor3D`/`SchoolCorridor` dəhliz, `Room3D` oturulan məkan (sinif `StudyRoom`, oxu zalı `Auditorium`), `walls.tsx` qapı yeri açıq divarlar, `WalkPad` giriş, `Hud` düymələr və keçid pərdəsi).
+- Qapıdan keçid portal olmamalıdır: qapı açılanda arxasında o tayın öz interyeri çəkilir və tələbə qapıdan yeriyib keçir. Yeni məkan əlavə edəndə bu qaydanı saxla.
 - Sadə (2D) görünüş həmişə işlək qalmalıdır (`src/lib/view3d.ts`): WebGL açılmayan cihaz və ekran oxuyucusu üçün yeganə yoldur. Yeni funksiya hər iki görünüşdə əlçatan olmalıdır.
 - 3D-də şəkil və şrift faylı yüklənmir (prosedur teksturalar, `texgen.ts`); mətn ekran üstü qatda (HUD) göstərilir.
 
