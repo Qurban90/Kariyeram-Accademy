@@ -9,7 +9,7 @@ Son yeniləmə: 2026-11-15. Dəyişməyən qaydalar `CLAUDE.md`-dədir; burada y
 
 ## Hazır olanlar (testlə təsdiqlənib)
 
-Son yoxlama 2026-11-16 (qapıdan keçid və auditoriyadan sonra), lokal mühit: tip yoxlaması xətasız, vahid 120/120, veb E2E 33/33 addım (bu qaçışdan sonra yalnız sinifdən çıxışda görünən dəhliz divarının istiqaməti düzəldilib; təkrar qaçışın nəticəsi növbəti commit-də). DB 277 yoxlama və inteqrasiya 11/11 sonuncu dəfə 2026-11-15-də keçib (server kodu o vaxtdan dəyişməyib). E2E brauzerin proqram renderi ilədir, real telefon deyil.
+Son yoxlama 2026-11-16 (qapıdan keçid və auditoriyadan sonra), lokal mühit: tip yoxlaması xətasız, vahid 120/120, veb E2E 33/33 addım (son kodla). DB 277 yoxlama və inteqrasiya 11/11 sonuncu dəfə 2026-11-15-də keçib (server kodu o vaxtdan dəyişməyib). E2E brauzerin proqram renderi ilədir, real telefon deyil.
 
 - Giriş: telefon və e-poçt OTP (parolsuz), razılıqlar, hesab silmə və ixrac, ikinci giriş üsulu bağlama.
 - 3D məktəb (defolt görünüş, ADR 0008): tam ekran dəhlizdə joystiklə gəzinti, qapının yanında "Daxil ol", fənn sinfində 12 partadan istədiyinə oturma (yaxınlaşıb və ya üstünə toxunub), partada açılan pəncərə (mövzular, test, konspekt), ayağa qalxma, dəhlizə çıxış; testdən sonra tələbə oturduğu partaya qayıdır. Menyuda sadə (2D) görünüş və yüngül rejim.
