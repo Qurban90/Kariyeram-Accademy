@@ -6,6 +6,7 @@ import { Component, lazy, Suspense, useEffect, useMemo, useRef, useState, type R
 import { Platform, StyleSheet, View } from 'react-native'
 import { Button, Group, ListRow, Loading, P, Sheet } from '../components/ui'
 import { t } from '../i18n/az'
+import { crumb } from '../lib/diag'
 import { use3dGuard } from '../lib/view3d'
 import { colors } from '../theme'
 import { finePointer, Hud, HudButton, useToast, Veil } from './Hud'
@@ -65,6 +66,7 @@ export function Corridor3D({ doors, hallLive, active, greeting, resume, onEnter,
     walker.walkTo([s], undefined, () => setSelected(null), Walker.DOOR_SPEED)
   }, [active, walker, n])
   useEffect(() => { walker.frozen = menu }, [menu, walker])
+  useEffect(() => { if (guard.armed) crumb('gl_start') }, [guard.armed])
 
   /** Hədəfə özü yeriyir, sonra əməl icra olunur (qapı açılır və içəri keçir). */
   const go = (id: string) => {
@@ -104,7 +106,7 @@ export function Corridor3D({ doors, hallLive, active, greeting, resume, onEnter,
         <GLBoundary onFail={onFail}>
           <Suspense fallback={<Loading label={t.walk.building} />}>
             {!guard.armed ? <Loading label={t.walk.building} /> : <SchoolCorridor doors={doors.map((d) => ({ key: d.key, label: d.number }))} selected={selected} hallLive={hallLive}
-              walker={walker} targets={targets} onNear={setNear} pick={pick} low={low} active={active} onReady={() => { if (inside.current === null) setVeil(false); later(6000, guard.settle) }}
+              walker={walker} targets={targets} onNear={setNear} pick={pick} low={low} active={active} onReady={() => { crumb('gl_first_frame'); if (inside.current === null) setVeil(false); later(6000, () => { crumb('gl_stable'); guard.settle() }) }}
               onSlow={() => { setLow(true); showToast(t.walk.lowAuto) }} />}
           </Suspense>
         </GLBoundary>

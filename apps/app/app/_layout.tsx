@@ -19,7 +19,12 @@ import { AuthProvider, useAuth } from '../src/lib/auth'
 import { ApiFailure } from '../src/lib/api'
 import { checkAppConfig, useAppStatus } from '../src/lib/appStatus'
 import { MfaChallenge, useMfaState } from '../src/components/Mfa'
+import { crumb, installCrashCapture, useCrash } from '../src/lib/diag'
 import { colors } from '../src/theme'
+
+// Tutulmayan JS xətası tətbiqi bağlamasın: qeydə alınır və xəta ekranı göstərilir (yalnız native).
+installCrashCapture()
+crumb('app_start')
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,6 +52,11 @@ function Gate() {
     const id = setInterval(() => { void checkAppConfig() }, 5 * 60_000)
     return () => clearInterval(id)
   }, [])
+
+  // Diaqnostika: sessiyanın bərpası və profilin yüklənməsi (şəxsi məlumat göndərilmir).
+  useEffect(() => { if (ready) crumb('session_restore', session ? 'var' : 'yox') }, [ready, !!session])
+  useEffect(() => { if (profile) crumb('profile_ok', `onboarded=${profile.onboarded_at ? 1 : 0} role=${profile.role}`) }, [profile?.id, !!profile?.onboarded_at])
+  useEffect(() => { if (profileError) crumb('profile_fail') }, [profileError])
 
   useEffect(() => {
     if (!ready) return
@@ -107,7 +117,21 @@ export default function RootLayout() {
     Fraunces_500Medium, Fraunces_500Medium_Italic, Fraunces_600SemiBold,
     HankenGrotesk_400Regular, HankenGrotesk_500Medium, HankenGrotesk_600SemiBold, HankenGrotesk_700Bold,
   })
+  const [crash, clearCrash] = useCrash()
   if (!fontsLoaded && !fontError) return <View style={{ flex: 1, backgroundColor: colors.night }} />
+  if (crash) {
+    return (
+      <SafeAreaProvider>
+        <Screen>
+          <H>{t.safe.crashTitle}</H>
+          <P dim>{t.safe.crashSub}</P>
+          <ErrorBox message={crash.message} />
+          <P dim small>{crash.stack}</P>
+          <Button testID="crash-continue" label={t.common.retry} onPress={clearCrash} />
+        </Screen>
+      </SafeAreaProvider>
+    )
+  }
   if (configError) {
     return (
       <SafeAreaProvider>

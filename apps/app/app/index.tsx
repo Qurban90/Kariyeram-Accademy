@@ -5,13 +5,19 @@ import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native'
 import { Lockup } from '../src/components/Brand'
 import { Door, DoorSpacer } from '../src/components/Door'
 import { Corridor3D } from '../src/school3d/Corridor3D'
+import { crumb, hallAttempt, hallReset, hallStable } from '../src/lib/diag'
 import { take3dFallback, useView3d } from '../src/lib/view3d'
+import { SafeHall } from '../src/components/SafeHall'
 import { StatusBar } from 'expo-status-bar'
 import { Badge, Bar, Button, Card, Chip, ErrorBox, Group, H, Icon, ListRow, Loading, P, Screen, Section } from '../src/components/ui'
 import { t } from '../src/i18n/az'
 import { useAuth } from '../src/lib/auth'
 import { hasAccess, useActiveSession, useEnrollments, useLiveSessions, useSubjects, useTopics } from '../src/lib/queries'
 import { colors, space } from '../src/theme'
+
+const native = Platform.OS !== 'web'
+/** Yoxlama rejimində ekranın açıldığı hissələr (son izə görə hansı hissədə dayandığı bilinir). */
+const STAGES = ['bashliq', 'salam', 'bolme_ve_chip', 'ilk_qapi', 'qalan_qapilar', 'zal_qapisi', 'siyahi'] as const
 
 export default function Hall() {
   const { profile } = useAuth()
@@ -27,9 +33,36 @@ export default function Hall() {
   useEffect(() => { if (view3d === false && take3dFallback()) setGlErr(t.hall.gl3dFailed) }, [view3d])
   const { width } = useWindowDimensions()
   const cols = width >= 700 ? 4 : 2
+
+  // Telefonda: bu ekran əvvəlki açılışlarda sabit vəziyyətə çatmadan tətbiq bağlanıbsa (çökmə, donma),
+  // birinci dəfə hissə-hissə açılır (harada dayandığı serverdəki izdən bilinir), ikinci dəfədən ən sadə ekran göstərilir.
+  const onboarded = !!profile?.onboarded_at
+  const [fails, setFails] = useState<number | null>(native ? null : 0)
+  useEffect(() => { if (native && onboarded && fails === null) void hallAttempt().then(setFails) }, [onboarded, fails])
+  const [stage, setStage] = useState(0)
+  const ready = !subjects.isLoading && view3d !== null && fails !== null
+  const staged = fails === 1 && !view3d
+  const opened = !staged || stage >= STAGES.length
+  const count = subjects.data?.length ?? 0
+  useEffect(() => { if (ready) crumb('hall_data', `fenn=${count} view3d=${view3d ? 1 : 0} fails=${fails}`) }, [ready])
+  useEffect(() => {
+    if (!ready || !staged || stage >= STAGES.length) return
+    crumb(`stage_next_${stage + 1}`, STAGES[stage])
+    const id = setTimeout(() => setStage(stage + 1), 700)
+    return () => clearTimeout(id)
+  }, [ready, staged, stage])
+  useEffect(() => {
+    if (!ready || !opened) return
+    crumb('hall_rendered', (fails ?? 0) >= 2 ? 'sade' : view3d ? '3d' : staged ? 'merheleli' : 'tam')
+    const a = setTimeout(() => crumb('hall_alive_1s'), 1000)
+    const b = setTimeout(hallStable, 5000)
+    return () => { clearTimeout(a); clearTimeout(b) }
+  }, [ready, opened])
+  /** Yoxlama rejimində `k`-cı hissə artıq açılıbmı. */
+  const show = (k: number) => !staged || stage >= k
   useFocusEffect(useCallback(() => { setFocused(true); void active.refetch(); return () => setFocused(false) }, [active.refetch]))
 
-  if (subjects.isLoading || view3d === null) return <Screen><Loading /></Screen>
+  if (subjects.isLoading || view3d === null || fails === null) return <Screen><Loading /></Screen>
   const liveNow = (live.data ?? []).filter((s) => s.state === 'live').length
   const first = profile?.display_name?.split(' ')[0] || ''
 
@@ -45,6 +78,23 @@ export default function Hall() {
   const resumeSub = active.data
     ? t.hall.resumeSub(subjects.data?.find((s) => s.id === active.data!.subject_id)?.name ?? active.data.subject_id, active.data.cursor, resumeTotal)
     : ''
+
+  // İki ardıcıl uğursuz açılışdan sonra: ən sadə ekran (tətbiq istifadəsiz qalmasın).
+  if (fails >= 2) {
+    return (
+      <SafeHall greeting={t.hall.greeting(first)}
+        rooms={[
+          ...(subjects.data ?? []).map((s, i) => ({ key: s.id, title: `${101 + i} · ${s.name}`, onPress: () => router.push({ pathname: '/room/[subject]', params: { subject: s.id } }) })),
+          { key: 'live', title: t.hall.live, sub: t.hall.liveSub, onPress: () => router.push('/live') },
+        ]}
+        links={[
+          { key: 'diary', title: t.hall.diary, sub: t.hall.diarySub, onPress: () => router.push('/diary') },
+          { key: 'board', title: t.hall.board, sub: t.hall.boardSub, onPress: () => router.push('/board') },
+          { key: 'profile', title: t.hall.profile, sub: t.hall.profileSub, onPress: () => router.push('/profile') },
+        ]}
+        onRetryFull={() => { void hallReset().then(() => setFails(null)) }} />
+    )
+  }
 
   // 3D məktəb: tam ekran dəhliz, tələbə özü gəzir.
   if (view3d) {
@@ -72,17 +122,22 @@ export default function Hall() {
 
   return (
     <Screen glow>
-      <View style={st.top}>
-        <Lockup />
-        {profile ? <Badge label={t.hall.studentNo(String(profile.student_no))} /> : null}
-      </View>
-      <View style={{ gap: space.xs }}>
-        <H>{t.hall.greeting(first)}</H>
-        <P dim>{t.hall.lead}</P>
-      </View>
+      {staged && !opened ? <P dim small>{t.safe.staged(stage, STAGES.length)}</P> : null}
+      {show(1) ? (
+        <View style={st.top}>
+          <Lockup />
+          {profile ? <Badge label={t.hall.studentNo(String(profile.student_no))} /> : null}
+        </View>
+      ) : null}
+      {show(2) ? (
+        <View style={{ gap: space.xs }}>
+          <H>{t.hall.greeting(first)}</H>
+          <P dim>{t.hall.lead}</P>
+        </View>
+      ) : null}
       <ErrorBox message={subjects.error ? (subjects.error as Error).message : null} onRetry={() => subjects.refetch()} />
 
-      {active.data && (
+      {active.data && show(3) && (
         <Card testID="resume-card" tone="gold">
           <View style={st.resumeHead}>
             <View style={st.resumeIcon}><Icon name="stairs" size={20} color={colors.gold} /></View>
@@ -96,11 +151,12 @@ export default function Hall() {
         </Card>
       )}
 
+      {show(3) ? (
       <Section title={t.hall.rooms} gap={space.lg}
         right={<Chip testID="toggle-3d" icon="compass" label={Platform.OS === 'web' ? t.hall.view3d : t.hall.view3dBeta} onPress={() => { setGlErr(null); setView(true) }} />}>
         {glErr ? <P dim small>{glErr}</P> : null}
           <View style={st.corridor}>
-            {(subjects.data ?? []).map((s, i) => {
+            {(subjects.data ?? []).slice(0, show(5) ? undefined : show(4) ? 1 : 0).map((s, i) => {
               const acc = hasAccess(enr.data, s.id)
               const freeCount = (topics.data ?? []).filter((x) => x.subject_id === s.id && x.free).length
               return (
@@ -112,16 +168,21 @@ export default function Hall() {
             {Array.from({ length: spacers }, (_, i) => <DoorSpacer key={`sp-${i}`} basis={basis} />)}
           </View>
 
-          <Door wide testID="door-live" number="ZAL" title={t.hall.live}
-            status={liveNow ? `${liveNow} ${t.live.liveNow}` : t.hall.liveSub} statusTone={liveNow ? 'live' : 'dim'}
-            onOpen={() => router.push('/live')} />
+          {show(6) ? (
+            <Door wide testID="door-live" number="ZAL" title={t.hall.live}
+              status={liveNow ? `${liveNow} ${t.live.liveNow}` : t.hall.liveSub} statusTone={liveNow ? 'live' : 'dim'}
+              onOpen={() => router.push('/live')} />
+          ) : null}
       </Section>
+      ) : null}
 
+      {show(7) ? (
       <Group>
         <ListRow icon="notebook" title={t.hall.diary} sub={t.hall.diarySub} onPress={() => router.push('/diary')} testID="go-diary" />
         <ListRow icon="trophy" title={t.hall.board} sub={t.hall.boardSub} onPress={() => router.push('/board')} testID="go-board" />
         <ListRow icon="user" title={t.hall.profile} sub={t.hall.profileSub} onPress={() => router.push('/profile')} testID="go-profile" />
       </Group>
+      ) : null}
     </Screen>
   )
 }

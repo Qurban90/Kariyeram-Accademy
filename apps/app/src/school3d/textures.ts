@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react'
 import { Platform } from 'react-native'
 import * as THREE from 'three'
+import { crumb } from '../lib/diag'
 import * as G from './texgen'
 
 const WEB = Platform.OS === 'web'
@@ -96,7 +97,7 @@ export function useSurfaces(keys: SurfaceKey[]): boolean {
         if (!alive) return
         if (!surfaces.has(k)) { surface(k); await yieldFrame() }
       }
-      if (alive) setReady(true)
+      if (alive) { crumb('gl_surfaces_ready', sig.split(',').length); setReady(true) }
     })()
     return () => { alive = false }
   }, [sig, ready])

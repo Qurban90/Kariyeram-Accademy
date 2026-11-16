@@ -117,6 +117,12 @@ export const t = {
     submit: 'Məktəbə daxil ol', required: 'Məcburi bəndləri qeyd edin.',
     minorNote: '18 yaşdan kiçiklər üçün valideyn rejimi sonrakı mərhələdədir.',
   },
+  safe: {
+    note: 'Sadələşdirilmiş rejim: əsas ekran bu telefonda iki dəfə açılmadı, ona görə ən sadə görünüş göstərilir. Bütün otaqlar işləyir.',
+    retryFull: 'Tam görünüşü yenidən sına',
+    staged: (n: number, of: number) => `Yoxlama rejimi: ekran hissə-hissə açılır (${n}/${of})`,
+    crashTitle: 'Tətbiqdə xəta baş verdi', crashSub: 'Tətbiq bağlanmadı. Bu ekranın şəklini çəkib göndərin, sonra yenidən cəhd edin.',
+  },
   hall: {
     greeting: (n: string) => `Salam, ${n}!`, lead: 'Bu gün hansı otağa girək?',
     rooms: 'Fənn otaqları', live: 'Oxu zalı', liveSub: 'Canlı dərslər və seminarlar',

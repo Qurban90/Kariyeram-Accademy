@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react'
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native'
 import { Lockup } from '../src/components/Brand'
 import { Button, ErrorBox, Field, H, P, Screen, Segmented } from '../src/components/ui'
+import { crumb } from '../src/lib/diag'
 import { t } from '../src/i18n/az'
 import { config } from '../src/config'
 import { api } from '../src/lib/api'
@@ -77,10 +78,12 @@ export default function SignIn() {
     const params = method === 'phone'
       ? { phone: sentTo, token: clean, type: 'sms' as const }
       : { email: sentTo, token: clean, type: 'email' as const }
+    crumb('otp_verify_start')
     const { error: e } = await supabase.auth.verifyOtp(params)
-    if (e) { setBusy(false); setError(authErrorText(e)); return }
+    if (e) { crumb('otp_verify_fail', e.status ?? ''); setBusy(false); setError(authErrorText(e)); return }
+    crumb('otp_verify_ok')
     // Açıq giriş aktı: bu cihazı aktiv et (köhnə cihaz audit ilə deaktiv olur). Razılıq yoxdursa onboarding-dən sonra təkrarlanır.
-    await api.claimDevice().catch(() => {})
+    await api.claimDevice().then(() => crumb('device_claim_ok'), () => crumb('device_claim_fail'))
     setBusy(false)
     // Yönləndirmə Gate tərəfindən edilir (sessiya dəyişir).
   }

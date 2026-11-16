@@ -6,6 +6,7 @@ import { Button, Check, ErrorBox, Field, H, P, Screen } from '../src/components/
 import { t } from '../src/i18n/az'
 import { api, ApiFailure } from '../src/lib/api'
 import { useAuth } from '../src/lib/auth'
+import { crumb } from '../src/lib/diag'
 import { space } from '../src/theme'
 
 export default function Onboarding() {
@@ -24,8 +25,10 @@ export default function Onboarding() {
     try {
       const docs = ['terms', 'privacy', 'age18', ...(opt.marketing ? ['marketing'] : []), ...(opt.recording ? ['recording'] : [])]
       await api.consent(docs, n)
+      crumb('consent_ok')
       await api.claimDevice().catch(() => {})
       await refreshProfile()
+      crumb('nav_hall')
       router.replace('/')
     } catch (e) {
       setErr(e instanceof ApiFailure ? e.message : String(e))
