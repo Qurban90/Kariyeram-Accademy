@@ -5,7 +5,7 @@ Son yeniləmə: 2026-11-15. Dəyişməyən qaydalar `CLAUDE.md`-dədir; burada y
 ## Budaqlar
 
 - `main`: buraxılış budağı. `karyeram/foundation`: iş budağı. Köhnə "Pillə" tətbiqi silinib (yalnız git tarixçəsindədir).
-- 2026-11-15 axşamı `foundation` `main`-dən irəlidədir: 3D gəzinti (aşağıda), məzmun alətləri, sənədlər. Veb və APK `main`-dən yığılır, yəni sahib 3D-ni yalnız `main`-ə push və yenidən deploydan sonra görəcək. `main`-ə push üçün sahibdən icazə al.
+- 2026-11-16-da `main` = `ce091f1` (veb və APK bu commit-dən yığılıb). Ondan sonrakı commit-lər yalnız `foundation`-dadır. `main`-ə push üçün sahibdən icazə al.
 
 ## Hazır olanlar (testlə təsdiqlənib)
 
@@ -35,7 +35,7 @@ Mağazasız sınaq, 10-a yaxın tələbə. Giriş yalnız e-poçtla. Addımlar v
 | Server (Supabase, pulsuz plan, Frankfurt) | `deploy-backend.yml` uğurlu. Management API ilə yoxlanıb: 16 migrasiya, 5 fənn, 6 məkan, cron işi, storage bucket, Auth-da SMTP və OTP şablonları, TOTP aktiv, iki funksiya ACTIVE |
 | Veb | `deploy-web.yml` uğurlu: https://qurban90.github.io/Kariyeram-Accademy/ . Sahib 2026-11-15-də real e-poçt kodu ilə qeydiyyatdan keçdi və razılıqları verdi (bazada təsdiqlənib). AI səhifəni özü aça bilmir (şəbəkə məhdudiyyəti), ona görə görünüş yalnız sahibin sözü ilə təsdiqlənir |
 | E-poçt kodu | SMTP (Gmail) işləyir: sahibin qeydiyyatı real kodla keçdi |
-| Android APK | Yığım işləyir (R8 kiçiltməsi söndürülüb: 2-ci cəhd R8 addımında dayanmışdı, dəqiq xəta oxunmayıb). "pilot" buraxılışındakı fayl 2026-11-15 20:42 UTC yığımıdır (`e6221f6`: ilk 3D gəzinti, qapıdan keçid və auditoriya hələ yox): https://github.com/Qurban90/Kariyeram-Accademy/releases/tag/pilot . `main` yenilənəndən sonra yenidən yığılmalıdır. Heç bir cihazda açılmayıb |
+| Android APK | Yığım işləyir (R8 kiçiltməsi söndürülüb: 2-ci cəhd R8 addımında dayanmışdı, dəqiq xəta oxunmayıb). "pilot" buraxılışındakı fayl 2026-11-16 04:23 UTC yığımıdır (`ce091f1`: 3D gəzinti, qapıdan keçid, auditoriya; real server ünvanı ilə): https://github.com/Qurban90/Kariyeram-Accademy/releases/tag/pilot . Heç bir cihazda açılmayıb: 3D-nin Android-də işləməsi yoxlanmayıb |
 | İlk admin | Sahibin hesabı (tələbə № 1) SQL ilə admin edilib. Admin otağı TOTP tələb edir: sahib Kabinetdən iki mərhələli qorumanı qoşmalıdır |
 | LiveKit | Sirlər funksiyalara yazılıb; real dərs sınanmayıb. Webhook LiveKit panelində hələ təyin olunmayıb (davamiyyət üçün) |
 | `APP_ORIGINS` | Dəyişən təyin olunmayıbsa CORS hər mənbəyə açıqdır (R-08); deploy jurnalındakı xəbərdarlığa bax |
