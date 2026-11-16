@@ -141,6 +141,9 @@ export const t = {
     window: 'Pəncərə', windowSub: 'Mövzular, test, konspekt', stand: 'Ayağa qalx',
     exit: 'Dəhlizə çıx', shelf: 'Kitab şkafı', shelfSub: 'Konspektlər', room: (no: string) => `Otaq ${no}`,
     roomMenu: 'Otaq', roomMenuLead: 'Parta seçmək üçün ona yaxınlaş və ya üstünə toxun.',
+    hallHint: 'Keçidlə aşağı en, istədiyin yerə toxun və otur. Dərslər pəncərədə açılır.',
+    hallWindowSub: 'Dərslər və seminarlar', nearestSeat: 'Ən yaxın boş yer', goSeat: 'Yerə get və otur',
+    hallMenuLead: 'Yer seçmək üçün ona yaxınlaş və ya üstünə toxun.',
   },
   room: {
     topics: 'Mövzular', free: 'Pulsuz', locked: 'Kod tələb olunur',

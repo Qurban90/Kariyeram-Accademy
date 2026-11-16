@@ -168,7 +168,10 @@ try {
 
   await step('3D məktəb: qapıdan sinfə giriş, partaya oturma, pəncərə, ayağa qalxma, dəhlizə çıxış', async () => {
     await tid('hud-menu').click()
-    await tid('door3d-informatika').click() // tələbə qapıya özü yeriyir, qapı açılır
+    await tid('door3d-informatika').click() // tələbə qapıya özü yeriyir, qapı açılır, arxasında sinif görünür
+    // Qapıdan keçərkən: divarın xəttini keçib (|x| > 2), yəni portal yox, yeriyərək keçid.
+    await page.waitForFunction(() => Math.abs(globalThis.__karyeramWalker?.x ?? 0) > 1.15, null, { timeout: 30000 })
+    await shot('04b3-3d-qapidan-kecid')
     await page.waitForURL('**/room/informatika', { timeout: 40000 }).catch(async (e) => { throw new Error(`otağa keçmədi: ${JSON.stringify(await walkerState())} ${e.message.split('\n')[0]}`) })
     await canvasReady('room-3d')
     await page.waitForFunction(() => globalThis.__karyeramWalker?.z > 4, null, { timeout: 30000 }) // sinfin qapısında
@@ -214,9 +217,59 @@ try {
     await shot('04f-3d-secilen-parta')
     await tid('window-close').click()
     await tid('room-menu-open').click()
-    await tid('menu-exit').click()
-    await page.waitForURL((u) => u.pathname === '/', { timeout: 15000 })
+    await tid('menu-exit').click() // qapıya gedir, qapı açılır, arxasında dəhliz görünür, qapıdan çıxır
+    await page.waitForFunction(() => (globalThis.__karyeramWalker?.z ?? 0) > 5.6, null, { timeout: 30000 })
+    await shot('04g-3d-sinifden-cixis')
+    await page.waitForURL((u) => u.pathname === '/', { timeout: 30000 })
     await canvasReady('corridor-3d')
+    // Dəhlizə həmin qapıdan çıxır və qapının qarşısında dayanır (dəhlizin içində).
+    await page.waitForFunction(() => { const w = globalThis.__karyeramWalker; return !!w && w.mode === 'walk' && Math.abs(w.x) < 1.6 }, null, { timeout: 20000 })
+  })
+
+  await step('3D oxu zalı: pilləli auditoriya, yuxarıdan giriş, yerə oturma, dərslərin pəncərəsi, çıxış', async () => {
+    await tid('hud-menu').click()
+    await tid('door3d-hall').click()
+    await page.waitForURL('**/live', { timeout: 40000 })
+    await canvasReady('hall-3d')
+    await tid('sit-desk').waitFor({ timeout: 30000 }) // qapıdan içəri addımladı
+    const top = await walkerState()
+    await page.waitForTimeout(800)
+    await shot('04h-3d-zal')
+    await tid('sit-desk').click()
+    await tid('desk-window').waitFor({ timeout: 30000 })
+    await page.getByText('Planlaşdırılmış dərslər').waitFor()
+    await page.waitForTimeout(400)
+    await shot('04i-3d-zal-pencere')
+    await tid('window-close').click()
+    await tid('open-window').waitFor()
+    const seated = await walkerState()
+    expect(seated.mode === 'seated', `zalda oturmadı: ${JSON.stringify(seated)}`)
+    await page.waitForTimeout(300)
+    await shot('04j-3d-zal-yerde')
+    // Aşağı sıradakı yerə toxunuş: tələbə keçidlə enir (döşəmə alçalır) və oturur.
+    await tid('stand-up').click()
+    await tid('sit-desk').waitFor({ timeout: 10000 })
+    const floorTop = await page.evaluate(() => globalThis.__karyeramWalker.floor)
+    const tapped = await page.evaluate(async () => {
+      const el = document.querySelector('[data-testid="room-pad"]'), r = el.getBoundingClientRect()
+      const ev = (type, x, y) => el.dispatchEvent(new PointerEvent(type, { pointerId: 41, pointerType: 'touch', clientX: r.left + x, clientY: r.top + y, bubbles: true }))
+      for (const [fx, fy] of [[0.5, 0.62], [0.4, 0.66], [0.6, 0.6], [0.3, 0.7], [0.5, 0.72], [0.2, 0.6], [0.7, 0.66]]) {
+        ev('pointerdown', r.width * fx, r.height * fy); ev('pointerup', r.width * fx, r.height * fy)
+        await new Promise((res) => setTimeout(res, 250))
+        if (globalThis.__karyeramWalker.mode !== 'walk') return true
+      }
+      return false
+    })
+    expect(tapped, 'zalda yerə toxunuş seçilmədi')
+    await tid('desk-window').waitFor({ timeout: 40000 })
+    const floorLow = await page.evaluate(() => globalThis.__karyeramWalker.floor)
+    expect(top.z > 7 && floorTop > 2 && floorLow <= floorTop, `pillə hündürlüyü: yuxarı ${floorTop}, seçilən yer ${floorLow}`)
+    await tid('window-close').click()
+    await tid('room-menu-open').click()
+    await tid('menu-exit').click()
+    await page.waitForURL((u) => u.pathname === '/', { timeout: 40000 })
+    await canvasReady('corridor-3d')
+    await page.waitForFunction(() => { const w = globalThis.__karyeramWalker; return !!w && w.mode === 'walk' }, null, { timeout: 20000 })
     await tid('hud-menu').click()
     await tid('toggle-3d').click() // növbəti addımlar üçün sadə görünüşə qayıt (seçim yadda saxlanılır)
     await tid('door-informatika').waitFor({ timeout: 10000 })

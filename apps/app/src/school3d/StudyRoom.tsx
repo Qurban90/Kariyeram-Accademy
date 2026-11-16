@@ -14,8 +14,9 @@ import { Boxes, type BoxPart } from './parts'
 import { Rig } from './Rig'
 import { mat, plateTex, useSurfaces, type SurfaceKey } from './textures'
 import { DESKS, ROOM, type Desk, type PickFn, type Target, type Walker } from './walk'
+import { CorridorStub, HoledWall } from './walls'
 
-const NEEDED: SurfaceKey[] = ['planks', 'plaster', 'grain', 'darkGrain', 'ceiling', 'board', 'cork', 'window']
+export const ROOM_SURFACES: SurfaceKey[] = ['planks', 'plaster', 'grain', 'darkGrain', 'ceiling', 'board', 'cork', 'window', 'marble', 'runner']
 const W = ROOM.halfW * 2, H = 4.5
 const DEPTH = ROOM.back - ROOM.front, ZC = (ROOM.back + ROOM.front) / 2
 
@@ -54,7 +55,7 @@ function Bookcase({ x, z }: { x: number; z: number }) {
   )
 }
 
-/** Çıxış qapısı (arxa divarda). Seçiləndə açılır, arxasında dəhlizin işığı görünür. */
+/** Çıxış qapısı (arxa divarda). Seçiləndə açılır, arxasında dəhliz görünür. */
 function ExitDoor({ x, z, open }: { x: number; z: number; open: boolean }) {
   const m = sharedMats()
   const leaf = useRef<THREE.Group>(null)
@@ -64,10 +65,9 @@ function ExitDoor({ x, z, open }: { x: number; z: number; open: boolean }) {
       {[[-0.6, 1.15, 0.12, 2.36], [0.6, 1.15, 0.12, 2.36], [0, 2.36, 1.32, 0.14]].map(([px, py, w, h], i) => (
         <mesh key={i} position={[px!, py!, 0.04]} material={m.darkWood}><boxGeometry args={[w!, h!, 0.08]} /></mesh>
       ))}
-      <mesh position={[0, 1.1, 0.012]}><planeGeometry args={[1.08, 2.22]} /><meshStandardMaterial color="#3a2a1a" emissive="#ffcf8a" emissiveIntensity={0.5} /></mesh>
       <group ref={leaf} position={[0.54, 0, 0.05]}>
         <group position={[-0.54, 0, 0]}>
-          <mesh position={[0, 1.1, 0]} material={m.wood}><boxGeometry args={[1.06, 2.2, 0.05]} /></mesh>
+          <mesh position={[0, 1.145, 0]} material={m.wood}><boxGeometry args={[1.07, 2.29, 0.05]} /></mesh>
           <mesh position={[0, 0.55, 0.03]} material={m.darkWood}><boxGeometry args={[0.78, 0.7, 0.015]} /></mesh>
           <mesh position={[0, 1.55, 0.03]} material={m.darkWood}><boxGeometry args={[0.78, 0.9, 0.015]} /></mesh>
           <mesh position={[-0.4, 1.05, 0.05]}><boxGeometry args={[0.05, 0.16, 0.03]} /><meshStandardMaterial color="#d4af5a" metalness={0.85} roughness={0.25} /></mesh>
@@ -106,7 +106,11 @@ function DeskTop({ desk }: { desk: Desk }) {
   )
 }
 
-const Static = function StaticRoom({ low, roomNo }: { low: boolean; roomNo: string }) {
+/**
+ * Sinfin bütün statik hissələri. Dəhlizdə açılan qapının arxasında da eyni interyer göstərilir (`lights={false}`:
+ * dəhlizin öz işığı var), ona görə qapıdan keçəndə tələbə gördüyü otağa girir.
+ */
+export function RoomInterior({ low, roomNo, lights = true }: { low: boolean; roomNo: string; lights?: boolean }) {
   const m = sharedMats()
   const L = DEPTH
   const desks = useMemo(() => {
@@ -130,7 +134,7 @@ const Static = function StaticRoom({ low, roomNo }: { low: boolean; roomNo: stri
 
   return (
     <>
-      <color attach="background" args={['#13261f']} />
+      {lights ? (<>
       <ambientLight intensity={0.38} />
       <hemisphereLight args={['#fff6e6', '#5a4230', 0.6]} />
       {/* Pəncərədən düşən günəş: yalnız bu işıq kölgə salır. */}
@@ -138,6 +142,7 @@ const Static = function StaticRoom({ low, roomNo }: { low: boolean; roomNo: stri
         shadow-mapSize-width={1024} shadow-mapSize-height={1024} shadow-bias={-0.0004} shadow-normalBias={0.03}
         shadow-camera-left={-12} shadow-camera-right={12} shadow-camera-top={12} shadow-camera-bottom={-12} shadow-camera-near={1} shadow-camera-far={30} />
       {(low ? [1] : [-2, 3.4]).map((z) => <pointLight key={z} position={[0, H - 0.4, z]} intensity={low ? 8 : 5} distance={low ? 16 : 11} decay={1.6} color="#fff3dc" />)}
+      </>) : <pointLight position={[0, H - 0.6, 1]} intensity={14} distance={18} decay={1.5} color="#fff3dc" />}
       {[-2, 3.4].flatMap((z) => [-2.2, 2.2].map((x) => (
         <mesh key={`${x}${z}`} position={[x, H - 0.02, z]} rotation={[Math.PI / 2, 0, 0]}>
           <planeGeometry args={[1.2, 0.3]} /><meshStandardMaterial color="#ffffff" emissive="#fff6dc" emissiveIntensity={1.2} side={THREE.DoubleSide} />
@@ -148,7 +153,10 @@ const Static = function StaticRoom({ low, roomNo }: { low: boolean; roomNo: stri
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, ZC]} material={surf.floor} receiveShadow><planeGeometry args={[W, L]} /></mesh>
       <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, H, ZC]} material={surf.ceiling}><planeGeometry args={[W, L]} /></mesh>
       <mesh position={[0, H / 2, ROOM.front]} material={surf.end} receiveShadow><planeGeometry args={[W, H]} /></mesh>
-      <mesh position={[0, H / 2, ROOM.back]} rotation={[0, Math.PI, 0]} material={surf.end}><planeGeometry args={[W, H]} /></mesh>
+      {/* Arxa divar: qapının yeri açıqdır */}
+      <group position={[0, 0, ROOM.back]} rotation={[0, Math.PI, 0]}>
+        <HoledWall u0={-W / 2} u1={W / 2} height={H} openings={[{ at: -ROOM.doorX, width: 1.08, height: 2.3 }]} />
+      </group>
       <mesh position={[-W / 2, H / 2, ZC]} rotation={[0, Math.PI / 2, 0]} material={surf.side}><planeGeometry args={[L, H]} /></mesh>
       <mesh position={[W / 2, H / 2, ZC]} rotation={[0, -Math.PI / 2, 0]} material={surf.side} receiveShadow><planeGeometry args={[L, H]} /></mesh>
       {/* Taxta panel, plintus, kornis */}
@@ -162,8 +170,6 @@ const Static = function StaticRoom({ low, roomNo }: { low: boolean; roomNo: stri
       ))}
       <mesh position={[0, 0.5, ROOM.front + 0.02]} material={surf.panel}><planeGeometry args={[W, 1]} /></mesh>
       <mesh position={[0, 1.02, ROOM.front + 0.05]} material={m.trim}><boxGeometry args={[W, 0.05, 0.05]} /></mesh>
-      <mesh position={[0, 0.5, ROOM.back - 0.02]} rotation={[0, Math.PI, 0]} material={surf.panel}><planeGeometry args={[W, 1]} /></mesh>
-      <mesh position={[0, 1.02, ROOM.back - 0.05]} material={m.trim}><boxGeometry args={[W, 0.05, 0.05]} /></mesh>
 
       {[-2.6, 0.6, 3.8].map((z) => <Window key={z} z={z} mats={m} />)}
       {/* Sağ divarda elan lövhəsi */}
@@ -197,23 +203,25 @@ const Static = function StaticRoom({ low, roomNo }: { low: boolean; roomNo: stri
   )
 }
 
-export function StudyRoom({ roomNo, mark, seat, exitOpen, walker, targets, onNear, pick, onSlow, low, active }: {
+export function StudyRoom({ roomNo, mark, seat, exitOpen, walker, targets, onNear, pick, onSlow, onReady, low, active }: {
   roomNo: string
   /** Yaxınlaşdığın (seçiləcək) parta və oturduğun parta. */
   mark: Desk | null; seat: Desk | null; exitOpen: boolean
   walker: Walker; targets: readonly Target[]; onNear: (id: string | null) => void; pick: MutableRefObject<PickFn | null>
-  onSlow: () => void; low: boolean; active: boolean
+  onSlow: () => void; onReady?: () => void; low: boolean; active: boolean
 }) {
-  const ready = useSurfaces(NEEDED)
+  const ready = useSurfaces(ROOM_SURFACES)
   if (!ready) return <Loading label={t.walk.building} />
   return (
     <Canvas shadows={!low} frameloop={active ? 'always' : 'never'} dpr={low ? 1 : [1, 1.5]}
       camera={{ fov: 70, near: 0.05, far: 60, position: [walker.x, walker.eye, walker.z] }} gl={{ antialias: !low, powerPreference: 'low-power' }}>
-      <Static low={low} roomNo={roomNo} />
+      <color attach="background" args={['#161210']} />
+      <RoomInterior low={low} roomNo={roomNo} />
       <ExitDoor x={ROOM.doorX} z={ROOM.back - 0.01} open={exitOpen} />
+      {exitOpen ? <group position={[ROOM.doorX, 0, ROOM.back]}><CorridorStub along="x" /></group> : null}
       <DeskMark desk={seat ? null : mark} />
       {seat ? <DeskTop desk={seat} /> : null}
-      <Rig walker={walker} targets={targets} onNear={onNear} pick={pick} onSlow={onSlow} />
+      <Rig walker={walker} targets={targets} onNear={onNear} pick={pick} onSlow={onSlow} onReady={onReady} />
     </Canvas>
   )
 }

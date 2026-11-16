@@ -21,6 +21,8 @@ import { supabase } from '../../src/lib/supabase'
 import { colors, font, radius, space, touch } from '../../src/theme'
 
 const Classroom3D = lazy(() => import('../../src/school3d/Classroom3D').then((m) => ({ default: m.Classroom3D })))
+// Oxu zalındakı dərslər pilləli auditoriyada göstərilir.
+const HallLive = lazy(() => import('../../src/school3d/Auditorium').then((m) => ({ default: m.HallLive })))
 class GLBoundary extends Component<{ onFail: () => void; children: ReactNode }, { failed: boolean }> {
   state = { failed: false }
   static getDerivedStateFromError() { return { failed: true } }
@@ -54,9 +56,9 @@ export default function LiveRoom() {
     refetchInterval: 10_000,
     queryFn: async () => {
       const { data, error } = await supabase.from('live_sessions')
-        .select('id, title, state, host_id, starts_at, only_host_audio, chat_enabled, venues(capacity, name)').eq('id', id).maybeSingle()
+        .select('id, title, state, host_id, starts_at, only_host_audio, chat_enabled, venues(capacity, name, kind)').eq('id', id).maybeSingle()
       if (error) throw new Error(error.message)
-      return data as { id: string; title: string; state: string; host_id: string | null; starts_at: string; only_host_audio: boolean; chat_enabled: boolean; venues: { capacity: number; name: string } | null } | null
+      return data as { id: string; title: string; state: string; host_id: string | null; starts_at: string; only_host_audio: boolean; chat_enabled: boolean; venues: { capacity: number; name: string; kind: 'classroom' | 'hall' } | null } | null
     },
   })
 
@@ -215,7 +217,7 @@ export default function LiveRoom() {
             <View style={[st.class3d, { aspectRatio: wide ? 16 / 9 : 1.05 }]} testID="classroom-3d">
               <GLBoundary onFail={() => { setView3d(false); setErr(t.live.gl3dFailed) }}>
                 <Suspense fallback={<Loading />}>
-                  <Classroom3D peers={peers} raised={raised} capacity={capacity} />
+                  {info.data?.venues?.kind === 'hall' ? <HallLive peers={peers} raised={raised} /> : <Classroom3D peers={peers} raised={raised} capacity={capacity} />}
                 </Suspense>
               </GLBoundary>
             </View>

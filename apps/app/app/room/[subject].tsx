@@ -1,5 +1,5 @@
 /** Fənn otağı (özünü öyrənmə). 3D-də tələbə sinifdə gəzir, partaya oturur və pəncərə açılır; sadə görünüşdə eyni məzmun səhifədir. */
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router'
+import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router'
 import { useCallback, useState } from 'react'
 import { StatusBar } from 'expo-status-bar'
 import { Loading, RoomTheme, Screen } from '../../src/components/ui'
@@ -31,6 +31,8 @@ export default function Room() {
   if (view3d) {
     return (
       <>
+        {/* Qapıdan keçid səhnənin öz animasiyasıdır: ekranın sürüşməsi onu pozmasın. */}
+        <Stack.Screen options={{ animation: 'none' }} />
         <StatusBar style="light" />
         <Room3D roomNo={roomNo} name={name} active={focused} onExit={leave}
           onSimple={() => setView3d(false)} onFail={() => setView3d(false, false)}>

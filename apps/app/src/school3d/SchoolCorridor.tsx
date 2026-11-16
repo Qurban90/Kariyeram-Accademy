@@ -2,7 +2,8 @@
  * 3D məktəb dəhlizi (FR-050). Prosedur teksturalar (mərmər döşəmə, xalça, suvaq, taxta panel, tavan), mis nömrə lövhəcikləri,
  * divarlarda tablolar, sonda oxu zalının ikiqanadlı qapısı. Kölgə yoxdur (dəhlizdə nöqtəvi işıqların kölgəsi bahalıdır).
  * Vebdə '@react-three/fiber', native-də paketin "react-native" girişi avtomatik seçilir (expo-gl).
- * Tələbə dəhlizdə özü gəzir (Rig + WalkPad); seçilən qapı açılır və içəridən işıq görünür.
+ * Tələbə dəhlizdə özü gəzir (Rig + WalkPad). Divarlarda qapı yerləri açıqdır: seçilən qapı açılanda arxasında
+ * həmin sinfin (və ya oxu zalının) interyeri görünür və tələbə qapıdan içəri yeriyir.
  * Toxunula bilən əşyalar `userData.act` daşıyır: 'door:N', 'hall', 'board'.
  * Əlçatanlıq üçün eyni seçim menyudakı siyahı ilə də mümkündür (Corridor3D).
  */
@@ -13,11 +14,17 @@ import { Loading } from '../components/ui'
 import { approach, corridorLength, CORRIDOR_WIDTH, DOOR_SPACING, doorSpots } from './layout'
 import { Rig } from './Rig'
 import { mat, plateTex, useSurfaces, type SurfaceKey } from './textures'
-import { CORRIDOR_BACK, type PickFn, type Target, type Walker } from './walk'
+import { HallInterior, HALL_SURFACES } from './Auditorium'
+import { RoomInterior, ROOM_SURFACES } from './StudyRoom'
+import { CORRIDOR_BACK, HALL, HALL_TOP, ROOM, type PickFn, type Target, type Walker } from './walk'
+import { HoledWall } from './walls'
 
 export interface CorridorDoor { key: string; label?: string }
 
-const NEEDED: SurfaceKey[] = ['marble', 'runner', 'plaster', 'grain', 'darkGrain', 'ceiling', 'window', 'cork']
+// Sinfin və zalın səthləri də burada hazırlanır: qapı açılanda interyer dərhal görünür, otağa keçid gözləmədən olur.
+const NEEDED: SurfaceKey[] = [...new Set<SurfaceKey>(['marble', 'runner', 'plaster', 'grain', 'darkGrain', 'ceiling', 'window', 'cork', ...ROOM_SURFACES, ...HALL_SURFACES])]
+const DOOR_OPEN = { width: 1.08, height: 2.3 } as const
+const HALL_OPEN = { width: 2.3, height: 2.75 } as const
 const H = 3.2
 
 function makeMats() {
@@ -40,7 +47,7 @@ function mats() {
   return (shared ??= makeMats())
 }
 
-function Door({ x, z, rotY, label, active, act }: { x: number; z: number; rotY: number; label: string; active: boolean; act: string }) {
+function Door({ x, z, rotY, label, active, act, low }: { x: number; z: number; rotY: number; label: string; active: boolean; act: string; low: boolean }) {
   const m = mats()
   const leaf = useRef<THREE.Group>(null)
   useFrame((_, dt) => {
@@ -54,8 +61,10 @@ function Door({ x, z, rotY, label, active, act }: { x: number; z: number; rotY: 
       {[[-0.6, 1.15, 0.12, 2.36], [0.6, 1.15, 0.12, 2.36], [0, 2.36, 1.32, 0.14]].map(([px, py, w, h], i) => (
         <mesh key={i} position={[px!, py!, 0.03]} material={m.frame}><boxGeometry args={[w!, h!, 0.08]} /></mesh>
       ))}
-      {/* Açıq qapının arxasında işıqlı otaq */}
-      <mesh position={[0, 1.1, 0.005]} material={m.inside}><planeGeometry args={[1.08, 2.22]} /></mesh>
+      {/* Bağlı qapının arxası tünddür; seçilən qapının arxasında sinfin özü görünür (çıxış qapısı bu qapı ilə üst-üstə düşür). */}
+      {active
+        ? <group position={[-ROOM.doorX, 0, -ROOM.back - 0.02]}><RoomInterior low={low} roomNo={label} lights={false} /></group>
+        : <mesh position={[0, 1.2, -0.3]} material={m.inside}><planeGeometry args={[1.5, 2.6]} /></mesh>}
       <group ref={leaf} position={[-0.54, 0, 0.04]}>
         <group position={[0.54, 0, 0]}>
           <mesh position={[0, 1.1, 0]} material={m.leaf}><boxGeometry args={[1.06, 2.2, 0.05]} /></mesh>
@@ -72,7 +81,7 @@ function Door({ x, z, rotY, label, active, act }: { x: number; z: number; rotY: 
   )
 }
 
-function HallDoors({ z, active, live }: { z: number; active: boolean; live: boolean }) {
+function HallDoors({ z, active, live, low }: { z: number; active: boolean; live: boolean; low: boolean }) {
   const m = mats()
   const l = useRef<THREE.Group>(null), r = useRef<THREE.Group>(null), sign = useRef<THREE.MeshStandardMaterial>(null)
   useFrame(({ clock }, dt) => {
@@ -82,8 +91,13 @@ function HallDoors({ z, active, live }: { z: number; active: boolean; live: bool
   })
   return (
     <group position={[0, 0, z]} userData={{ act: 'hall' }}>
-      <mesh position={[0, 1.5, -0.04]} material={m.frame}><boxGeometry args={[2.9, 3.0, 0.08]} /></mesh>
-      <mesh position={[0, 1.38, -0.0]} material={m.inside}><planeGeometry args={[2.3, 2.75]} /></mesh>
+      {[[-1.3, 1.5, 0.3, 3.0], [1.3, 1.5, 0.3, 3.0], [0, 2.875, 2.9, 0.25]].map(([px, py, w, h], i) => (
+        <mesh key={i} position={[px!, py!, -0.02]} material={m.frame}><boxGeometry args={[w!, h!, 0.08]} /></mesh>
+      ))}
+      {/* Seçiləndə qapının arxasında zalın özü görünür: giriş yuxarı meydançadadır, ona görə zal aşağı sürüşdürülüb. */}
+      {active
+        ? <group position={[-HALL.doorX, -HALL_TOP, -HALL.back - 0.06]}><HallInterior low={low} lights={false} /></group>
+        : <mesh position={[0, 1.4, -0.4]} material={m.inside}><planeGeometry args={[2.8, 3.0]} /></mesh>}
       {[[-1, l] as const, [1, r] as const].map(([s, ref]) => (
         <group key={s} ref={ref} position={[s * 1.15, 0, 0.03]}>
           <mesh position={[-s * 0.575, 1.37, 0]} material={m.hall}><boxGeometry args={[1.13, 2.74, 0.07]} /></mesh>
@@ -141,10 +155,10 @@ function Entrance({ z, wall }: { z: number; wall: THREE.Material }) {
   )
 }
 
-export function SchoolCorridor({ doors, selected, hallLive, walker, targets, onNear, pick, onSlow, low, active }: {
+export function SchoolCorridor({ doors, selected, hallLive, walker, targets, onNear, pick, onSlow, onReady, low, active }: {
   doors: CorridorDoor[]; selected: number | 'hall' | null; hallLive: boolean
   walker: Walker; targets: readonly Target[]; onNear: (id: string | null) => void; pick: MutableRefObject<PickFn | null>
-  onSlow: () => void
+  onSlow: () => void; onReady?: () => void
   /** Yüngül rejim: piksel sıxlığı 1, işıqların yarısı. */
   low: boolean
   /** Ekran görünmürsə (başqa səhifə açıqdır) çəkiliş dayanır. */
@@ -166,9 +180,7 @@ export function SchoolCorridor({ doors, selected, hallLive, walker, targets, onN
     return {
       floor: new THREE.MeshStandardMaterial({ ...mat('marble', w / 2, Math.round(L / 2)), roughness: 0.32, metalness: 0.05, bumpScale: 1.2 }),
       runner: new THREE.MeshStandardMaterial({ ...mat('runner', 1, Math.round(L / 2)), roughness: 0.95 }),
-      wall: new THREE.MeshStandardMaterial({ ...mat('plaster', Math.round(L / 2.5), 1), roughness: 0.95, bumpScale: 0.6 }),
       endWall: new THREE.MeshStandardMaterial({ ...mat('plaster', 2, 1), roughness: 0.95 }),
-      panel: new THREE.MeshStandardMaterial({ ...mat('grain', Math.round(L / 1.5), 1), roughness: 0.55 }),
       ceiling: new THREE.MeshStandardMaterial({ ...mat('ceiling', Math.round(w / 1.2), Math.round(L / 1.2)), roughness: 1 }),
     }
   }, [ready, L])
@@ -193,17 +205,14 @@ export function SchoolCorridor({ doors, selected, hallLive, walker, targets, onN
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, zc]} material={surf.floor}><planeGeometry args={[W, L]} /></mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.006, zc + 1]} material={surf.runner}><planeGeometry args={[1.5, L - 2]} /></mesh>
       <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, H, zc]} material={surf.ceiling}><planeGeometry args={[W, L]} /></mesh>
-      {[-1, 1].map((s) => (
-        <group key={s}>
-          <mesh rotation={[0, -s * Math.PI / 2, 0]} position={[s * W / 2, H / 2, zc]} material={surf.wall}><planeGeometry args={[L, H]} /></mesh>
-          {/* Taxta panel (aşağı 1 m), kornis, plintus */}
-          <mesh rotation={[0, -s * Math.PI / 2, 0]} position={[s * (W / 2 - 0.005), 0.5, zc]} material={surf.panel}><planeGeometry args={[L, 1]} /></mesh>
-          <mesh position={[s * (W / 2 - 0.03), 1.02, zc]} material={m.frame}><boxGeometry args={[0.05, 0.05, L]} /></mesh>
-          <mesh position={[s * (W / 2 - 0.025), 0.06, zc]} material={m.frame}><boxGeometry args={[0.04, 0.12, L]} /></mesh>
-          <mesh position={[s * (W / 2 - 0.03), H - 0.06, zc]} material={m.trim}><boxGeometry args={[0.06, 0.12, L]} /></mesh>
+      {/* Yan divarlar: lokal ox divar boyuncadır (u = s·z), qapıların yeri açıqdır */}
+      {([-1, 1] as const).map((s) => (
+        <group key={s} position={[s * W / 2, 0, 0]} rotation={[0, -s * Math.PI / 2, 0]}>
+          <HoledWall u0={s === 1 ? -len - 0.2 : -CORRIDOR_BACK} u1={s === 1 ? CORRIDOR_BACK : len + 0.2} height={H}
+            openings={spots.filter((d) => d.side === s).map((d) => ({ at: s * d.z, ...DOOR_OPEN }))} />
         </group>
       ))}
-      <mesh position={[0, H / 2, -len - 0.2]} material={surf.endWall}><planeGeometry args={[W, H]} /></mesh>
+      <group position={[0, 0, -len - 0.06]}><HoledWall u0={-W / 2} u1={W / 2} height={H} openings={[{ at: 0, ...HALL_OPEN }]} /></group>
       {/* Girişdəki şərəf lövhəsi (sol divar) */}
       <group position={[-W / 2 + 0.04, 1.75, 1.2]} rotation={[0, Math.PI / 2, 0]} userData={{ act: 'board' }}>
         <mesh material={m.brass}><boxGeometry args={[1.6, 1.0, 0.05]} /></mesh>
@@ -226,11 +235,11 @@ export function SchoolCorridor({ doors, selected, hallLive, walker, targets, onN
         <Painting key={`r${z}`} x={W / 2 - 0.03} z={z} side={1} seed={i + 1} />,
       ])}
       {spots.map((s) => (
-        <Door key={doors[s.index]!.key} x={s.x} z={s.z} rotY={s.rotY} label={doors[s.index]!.label ?? ''} active={selected === s.index} act={`door:${s.index}`} />
+        <Door key={doors[s.index]!.key} x={s.x} z={s.z} rotY={s.rotY} label={doors[s.index]!.label ?? ''} active={selected === s.index} act={`door:${s.index}`} low={low} />
       ))}
-      <HallDoors z={-len} active={selected === 'hall'} live={hallLive} />
+      <HallDoors z={-len} active={selected === 'hall'} live={hallLive} low={low} />
       <Entrance z={CORRIDOR_BACK} wall={surf.endWall} />
-      <Rig walker={walker} targets={targets} onNear={onNear} pick={pick} onSlow={onSlow} />
+      <Rig walker={walker} targets={targets} onNear={onNear} pick={pick} onSlow={onSlow} onReady={onReady} />
     </Canvas>
   )
 }

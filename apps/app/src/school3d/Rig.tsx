@@ -5,9 +5,11 @@ import * as THREE from 'three'
 import { nearest, type PickFn, type Target, type Walker } from './walk'
 
 /** Kameranı oyunçuya bağlayır, yaxındakı hədəfi izləyir, kadr sürəti aşağıdırsa xəbər verir. */
-export function Rig({ walker, targets, onNear, pick, onSlow }: {
+export function Rig({ walker, targets, onNear, pick, onSlow, onReady }: {
   walker: Walker; targets: readonly Target[]; onNear: (id: string | null) => void
   pick: MutableRefObject<PickFn | null>; onSlow?: () => void
+  /** Səhnə ilk kadrlarını çəkəndə (keçid pərdəsini qaldırmaq üçün). */
+  onReady?: () => void
 }) {
   const { camera, size, scene, raycaster } = useThree()
   const last = useRef<string | null>(null)
@@ -54,8 +56,9 @@ export function Rig({ walker, targets, onNear, pick, onSlow }: {
     const dt = Math.min(delta, 0.1)
     walker.update(dt)
     const bob = walker.moving ? Math.sin(walker.phase) * 0.02 * walker.moving : 0
-    camera.position.set(walker.x, walker.eye + bob, walker.z)
+    camera.position.set(walker.x, walker.eye + walker.floor + bob, walker.z)
     camera.rotation.set(walker.pitch, walker.yaw, 0, 'YXZ')
+    if (tick.current === 2) onReady?.()
     if (++tick.current % 6 === 0) {
       const id = walker.mode === 'walk' ? nearest(walker.pose, targets)?.id ?? null : null
       if (id !== last.current) { last.current = id; onNear(id) }

@@ -7,9 +7,9 @@ import { StyleSheet, View } from 'react-native'
 import { Button, Group, ListRow, Loading, P, Sheet } from '../components/ui'
 import { t } from '../i18n/az'
 import { colors } from '../theme'
-import { finePointer, Hud, HudButton, useToast } from './Hud'
+import { finePointer, Hud, HudButton, useToast, Veil } from './Hud'
 import { WalkPad } from './WalkPad'
-import { corridorStand, corridorTargets, corridorWalk, CORRIDOR_START, Walker, type PickFn } from './walk'
+import { corridorStand, corridorTargets, corridorThrough, corridorWalk, CORRIDOR_START, Walker, type PickFn } from './walk'
 
 const SchoolCorridor = lazy(() => import('./SchoolCorridor').then((m) => ({ default: m.SchoolCorridor })))
 
@@ -44,10 +44,23 @@ export function Corridor3D({ doors, hallLive, active, greeting, resume, onEnter,
   const [low, setLow] = useState(false)
   const [coach, setCoach] = useState(true)
   const [toast, showToast] = useToast()
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  useEffect(() => { const id = setTimeout(() => setCoach(false), 7000); return () => { clearTimeout(id); if (timer.current) clearTimeout(timer.current) } }, [])
-  // Otaqdan qayıdanda qapı bağlanır, tələbə qapının qarşısında qalır.
-  useEffect(() => { if (active) setSelected(null) }, [active])
+  const [veil, setVeil] = useState(true)
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([])
+  const later = (ms: number, f: () => void) => { timers.current.push(setTimeout(f, ms)) }
+  /** Tələbənin içinə keçdiyi qapı (otaqdan qayıdanda həmin qapıdan çıxır). */
+  const inside = useRef<string | null>(null)
+  useEffect(() => { const id = setTimeout(() => setCoach(false), 7000); return () => { clearTimeout(id); timers.current.forEach(clearTimeout) } }, [])
+  // Otaqdan qayıdanda: tələbə qapının o tayındadır, qapı açıqdır; dəhlizə çıxır və qapı arxasınca bağlanır.
+  useEffect(() => {
+    if (!active) return
+    const id = inside.current
+    if (id === null) { if (walker.mode === 'walk') setSelected(null); return }
+    inside.current = null
+    const s = corridorStand(id, n)
+    walker.place({ ...corridorThrough(id, n), yaw: s.yaw + Math.PI })
+    setVeil(false)
+    walker.walkTo([s], undefined, () => setSelected(null), Walker.DOOR_SPEED)
+  }, [active, walker, n])
   useEffect(() => { walker.frozen = menu }, [menu, walker])
 
   /** Hədəfə özü yeriyir, sonra əməl icra olunur (qapı açılır və içəri keçir). */
@@ -59,9 +72,14 @@ export function Corridor3D({ doors, hallLive, active, greeting, resume, onEnter,
       if (id === 'board') { onGo('board'); return }
       const key = id === 'hall' ? 'hall' : doors[Number(id)]?.key
       if (!key) return
+      // Qapı açılır və arxasında otağın özü görünür; tələbə qapıdan içəri yeriyir, son addımlarda pərdə yumşaq enir.
       setSelected(id === 'hall' ? 'hall' : Number(id))
-      if (timer.current) clearTimeout(timer.current)
-      timer.current = setTimeout(() => onEnter(key), 700)
+      later(650, () => {
+        const th = corridorThrough(id, n)
+        const ms = (Math.hypot(th.x - walker.x, th.z - walker.z) / Walker.DOOR_SPEED) * 1000
+        walker.walkTo([th], undefined, () => { inside.current = id; onEnter(key) }, Walker.DOOR_SPEED)
+        later(Math.max(0, ms - 430), () => setVeil(true))
+      })
     })
   }
   const onTap = (nx: number, ny: number) => {
@@ -83,7 +101,7 @@ export function Corridor3D({ doors, hallLive, active, greeting, resume, onEnter,
         <GLBoundary onFail={onFail}>
           <Suspense fallback={<Loading label={t.walk.building} />}>
             <SchoolCorridor doors={doors.map((d) => ({ key: d.key, label: d.number }))} selected={selected} hallLive={hallLive}
-              walker={walker} targets={targets} onNear={setNear} pick={pick} low={low} active={active}
+              walker={walker} targets={targets} onNear={setNear} pick={pick} low={low} active={active} onReady={() => { if (inside.current === null) setVeil(false) }}
               onSlow={() => { setLow(true); showToast(t.walk.lowAuto) }} />
           </Suspense>
         </GLBoundary>
@@ -113,6 +131,7 @@ export function Corridor3D({ doors, hallLive, active, greeting, resume, onEnter,
         </View>
         <P dim small>{t.walk.lowNote}</P>
       </Sheet>
+      <Veil shown={veil} />
     </View>
   )
 }

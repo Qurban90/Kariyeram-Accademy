@@ -67,6 +67,16 @@ export function useToast(): [string | null, (m: string) => void] {
   return [msg, show]
 }
 
+/**
+ * Keçid pərdəsi: qapıdan keçəndə ekran yumşaq qaralır, o tayda yumşaq açılır (iki səhnə arasındakı kəsilmə görünmür).
+ * Toxunuşları kəsmir.
+ */
+export function Veil({ shown, ms = 320 }: { shown: boolean; ms?: number }) {
+  const a = useRef(new Animated.Value(shown ? 1 : 0)).current
+  useEffect(() => { Animated.timing(a, { toValue: shown ? 1 : 0, duration: ms, useNativeDriver: true }).start() }, [a, shown, ms])
+  return <Animated.View pointerEvents="none" style={[st.veil, { opacity: a }]} />
+}
+
 /** Aşağıdan qalxan görünüş (pəncərə açılanda). "Azaldılmış hərəkət"də animasiyasız. */
 export function Rise({ children, style }: { children: ReactNode; style?: object }) {
   const a = useRef(new Animated.Value(0)).current
@@ -77,6 +87,7 @@ export function Rise({ children, style }: { children: ReactNode; style?: object 
 const glass = { backgroundColor: 'rgba(11,10,9,0.72)', borderWidth: 1, borderColor: colors.lineStrong } as const
 
 const st = StyleSheet.create({
+  veil: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.nightDeep },
   vignette: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundImage: 'radial-gradient(ellipse at 50% 55%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.38) 100%)' },
   top: { position: 'absolute', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: space.md },
   hint: { ...glass, flexShrink: 1, maxWidth: 360, borderRadius: radius.md, paddingHorizontal: space.md + 2, paddingVertical: space.sm + 1 },
