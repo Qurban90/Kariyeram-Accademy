@@ -16,6 +16,9 @@ Sahibin ilk rəyi: otağa girəndə və çıxanda keçid "portal" kimi hiss olun
 - Divarlar qapı yerləri açıq parçalardan yığılır (`walls.tsx`). Qapı açılanda arxasında həmin sinfin və ya zalın öz interyeri çəkilir, tələbə qapıdan yeriyib keçir; səhnə dəyişən anı qısa yumşaq pərdə örtür, o tayda tələbə eyni yerdən içəri addımlamağa davam edir. Çıxışda eyni qayda: qapının arxasında dəhliz görünür, dəhlizdə tələbə həmin qapıdan çıxır.
 - Oxu zalı pilləli auditoriyadır (`Auditorium.tsx`): 9 sıra × 14 yer (126), giriş yuxarı meydançadan, keçidlərlə enilir, böyük lövhə səhnədədir. Zalda da istədiyin yerə oturursan, pəncərədə dərslərin siyahısı açılır. Zalda keçən canlı dərsin 3D görünüşü də bu auditoriyadır (yer nömrəsini server verir).
 
+## Əlavə (2026-11-16): native-də defolt sadə görünüş
+İlk real Android sınağında 3D dəhliz açılanda tətbiq dondu ("App isn't responding"). Səbəb cihaz jurnalı olmadan tapılmayıb. Ona görə 3D yalnız vebdə defoltdur; native-də tətbiq sadə görünüşlə açılır, 3D "sınaq" düyməsi ilə yandırılır və donma olarsa növbəti açılışda avtomatik söndürülür. Native 3D real cihazda sabit işlədiyi təsdiqlənəndə defolt geri qaytarıla bilər.
+
 ## Nəticələr
 - Gəzinti məntiqi saf moduldadır (`apps/app/src/school3d/walk.ts`) və vahid testlərlə yoxlanır; veb E2E joystiki, qapıya girişi, oturmanı və pəncərəni yoxlayır.
 - Native-də (expo-gl) 3D heç bir cihazda yoxlanmayıb: real telefonda sınaq pilotun şərtidir. Açılmasa tətbiq sadə görünüşə keçir.

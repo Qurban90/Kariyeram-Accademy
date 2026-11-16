@@ -3,9 +3,10 @@
  * Gec yüklənmə (three.js ayrıca paketdədir), WebGL xətasında sadə görünüşə qayıdış, menyuda əlçatan otaq siyahısı.
  */
 import { Component, lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { StyleSheet, View } from 'react-native'
+import { Platform, StyleSheet, View } from 'react-native'
 import { Button, Group, ListRow, Loading, P, Sheet } from '../components/ui'
 import { t } from '../i18n/az'
+import { use3dGuard } from '../lib/view3d'
 import { colors } from '../theme'
 import { finePointer, Hud, HudButton, useToast, Veil } from './Hud'
 import { WalkPad } from './WalkPad'
@@ -41,7 +42,9 @@ export function Corridor3D({ doors, hallLive, active, greeting, resume, onEnter,
   const [near, setNear] = useState<string | null>(null)
   const [selected, setSelected] = useState<number | 'hall' | null>(null)
   const [menu, setMenu] = useState(false)
-  const [low, setLow] = useState(false)
+  // Telefonda yüngül rejimlə başlayır (az işıq, piksel sıxlığı 1): zəif cihazda donmasın.
+  const [low, setLow] = useState(Platform.OS !== 'web')
+  const guard = use3dGuard()
   const [coach, setCoach] = useState(true)
   const [toast, showToast] = useToast()
   const [veil, setVeil] = useState(true)
@@ -100,9 +103,9 @@ export function Corridor3D({ doors, hallLive, active, greeting, resume, onEnter,
       <View style={StyleSheet.absoluteFill} testID="corridor-3d">
         <GLBoundary onFail={onFail}>
           <Suspense fallback={<Loading label={t.walk.building} />}>
-            <SchoolCorridor doors={doors.map((d) => ({ key: d.key, label: d.number }))} selected={selected} hallLive={hallLive}
-              walker={walker} targets={targets} onNear={setNear} pick={pick} low={low} active={active} onReady={() => { if (inside.current === null) setVeil(false) }}
-              onSlow={() => { setLow(true); showToast(t.walk.lowAuto) }} />
+            {!guard.armed ? <Loading label={t.walk.building} /> : <SchoolCorridor doors={doors.map((d) => ({ key: d.key, label: d.number }))} selected={selected} hallLive={hallLive}
+              walker={walker} targets={targets} onNear={setNear} pick={pick} low={low} active={active} onReady={() => { if (inside.current === null) setVeil(false); later(6000, guard.settle) }}
+              onSlow={() => { setLow(true); showToast(t.walk.lowAuto) }} />}
           </Suspense>
         </GLBoundary>
       </View>

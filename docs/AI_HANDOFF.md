@@ -60,12 +60,13 @@ Mənbə sahibin Google Drive qovluğudur (fənlər üzrə alt qovluqlar). 2026-1
 - Sahibin istəmədən əlavə olunmuş funksiyalar (admin otağı, TOTP, PDF möhürü, şərəf lövhəsi, medallar, FSRS) qalır.
 - Giriş: həm telefon, həm e-poçt; pilotda yalnız e-poçt (`EXPO_PUBLIC_AUTH_METHODS=email`).
 - Dizayn: sadə görünüşdə dəhliz gecə, otağın içi işıqlı sinif. Canlı dərs ekranı tünd qalır.
-- 3D gəzinti defoltdur (2026-11-15, ADR 0008). Səbəb: sahibin prototipi (claude.ai artefaktı "Karyeram Academy") və müdirin tələbi: tələbə özü gəzsin, istədiyi otağa girsin, istədiyi partaya otursun, pəncərə açılsın. Prototipdən götürülən məntiq: sol joystik / sağ baxış, toxunuşla əşya seçimi, özü yeriyən keçidlər, oturanda məhdud baxış, yüngül rejim, WebGL-siz ehtiyat. Prototipdən fərq: bir ümumi sinif yox, hər fənnin öz sinfi; suallar yalnız serverdən gəlir.
+- 3D gəzinti vebdə defoltdur (2026-11-15, ADR 0008); native-də donma düzələnə qədər defolt sadə görünüşdür (2026-11-16). Səbəb: sahibin prototipi (claude.ai artefaktı "Karyeram Academy") və müdirin tələbi: tələbə özü gəzsin, istədiyi otağa girsin, istədiyi partaya otursun, pəncərə açılsın. Prototipdən götürülən məntiq: sol joystik / sağ baxış, toxunuşla əşya seçimi, özü yeriyən keçidlər, oturanda məhdud baxış, yüngül rejim, WebGL-siz ehtiyat. Prototipdən fərq: bir ümumi sinif yox, hər fənnin öz sinfi; suallar yalnız serverdən gəlir.
 - Mağazalara çıxış 2027 yanvara planlaşdırılır; Apple Developer və Google Play ödənişləri ondan əvvəl.
 
 ## Bilinən problemlər və borclar
 
-- 3D native-də (Android/iOS, expo-gl) heç vaxt işə salınmayıb. APK-da 3D açılmasa tətbiq sadə görünüşə keçməlidir, amma bu da cihazda yoxlanmayıb. İlk APK sınağında ilk baxılacaq şey budur.
+- **Android-də 3D donur (2026-11-16, sahibin telefonu, model hələ bilinmir).** `ce091f1` APK-da qeydiyyat və razılıqlardan sonra (3D dəhliz açılanda) "App isn't responding" çıxdı və tətbiq bağlandı. Giriş, kod və razılıq ekranları işləyib. Cihaz jurnalı yoxdur, dəqiq səbəb tapılmayıb (ehtimallar: Hermes-də prosedur teksturaların generasiyası, expo-gl / react-three-fiber native, PBR materiallarla tam ekran çəkiliş). Görülən tədbir: native-də defolt sadə görünüşdür, 3D "3D gəzinti (sınaq)" düyməsi ilə açılır; 3D açılarkən tətbiq donub bağlansa növbəti açılışda özü sadə görünüşə qayıdır (`src/lib/view3d.ts`, `use3dGuard`); native-də teksturalar 128 px, qabarıqlıq xəritəsiz, yüngül rejim defolt. Bu tədbirlər telefonda yoxlanmayıb. Əsl düzəliş üçün cihazdan jurnal (`adb logcat`) və ya development build lazımdır.
+
 - 3D-də prototipdəki bəzi əşyalar yoxdur: fəxri məzunlar, müsahibə otağı (105), sinifdə digər tələbələrin avatarları. Qapı lövhəciyində yalnız nömrə var (3D şrifti yalnız rəqəm çəkir); fənnin adı "Daxil ol" düyməsində yazılır.
 - Canlı dərsdə yeri server verir; tələbə orada yeri özü seçmir (zalın girişində isə sərbəst oturur). Canlı dərs ekranı defolt 2D-dir, 3D düymə ilə açılır.
 - Auditoriyanın yan divarları sadədir (pəncərə, panel yoxdur); zalda digər tələbələrin fiqurları yalnız canlı dərsdə görünür.

@@ -8,16 +8,19 @@ import { Platform } from 'react-native'
 import * as THREE from 'three'
 import * as G from './texgen'
 
-const BIG = Platform.OS === 'web' ? 512 : 256
+const WEB = Platform.OS === 'web'
+// Native-də generasiya Hermes-də JIT-siz gedir: ölçülər dörd dəfə az pikseldir, yoxsa açılış on saniyələrlə uzanır.
+const BIG = WEB ? 512 : 128
+const MID = WEB ? 256 : 128
 
 const MAKERS = {
   planks: () => G.woodPlanks(BIG),
-  plaster: () => G.plaster(256),
-  grain: () => G.woodGrain(256),
-  darkGrain: () => G.woodGrain(256, 29, '#7a4e2c', '#3e2512'),
+  plaster: () => G.plaster(MID),
+  grain: () => G.woodGrain(MID),
+  darkGrain: () => G.woodGrain(MID, 29, '#7a4e2c', '#3e2512'),
   marble: () => G.marbleTiles(BIG),
-  runner: () => G.runner(128, 256),
-  ceiling: () => G.ceilingTiles(256),
+  runner: () => G.runner(WEB ? 128 : 64, MID),
+  ceiling: () => G.ceilingTiles(MID),
   board: () => G.chalkboard(BIG, Math.round(BIG * 0.5625)),
   cork: () => G.cork(128),
   window: () => G.windowView(128, 192),
@@ -57,7 +60,8 @@ export function mat(key: SurfaceKey, rx = 1, ry = 1): Mat {
   let map = textures.get(id)
   if (!map) { map = toTexture(s.color, true); map.repeat.set(rx, ry); textures.set(id, map) }
   let bumpMap: THREE.DataTexture | undefined
-  if (s.bump) {
+  // Qabarıqlıq xəritəsi native-də buraxılır (əlavə tekstura və şeyder hesabı).
+  if (s.bump && WEB) {
     bumpMap = textures.get(id + ':b')
     if (!bumpMap) { bumpMap = toTexture(s.bump, false); bumpMap.repeat.set(rx, ry); textures.set(id + ':b', bumpMap) }
   }
@@ -76,7 +80,8 @@ export function plateTex(text: string): THREE.DataTexture {
   return t
 }
 
-const yieldFrame = () => new Promise<void>((r) => setTimeout(r, 0))
+// Aralarda bir kadrlıq fasilə: yüklənmə göstəricisi dönməyə davam etsin.
+const yieldFrame = () => new Promise<void>((r) => setTimeout(r, 24))
 
 /** Lazım olan səthləri bir-bir hazırlayır; hamısı hazır olanda true qaytarır. İkinci açılışda dərhal hazırdır (keş). */
 export function useSurfaces(keys: SurfaceKey[]): boolean {

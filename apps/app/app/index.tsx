@@ -1,11 +1,11 @@
 /** Məktəb zalı: dəhlizdə fənn qapıları, oxu zalının ikiqat qapısı, gündəlik və kabinet. */
 import { router, useFocusEffect } from 'expo-router'
-import { useCallback, useState } from 'react'
-import { StyleSheet, View, useWindowDimensions } from 'react-native'
+import { useCallback, useEffect, useState } from 'react'
+import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native'
 import { Lockup } from '../src/components/Brand'
 import { Door, DoorSpacer } from '../src/components/Door'
 import { Corridor3D } from '../src/school3d/Corridor3D'
-import { useView3d } from '../src/lib/view3d'
+import { take3dFallback, useView3d } from '../src/lib/view3d'
 import { StatusBar } from 'expo-status-bar'
 import { Badge, Bar, Button, Card, Chip, ErrorBox, Group, H, Icon, ListRow, Loading, P, Screen, Section } from '../src/components/ui'
 import { t } from '../src/i18n/az'
@@ -23,6 +23,8 @@ export default function Hall() {
   const [view3d, setView] = useView3d()
   const [glErr, setGlErr] = useState<string | null>(null)
   const [focused, setFocused] = useState(true)
+  // Əvvəlki açılışda 3D yarımçıq qalıbsa (donma) tətbiq sadə görünüşə qayıdıb: bir dəfə bildiririk.
+  useEffect(() => { if (view3d === false && take3dFallback()) setGlErr(t.hall.gl3dFailed) }, [view3d])
   const { width } = useWindowDimensions()
   const cols = width >= 700 ? 4 : 2
   useFocusEffect(useCallback(() => { setFocused(true); void active.refetch(); return () => setFocused(false) }, [active.refetch]))
@@ -95,7 +97,7 @@ export default function Hall() {
       )}
 
       <Section title={t.hall.rooms} gap={space.lg}
-        right={<Chip testID="toggle-3d" icon="compass" label={t.hall.view3d} onPress={() => { setGlErr(null); setView(true) }} />}>
+        right={<Chip testID="toggle-3d" icon="compass" label={Platform.OS === 'web' ? t.hall.view3d : t.hall.view3dBeta} onPress={() => { setGlErr(null); setView(true) }} />}>
         {glErr ? <P dim small>{glErr}</P> : null}
           <View style={st.corridor}>
             {(subjects.data ?? []).map((s, i) => {

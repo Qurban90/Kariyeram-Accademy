@@ -66,6 +66,7 @@ npm run db:test
 
 - Tələbə joystiklə dəhlizdə gəzir, qapıdan sinfə girir, istədiyi partaya oturur, pəncərə partada açılır. Kod: `apps/app/src/school3d/` (`walk.ts` saf məntiq, `Corridor3D`/`SchoolCorridor` dəhliz, `Room3D` oturulan məkan (sinif `StudyRoom`, oxu zalı `Auditorium`), `walls.tsx` qapı yeri açıq divarlar, `WalkPad` giriş, `Hud` düymələr və keçid pərdəsi).
 - Qapıdan keçid portal olmamalıdır: qapı açılanda arxasında o tayın öz interyeri çəkilir və tələbə qapıdan yeriyib keçir. Yeni məkan əlavə edəndə bu qaydanı saxla.
+- Telefonda (native) defolt sadə görünüşdür: 3D real Android-də donub, səbəb tapılana qədər yalnız sınaq düyməsi ilə açılır və donarsa özü söndürülür (`use3dGuard`). Native 3D-ni real cihazda yoxlamadan defolt etmə.
 - Sadə (2D) görünüş həmişə işlək qalmalıdır (`src/lib/view3d.ts`): WebGL açılmayan cihaz və ekran oxuyucusu üçün yeganə yoldur. Yeni funksiya hər iki görünüşdə əlçatan olmalıdır.
 - 3D-də şəkil və şrift faylı yüklənmir (prosedur teksturalar, `texgen.ts`); mətn ekran üstü qatda (HUD) göstərilir.
 

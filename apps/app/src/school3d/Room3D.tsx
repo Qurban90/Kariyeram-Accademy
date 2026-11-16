@@ -4,11 +4,12 @@
  * ətrafa baxa və ya ayağa qalxa bilər. Çıxanda qapı açılır, arxasında dəhliz görünür və tələbə qapıdan keçir.
  */
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native'
+import { Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Text } from '../components/Text'
 import { Button, Icon, Loading, P, RoomTheme, Sheet, usePalette, useSheet } from '../components/ui'
 import { t } from '../i18n/az'
+import { use3dGuard } from '../lib/view3d'
 import { colors as night, font, materials, radius, space, touch, type, type Palette } from '../theme'
 import { GLBoundary } from './Corridor3D'
 import { finePointer, Hud, HudButton, Rise, useToast, Veil } from './Hud'
@@ -40,7 +41,8 @@ export function Room3D({ kind = 'room', roomNo, name, active, children, onExit, 
   const [win, setWin] = useState(false)
   const [menu, setMenu] = useState(false)
   const [exitOpen, setExitOpen] = useState(false)
-  const [low, setLow] = useState(false)
+  const [low, setLow] = useState(Platform.OS !== 'web')
+  const guard = use3dGuard()
   const [coach, setCoach] = useState(true)
   const [toast, showToast] = useToast()
   const timers = useRef<ReturnType<typeof setTimeout>[]>([])
@@ -53,6 +55,7 @@ export function Room3D({ kind = 'room', roomNo, name, active, children, onExit, 
   const onReady = () => {
     if (entered.current) return
     entered.current = true
+    later(6000, guard.settle)
     setVeil(false)
     walker.walkTo([plan.start], plan.start.yaw, () => setBusy(false), Walker.DOOR_SPEED)
   }
@@ -124,7 +127,7 @@ export function Room3D({ kind = 'room', roomNo, name, active, children, onExit, 
       <View style={StyleSheet.absoluteFill} testID={hall ? 'hall-3d' : 'room-3d'}>
         <GLBoundary onFail={onFail}>
           <Suspense fallback={<Loading label={t.walk.building} />}>
-            {hall ? <HallWalk {...sceneProps} /> : <StudyRoom roomNo={roomNo} {...sceneProps} />}
+            {!guard.armed ? <Loading label={t.walk.building} /> : hall ? <HallWalk {...sceneProps} /> : <StudyRoom roomNo={roomNo} {...sceneProps} />}
           </Suspense>
         </GLBoundary>
       </View>
