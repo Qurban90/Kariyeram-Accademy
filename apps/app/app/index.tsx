@@ -6,7 +6,7 @@ import { Lockup } from '../src/components/Brand'
 import { Door, DoorSpacer } from '../src/components/Door'
 import { Corridor3D } from '../src/school3d/Corridor3D'
 import { crumb, hallAttempt, hallReset, hallStable } from '../src/lib/diag'
-import { take3dFallback, useView3d } from '../src/lib/view3d'
+import { take3dFallback, useView3d, view3dSupported } from '../src/lib/view3d'
 import { SafeHall } from '../src/components/SafeHall'
 import { StatusBar } from 'expo-status-bar'
 import { Badge, Bar, Button, Card, Chip, ErrorBox, Group, H, Icon, ListRow, Loading, P, Screen, Section } from '../src/components/ui'
@@ -153,7 +153,7 @@ export default function Hall() {
 
       {show(3) ? (
       <Section title={t.hall.rooms} gap={space.lg}
-        right={<Chip testID="toggle-3d" icon="compass" label={Platform.OS === 'web' ? t.hall.view3d : t.hall.view3dBeta} onPress={() => { setGlErr(null); setView(true) }} />}>
+        right={view3dSupported ? <Chip testID="toggle-3d" icon="compass" label={t.hall.view3d} onPress={() => { setGlErr(null); setView(true) }} /> : undefined}>
         {glErr ? <P dim small>{glErr}</P> : null}
           <View style={st.corridor}>
             {(subjects.data ?? []).slice(0, show(5) ? undefined : show(4) ? 1 : 0).map((s, i) => {

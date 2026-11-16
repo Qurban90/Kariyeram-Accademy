@@ -19,6 +19,9 @@ Sahibin ilk rəyi: otağa girəndə və çıxanda keçid "portal" kimi hiss olun
 ## Əlavə (2026-11-16): native-də defolt sadə görünüş
 İlk real Android sınağında 3D dəhliz açılanda tətbiq dondu ("App isn't responding"). Səbəb cihaz jurnalı olmadan tapılmayıb. Ona görə 3D yalnız vebdə defoltdur; native-də tətbiq sadə görünüşlə açılır, 3D "sınaq" düyməsi ilə yandırılır və donma olarsa növbəti açılışda avtomatik söndürülür. Native 3D real cihazda sabit işlədiyi təsdiqlənəndə defolt geri qaytarıla bilər.
 
+## Əlavə (2026-11-16, ikinci): native-də 3D söndürüldü
+Cihaz izləri göstərdi: telefonda 3D modulu yüklənəndə tətbiq `undefined is not a function` ilə çökür (ilk APK-dakı çökmənin də səbəbi budur). 3D yalnız vebdə işləyir; native-də düymə göstərilmir və modul yüklənmir (`view3dSupported`). Native 3D səbəbi tapılıb real cihazda yoxlanana qədər geri qaytarılmır.
+
 ## Nəticələr
 - Gəzinti məntiqi saf moduldadır (`apps/app/src/school3d/walk.ts`) və vahid testlərlə yoxlanır; veb E2E joystiki, qapıya girişi, oturmanı və pəncərəni yoxlayır.
 - Native-də (expo-gl) 3D heç bir cihazda yoxlanmayıb: real telefonda sınaq pilotun şərtidir. Açılmasa tətbiq sadə görünüşə keçir.

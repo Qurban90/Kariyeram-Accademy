@@ -18,6 +18,7 @@ import { VideoTile } from '../../src/live/VideoTile'
 import { api, ApiFailure, type Hand, type LiveJoin } from '../../src/lib/api'
 import { useAuth } from '../../src/lib/auth'
 import { supabase } from '../../src/lib/supabase'
+import { view3dSupported } from '../../src/lib/view3d'
 import { colors, font, radius, space, touch } from '../../src/theme'
 
 const Classroom3D = lazy(() => import('../../src/school3d/Classroom3D').then((m) => ({ default: m.Classroom3D })))
@@ -200,9 +201,11 @@ export default function LiveRoom() {
     <SafeAreaView style={st.screen} edges={['top', 'left', 'right', 'bottom']}>
       <View style={st.top}>
         <Text style={st.title} numberOfLines={1}>{join.title}</Text>
-        <Pressable testID="toggle-3d-class" accessibilityRole="button" onPress={() => setView3d(!view3d)} style={st.viewBtn}>
-          <Text style={{ color: colors.chalk, fontWeight: '700', fontSize: font.tiny }}>{view3d ? t.live.view2d : t.live.view3d}</Text>
-        </Pressable>
+        {view3dSupported ? (
+          <Pressable testID="toggle-3d-class" accessibilityRole="button" onPress={() => setView3d(!view3d)} style={st.viewBtn}>
+            <Text style={{ color: colors.chalk, fontWeight: '700', fontSize: font.tiny }}>{view3d ? t.live.view2d : t.live.view3d}</Text>
+          </Pressable>
+        ) : null}
         <View style={st.countBox} accessibilityLabel={`${peers.length}`}><Icon name="users" size={15} color={colors.ivoryDim} /><Text style={st.count}>{peers.length}</Text></View>
       </View>
       {lk.state.status === 'reconnecting' && <Banner text={t.live.reconnecting} />}

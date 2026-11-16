@@ -1,6 +1,6 @@
 /**
  * Görünüş seçimi: 3D məktəb və ya sadə (2D) görünüş. Seçim cihazda saxlanılır və bütün ekranlar üçün ortaqdır.
- * Defolt: vebdə 3D; telefonda (native) sadə görünüş, çünki 3D real cihazlarda hələ yoxlanılır və zəif telefonu dondura bilir.
+ * Defolt: vebdə 3D; telefonda (native) həmişə sadə görünüş (3D telefonda çökür, bax `view3dSupported`).
  *
  * Qoruma (yalnız native): 3D səhnə açılmazdan əvvəl "açılır" nişanı yazılır və səhnə sabit işləyəndə silinir.
  * Tətbiq 3D açılarkən donub bağlanarsa nişan qalır; növbəti açılışda tətbiq sadə görünüşə qayıdır, yoxsa hər açılışda yenə donardı.
@@ -12,6 +12,13 @@ import { secureStorage } from './storage'
 const KEY = 'karyeram.view3d'
 const PENDING = 'karyeram.view3d.pending'
 const native = Platform.OS !== 'web'
+/**
+ * 3D görünüş yalnız vebdə işləyir. Telefonda (Android) 3D kitabxanası (react-three-fiber native + expo-gl) yüklənən kimi
+ * tətbiq "undefined is not a function" xətası ilə çökür (2026-11-16, iki ayrı işə salmada cihaz izi ilə təsdiqlənib).
+ * Səbəb tapılıb düzələnə və real telefonda yoxlanana qədər native-də 3D söndürülüb: bu sabit `true` edilməzdən əvvəl
+ * `docs/AI_HANDOFF.md`-dəki "Android-də 3D" bəndinə bax.
+ */
+export const view3dSupported = !native
 let current: boolean | null = null
 let loading: Promise<void> | null = null
 /** Əvvəlki açılışda 3D yarımçıq qalıb (donma və ya bağlanma): istifadəçiyə bir dəfə bildirilir. */
@@ -24,11 +31,13 @@ function emit(v: boolean) {
 }
 
 export function setView3d(v: boolean, persist = true) {
+  if (v && !view3dSupported) return
   emit(v)
   if (persist) secureStorage.setItem(KEY, v ? '1' : '0').catch(() => {})
 }
 
 async function load() {
+  if (!view3dSupported) { emit(false); return }
   try {
     const [saved, pending] = await Promise.all([secureStorage.getItem(KEY), native ? secureStorage.getItem(PENDING) : Promise.resolve(null)])
     if (current !== null) return

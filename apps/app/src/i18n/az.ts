@@ -130,7 +130,7 @@ export const t = {
     profile: 'Kabinet', profileSub: 'Profil, kod, cihaz', board: 'Şərəf lövhəsi', boardSub: 'Həftənin ən dəqiqləri',
     locked: 'Pulsuz mövzular açıqdır', open: 'Açıqdır',
     studentNo: (n: string) => `Tələbə № ${n}`,
-    view3d: '3D gəzinti', view3dBeta: '3D gəzinti (sınaq)', view2d: 'Sadə görünüş', walkHint: 'Qapıya toxunun — içəri keçək', gl3dFailed: 'Bu cihazda 3D açılmadı, sadə görünüşə qayıtdıq.',
+    view3d: '3D gəzinti', view2d: 'Sadə görünüş', walkHint: 'Qapıya toxunun — içəri keçək', gl3dFailed: 'Bu cihazda 3D açılmadı, sadə görünüşə qayıtdıq.',
     resume: 'Yarımçıq test', resumeSub: (subject: string, done: number, total: number) => `${subject} · ${done}/${total} cavablandırılıb`, resumeBtn: 'Davam et',
   },
   walk: {

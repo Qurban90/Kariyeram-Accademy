@@ -66,7 +66,7 @@ npm run db:test
 
 - Tələbə joystiklə dəhlizdə gəzir, qapıdan sinfə girir, istədiyi partaya oturur, pəncərə partada açılır. Kod: `apps/app/src/school3d/` (`walk.ts` saf məntiq, `Corridor3D`/`SchoolCorridor` dəhliz, `Room3D` oturulan məkan (sinif `StudyRoom`, oxu zalı `Auditorium`), `walls.tsx` qapı yeri açıq divarlar, `WalkPad` giriş, `Hud` düymələr və keçid pərdəsi).
 - Qapıdan keçid portal olmamalıdır: qapı açılanda arxasında o tayın öz interyeri çəkilir və tələbə qapıdan yeriyib keçir. Yeni məkan əlavə edəndə bu qaydanı saxla.
-- Telefonda (native) defolt sadə görünüşdür: 3D real Android-də donub, səbəb tapılana qədər yalnız sınaq düyməsi ilə açılır və donarsa özü söndürülür (`use3dGuard`). Native 3D-ni real cihazda yoxlamadan defolt etmə.
+- **Telefonda (native) 3D söndürülüb** (`view3dSupported` in `src/lib/view3d.ts`): Android-də 3D modulu yüklənəndə tətbiq `undefined is not a function` ilə çökür (cihaz izi ilə sübut olunub). Səbəbi tapıb real telefonda yoxlamadan geri qaytarma. 3D yalnız vebdədir.
 - Sadə (2D) görünüş həmişə işlək qalmalıdır (`src/lib/view3d.ts`): WebGL açılmayan cihaz və ekran oxuyucusu üçün yeganə yoldur. Yeni funksiya hər iki görünüşdə əlçatan olmalıdır.
 - 3D-də şəkil və şrift faylı yüklənmir (prosedur teksturalar, `texgen.ts`); mətn ekran üstü qatda (HUD) göstərilir.
 
@@ -86,8 +86,8 @@ Bu bölmə görülən işlərin sıra ilə qısa xülasəsidir ki, yeni sessiya 
 ### Hazırkı vəziyyət (2026-11-16)
 
 - **Veb işləyir:** https://qurban90.github.io/Kariyeram-Accademy/ (3D məktəb defolt). Sahib real e-poçt kodu ilə daxil olub; görünüşü yalnız sahib təsdiqləyə bilər (bulud sessiyasından sayt açılmır).
-- **Android APK işləmir:** girişdən sonra, əsas (zal) ekranı çəkilərkən tətbiq bağlanır. Səbəb tapılmayıb. Son yığım (`7d0351e`) diaqnostikalıdır; sahib onu telefonda sınayıb "etdim" yazmalıdır, sonra izlər server jurnalından oxunmalıdır (aşağıda "Növbəti addım").
-- `main` = `7d0351e`. İş budağı `karyeram/foundation` ondan irəlidədir (yalnız sənədlər).
+- **Android APK:** çökmənin səbəbi tapıldı: telefonda 3D modulu yüklənəndə tətbiq çökür (sadə görünüş normal açılır, cihaz izləri ilə təsdiqlənib). Düzəliş (telefonda 3D söndürülüb) iş budağındadır; `main`-ə çıxmayıb, yeni APK yığılmayıb. `main`-dəki APK (`7d0351e`) 3D düyməsinə basılanda çökür.
+- `main` = `7d0351e`. İş budağı `karyeram/foundation` ondan irəlidədir (3D-nin telefonda söndürülməsi və sənədlər).
 
 ### Görülən işlər, sıra ilə
 
@@ -103,27 +103,26 @@ Bu bölmə görülən işlərin sıra ilə qısa xülasəsidir ki, yeni sessiya 
    - Server jurnalı və baza göstərdi: kod təsdiqi, profil, cihaz qeydi və zal ekranının bütün sorğuları uğurludur (200); yenidən açanda da eyni. Yəni giriş, sessiya, şəbəkə, server sağlamdır; çökmə `app/index.tsx` məlumatla çəkiləndə olur.
    - Statik analiz (RN-in Android qradiyent mənbələri, auth axını, sorğular, Hermes-də olmayan API-lər) konkret səbəb vermədi.
    - Diaqnostika əlavə olundu (`src/lib/diag.ts`): mərhələ izləri, JS xətası ekranı, mərhələli açılış, ən sadə ekran (`SafeHall`). Yığım `7d0351e`.
+   - **Səbəb tapıldı.** İki işə salmanın izi eynidir: sadə zal normal açılır və sabit qalır, sahib 3D sınaq düyməsinə basır, dərhal `js_fatal: undefined is not a function` (yükləmə zamanı, `loadModuleImplementation`). İlk APK-nın çökməsi də budur (orada 3D defolt idi). Əvvəlki "3D-siz yığım da çökdü" nəticəsi əsassız idi (jurnal köhnə APK-dan ola bilərdi): bu sətirdəki ilk fərziyyə ("3D donur") səbəbin yerini düz tapmışdı, mexanizmi (donma) yox.
+   - Düzəliş: native-də 3D söndürüldü (`view3dSupported`).
 
 ### Növbəti addım (buradan davam et)
 
-1. Sahibdən soruş: diaqnostikalı APK-nı quraşdırıb 3 dəfə açdımı, nə gördü, telefonun modeli və Android versiyası nədir.
-2. İzləri oxu (bulud sessiyasında Supabase Management API-nin açarı proksi tərəfindən əlavə olunur, başlıqda yer tutucu yazılır):
+1. Sahibdən `main`-ə push və yeni APK üçün icazə al (3D-nin telefonda söndürülməsi iş budağındadır). APK-dan sonra sahib telefonda yoxlayır: giriş, zal, fənn otağı, test başlatma və nəticə. İzləri yenə server jurnalından oxu (aşağıdakı əmr); `js_fatal` gəlməməlidir, `hall_stable` və fənn otağı sorğuları görünməlidir.
+2. İzləri oxumaq (bulud sessiyasında Supabase Management API-nin açarı proksi tərəfindən əlavə olunur, başlıqda yer tutucu yazılır):
 
 ```bash
 NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt node -e '
 const u=new URL("https://api.supabase.com/v1/projects/ccnwynpcjqtilngounvd/analytics/endpoints/logs");
-u.searchParams.set("sql","select timestamp, event_message from logs where event_message like \"%diag%\" order by timestamp limit 300");
-u.searchParams.set("iso_timestamp_start","2026-11-16T13:40:00Z");u.searchParams.set("iso_timestamp_end","2026-11-17T00:00:00Z");
-fetch(u,{headers:{Authorization:"Bearer sbp_placeholder"}}).then(async r=>console.log(r.status,(await r.text()).slice(0,6000)))'
+u.searchParams.set("sql","select timestamp, event_message from logs where event_message like \x27%diag%\x27 order by timestamp limit 400");
+u.searchParams.set("iso_timestamp_start","2026-11-16T13:40:00Z");u.searchParams.set("iso_timestamp_end","2026-11-18T00:00:00Z");
+fetch(u,{headers:{Authorization:"Bearer sbp_placeholder"}}).then(async r=>{const j=JSON.parse(await r.text());for(const x of j.result){const m=x.event_message.match(/message=eq\.(diag[^ ]*)/);if(m)console.log(x.timestamp.slice(11,23),decodeURIComponent(m[1]).split("|").slice(1).join(" | "))}})'
 ```
 
-   Sorğular arasında 6 saniyədən çox gözlə (429 verir). Cədvəlin adı `logs`-dur; `select *` qadağandır. İzin formatı: `diag|yığım|işə salma|sıra|mərhələ|təfərrüat`.
-3. İzləri belə oxu:
-   - `js_fatal` / `js_stack` varsa: səbəb JS xətasıdır, mətn izdədir.
-   - Son iz `stage_next_N` olub ardınca heç nə gəlmirsə: çökən zal ekranının N-ci hissəsidir (`app/index.tsx`-də `STAGES`: 1 başlıq, 2 salam, 3 bölmə və çip, 4 ilk qapı, 5 qalan qapılar, 6 zal qapısı, 7 siyahı). O hissənin komponentini sadələşdirib yenidən yığ.
-   - `hall_rendered sade` və `hall_stable` varsa: ən sadə ekran işləyir, problem dizayn komponentlərindən birindədir.
-   - Ən sadə ekranda da bağlanırsa: səbəb ekran deyil (naviqasiya, native modul, yaddaş); o halda cihaz jurnalı (`adb logcat`) lazımdır.
-4. Səbəb tapılıb düzələndən sonra: fənn otağı, test və nəticə ekranlarını da telefonda yoxlat (heç vaxt açılmayıblar), sonra mərhələli açılışı sil (izlər və xəta ekranı qalsın).
+   SQL-də dırnaq tək olmalıdır (`'%diag%'`; qoşa dırnaq identifikator sayılır). Sorğular arasında 6+ saniyə gözlə (429). Cədvəl `logs`-dur, `select *` qadağandır. İz formatı: `diag|yığım|işə salma|sıra|mərhələ|təfərrüat`.
+3. İz mərhələləri: `app_start`, `session_restore`, `otp_verify_*`, `profile_ok`, `hall_attempt/hall_data/hall_rendered/hall_alive_1s/hall_stable`, `device_claim_*`, `js_fatal/js_stack`, `gl_*`. `js_fatal` varsa səbəb JS xətasıdır, mətn izdədir. Zal ekranı 5 san sabit qalmadan tətbiq bağlansa növbəti açılış mərhələli olur (`stage_next_N`), ikinci uğursuzluqdan sonra ən sadə ekran (`SafeHall`).
+4. Telefonda hələ açılmayıb: fənn otağı, test, nəticə, konspekt, gündəlik, kabinet, canlı dərs. Hər birini sahibdən ayrı-ayrı yoxlat. Sonra mərhələli açılışı silmək olar (izlər və xəta ekranı qalsın).
+5. Native 3D-ni geri qaytarmaq istəsən: `docs/AI_HANDOFF.md`, "Android-də 3D çökür" bəndi.
 
 ### Bulud sessiyasının məhdudiyyətləri
 
@@ -148,7 +147,7 @@ nohup npx supabase functions serve --env-file supabase/functions/.env.local > /t
 
 ### Təkrarlanmamalı səhvlər
 
-- Cihazda yoxlanmamış fərziyyəni səbəb kimi təqdim etmə. "3D donur" fərziyyəsi bir APK dövrünə (30 dəqiqə və sahibin vaxtı) başa gəldi. Əvvəl sübut (server jurnalı, baza), sonra düzəliş.
+- Cihazda yoxlanmamış fərziyyəni səbəb kimi təqdim etmə və jurnaldakı vaxtı hansı APK-ya aid olduğunu yoxlamadan nəticəyə çevirmə. Bir dəfə köhnə APK-nın izini yeni APK-nın izi sandım və səhv nəticə çıxartdım; sahibin vaxtı və 30 dəqiqəlik yığım dövrü itdi. Əvvəl sübut (cihaz izi, yığım nömrəsi ilə), sonra düzəliş.
 - Shell-də sənəd yazanda dırnaqsız heredoc (`<<EOF`) işlətmə: əks dırnaq içindəki mətn əmr kimi icra olunur və fayl korlanır. `<<'EOF'` yaz.
 - Dəhliz və sinif ekranları eyni vaxtda yaddaşda qalır: `testID`-lər ekranlar arasında təkrarlanmamalıdır.
 - Animasiyanın sonunda çağırılan funksiya köhnə render-in dəyərlərini görür: orada React vəziyyətinə yox, canlı obyektə (`walker.mode`) bax.
