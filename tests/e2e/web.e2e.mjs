@@ -52,7 +52,12 @@ let passed = 0
 const results = []
 async function step(name, fn) {
   const t0 = Date.now()
-  try { await fn(); passed++; results.push(`ok   ${name} (${Date.now() - t0} ms)`) } catch (e) { results.push(`FAIL ${name}: ${e.message.split('\n')[0]}`); throw e }
+  try { await fn(); passed++; results.push(`ok   ${name} (${Date.now() - t0} ms)`) } catch (e) {
+    results.push(`FAIL ${name}: ${e.message.split('\n')[0]}`)
+    // Düşən addımın ekranı və brauzer xətaları: səbəbi tapmaq üçün (xüsusən proqram renderində WebGL itkisi).
+    try { await page.screenshot({ path: join(SHOTS, 'FAIL.png') }); console.log('Düşən addımın ekranı: FAIL.png; brauzer xətaları:', JSON.stringify(consoleErrors.slice(-8))) } catch { /* səhifə bağlıdır */ }
+    throw e
+  }
 }
 const expect = (cond, msg) => { if (!cond) throw new Error(msg) }
 

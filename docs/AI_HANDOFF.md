@@ -9,7 +9,7 @@ Son yeniləmə: 2026-11-15. Dəyişməyən qaydalar `CLAUDE.md`-dədir; burada y
 
 ## Hazır olanlar (testlə təsdiqlənib)
 
-Son yoxlama 2026-11-16 (native qorumasından sonra), lokal mühit: tip yoxlaması xətasız, vahid 120/120, veb E2E 33/33 addım. DB 277 yoxlama və inteqrasiya 11/11 sonuncu dəfə 2026-11-15-də keçib (server kodu o vaxtdan dəyişməyib). E2E brauzerin proqram renderi ilədir, real telefon deyil; native kod yolu (sadə görünüş defoltu, donma qoruması) heç bir testlə yoxlanmır.
+Son yoxlama 2026-11-16 (diaqnostika və ehtiyat ekrandan sonra), lokal mühit: tip yoxlaması xətasız, vahid 120/120, veb E2E dörd qaçışdan üçündə 33/33; bir qaçış "3D məktəb: joystiklə dəhlizdə gəzinti" addımında `hud-main` üçün vaxt aşımı ilə düşdü (səbəb tapılmayıb, ehtimal: proqram renderində WebGL itkisi və sadə görünüşə qayıdış; düşən addımın ekranı indi `FAIL.png` kimi saxlanır). DB 277 yoxlama və inteqrasiya 11/11 sonuncu dəfə 2026-11-15-də keçib (server kodu o vaxtdan dəyişməyib). Native kod yolu (sadə görünüş defoltu, diaqnostika, ehtiyat ekran) heç bir testlə yoxlanmır.
 
 - Giriş: telefon və e-poçt OTP (parolsuz), razılıqlar, hesab silmə və ixrac, ikinci giriş üsulu bağlama.
 - 3D məktəb (defolt görünüş, ADR 0008): tam ekran dəhlizdə joystiklə gəzinti, qapının yanında "Daxil ol", fənn sinfində 12 partadan istədiyinə oturma (yaxınlaşıb və ya üstünə toxunub), partada açılan pəncərə (mövzular, test, konspekt), ayağa qalxma, dəhlizə çıxış; testdən sonra tələbə oturduğu partaya qayıdır. Menyuda sadə (2D) görünüş və yüngül rejim.
