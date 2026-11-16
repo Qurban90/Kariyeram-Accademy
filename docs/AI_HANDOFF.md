@@ -5,7 +5,7 @@ Son yeniləmə: 2026-11-15. Dəyişməyən qaydalar `CLAUDE.md`-dədir; burada y
 ## Budaqlar
 
 - `main`: buraxılış budağı. `karyeram/foundation`: iş budağı. Köhnə "Pillə" tətbiqi silinib (yalnız git tarixçəsindədir).
-- 2026-11-16-da `main` = `af8190f` (APK bu commit-dən, veb `ce091f1`-dən yığılıb; fərq yalnız native davranışdır). Ondan sonrakı commit-lər yalnız `foundation`-dadır. `main`-ə push üçün sahibdən icazə al.
+- 2026-11-16-da `main` = `7d0351e` (APK bu commit-dən, veb `ce091f1`-dən yığılıb; fərq native davranış və diaqnostikadır). Ondan sonrakı commit-lər yalnız `foundation`-dadır. `main`-ə push üçün sahibdən icazə al.
 
 ## Hazır olanlar (testlə təsdiqlənib)
 
@@ -35,7 +35,7 @@ Mağazasız sınaq, 10-a yaxın tələbə. Giriş yalnız e-poçtla. Addımlar v
 | Server (Supabase, pulsuz plan, Frankfurt) | `deploy-backend.yml` uğurlu. Management API ilə yoxlanıb: 16 migrasiya, 5 fənn, 6 məkan, cron işi, storage bucket, Auth-da SMTP və OTP şablonları, TOTP aktiv, iki funksiya ACTIVE |
 | Veb | `deploy-web.yml` uğurlu: https://qurban90.github.io/Kariyeram-Accademy/ . Sahib 2026-11-15-də real e-poçt kodu ilə qeydiyyatdan keçdi və razılıqları verdi (bazada təsdiqlənib). AI səhifəni özü aça bilmir (şəbəkə məhdudiyyəti), ona görə görünüş yalnız sahibin sözü ilə təsdiqlənir |
 | E-poçt kodu | SMTP (Gmail) işləyir: sahibin qeydiyyatı real kodla keçdi |
-| Android APK | Yığım işləyir (R8 kiçiltməsi söndürülüb: 2-ci cəhd R8 addımında dayanmışdı, dəqiq xəta oxunmayıb). "pilot" buraxılışındakı fayl 2026-11-16 08:33 UTC yığımıdır (`af8190f`: native-də defolt sadə görünüş, 3D donma qoruması): https://github.com/Qurban90/Kariyeram-Accademy/releases/tag/pilot . Əvvəlki yığım (`ce091f1`) sahibin telefonunda razılıqlardan sonra çökdü; bu yığımın telefonda nəticəsi hələ bilinmir |
+| Android APK | Yığım işləyir (R8 kiçiltməsi söndürülüb: 2-ci cəhd R8 addımında dayanmışdı, dəqiq xəta oxunmayıb). "pilot" buraxılışındakı fayl 2026-11-16 13:46 UTC yığımıdır (`7d0351e`: diaqnostika izləri, JS xəta ekranı, mərhələli açılış, `SafeHall`): https://github.com/Qurban90/Kariyeram-Accademy/releases/tag/pilot . Əvvəlki iki yığım (`ce091f1`, `af8190f`) sahibin telefonunda girişdən sonra bağlanıb; bu yığımın nəticəsi və izləri hələ oxunmayıb |
 | İlk admin | Sahibin hesabı (tələbə № 1) SQL ilə admin edilib. Admin otağı TOTP tələb edir: sahib Kabinetdən iki mərhələli qorumanı qoşmalıdır |
 | LiveKit | Sirlər funksiyalara yazılıb; real dərs sınanmayıb. Webhook LiveKit panelində hələ təyin olunmayıb (davamiyyət üçün) |
 | `APP_ORIGINS` | Dəyişən təyin olunmayıbsa CORS hər mənbəyə açıqdır (R-08); deploy jurnalındakı xəbərdarlığa bax |
