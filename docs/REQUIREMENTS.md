@@ -82,6 +82,7 @@ Prioritet: M (Must), S (Should), C (Could).
 | FR-049 | Dərsin yazılması və şkafa düşməsi | C | Razılıqla | Plan |
 | FR-050 | 3D zal/sinif: iştirakçılar oturacaqlarda, host səhnədə | S | Zəif cihazda 2D | Qismən (3D dəhliz və 3D sinif vebdə E2E ilə; lövhədə müəllim videosu yalnız vebdə; native-də yoxlanmayıb) |
 | FR-052 | 3D gəzinti (defolt görünüş): tələbə joystiklə dəhlizdə gəzir, istədiyi fənn otağına girir, istədiyi partaya oturur, pəncərə (mövzular, test, konspekt) partada açılır | M | Sadə (2D) görünüş menyudan; WebGL xətasında avtomatik 2D; yüngül rejim | Hazır vebdə (vahid testlər + E2E). Native-də ilk sınaqda donub: defolt sadə görünüşdür, 3D sınaq düyməsi ilə (ADR 0008 əlavəsi) |
+| NFR-010 | Native tətbiq çökəndə bərpa və diaqnostika: tutulmayan JS xətasında xəta ekranı; əsas ekran açılmayanda mərhələli açılış və ən sadə ekran; mərhələ izləri serverin jurnalında | M | Şəxsi məlumat göndərilmir | Yazılıb, telefonda yoxlanmayıb |
 | FR-053 | 3D-də qapıdan keçid: qapı açılanda arxasındakı məkan görünür, tələbə qapıdan yeriyib keçir (girişdə və çıxışda), kəsilmə yumşaq pərdə ilə örtülür | M | Yüngül rejimdə də işləyir | Hazır vebdə (E2E) |
 | FR-054 | Oxu zalı pilləli auditoriyadır (126 yer): yuxarıdan giriş, keçidlərlə eniş, istədiyin yerə oturma, pəncərədə dərslərin siyahısı; zaldakı canlı dərsin 3D görünüşü də auditoriyadır | M | Sadə görünüşdə siyahı səhifəsi | Hazır vebdə (vahid testlər + E2E) |
 | FR-051 | İştirakçını çıxarmaq/bloklamaq | M | Host/admin | Hazır (API + UI) |

@@ -2,6 +2,10 @@
 
 Versiya 0.1 · 2026-11-04. Bu sənəd heç bir şeyin "100% təhlükəsiz" olduğunu iddia etmir. Hər nəzarət üçün necə yoxlandığı yazılıb; yoxlanmayanlar açıq qeyd olunub.
 
+## Cihaz diaqnostikası (2026-11-16)
+
+Native tətbiq açılış mərhələlərinin adını və tutulmayan JS xətasının mətnini Supabase-ə oxuma sorğusunun süzgəcində göndərir (`src/lib/diag.ts`); bunlar yalnız giriş jurnalında qalır. İstifadəçi ID-si, e-poçt, OTP və token göndərilmir, mətn hərf-rəqəmə qədər təmizlənir və 170 simvolla məhdudlanır. Risk: xəta mətninə təsadüfən məzmun düşə bilər; ona görə suallar və cavablar heç vaxt xəta mətninə yazılmamalıdır.
+
 ## 1. Qorunan aktivlər
 
 | Aktiv | Niyə dəyərlidir |
