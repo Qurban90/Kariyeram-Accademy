@@ -2,6 +2,10 @@
  * Qorunan ekran (SEC-008): Android-də ekran şəkli/yazısı sistem səviyyəsində bloklanır (FLAG_SECURE),
  * iOS-da bloklamaq mümkün deyil — ekran şəkli aşkarlanır və audit-ə bildirilir. Vebdə heç biri mümkün deyil;
  * orada yalnız su nişanı qoruyur. Bu, sızmanı tam dayandırmır (başqa telefonla çəkmək mümkündür) — məqsəd çətinləşdirmək və izləməkdir.
+ *
+ * Ekran YAZISI (screen recording): Android-də FLAG_SECURE yazını da bloklayır. iOS-da expo-screen-capture
+ * yazını aşkar etmir (yalnız screenshot listener var) — 'screen_recording' hadisəsi ona görə hələ göndərilmir;
+ * UIScreen.isCaptured izləyicisi mağaza buraxılışından əvvəl kiçik native modulla əlavə olunacaq (docs/SECURITY).
  */
 import * as ScreenCapture from 'expo-screen-capture'
 import { useEffect } from 'react'

@@ -4,7 +4,7 @@
  */
 import { router, useLocalSearchParams } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Pressable, StyleSheet, View } from 'react-native'
+import { AppState, Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '../../src/components/Text'
 import { useScreenGuard } from '../../src/components/ScreenGuard'
 import { Badge, Bar, Button, ErrorBox, Loading, P, RoomTheme, Screen, usePalette, useSheet } from '../../src/components/ui'
@@ -33,6 +33,8 @@ function TestRunnerInner() {
   const [err, setErr] = useState<ApiFailure | null>(null)
   const [left, setLeft] = useState<number | null>(null)
   const shownAt = useRef(Date.now())
+  const deadline = useRef<number | null>(null)
+  const timeUpFired = useRef(false)
   const finishing = useRef(false)
 
   const finish = useCallback(async () => {
@@ -55,6 +57,9 @@ function TestRunnerInner() {
       if (r.done) { await finish(); return }
       setQ(r)
       setLeft(r.time_left_s)
+      // Mütləq son vaxt: fon vəziyyətində setTimeout dayansa da göstərici düzgün qalır.
+      deadline.current = r.time_left_s === null ? null : Date.now() + r.time_left_s * 1000
+      timeUpFired.current = false
       shownAt.current = Date.now()
       setPhase('asking')
     } catch (e) {
@@ -66,13 +71,21 @@ function TestRunnerInner() {
 
   useEffect(() => { void load() }, [load])
 
-  // İmtahan taymeri: göstərici klientdədir, həqiqi limit serverdədir.
+  // İmtahan taymeri: göstərici son vaxtdan hesablanır (drift yoxdur), həqiqi limit serverdədir.
+  // Ön plana qayıdışda dərhal yenilənir.
   useEffect(() => {
-    if (left === null || phase === 'finishing') return
-    if (left <= 0) { if (phase === 'asking') void load(); return }
-    const id = setTimeout(() => setLeft((v) => (v === null ? v : v - 1)), 1000)
-    return () => clearTimeout(id)
-  }, [left, phase, load])
+    if (phase === 'finishing') return
+    const tick = () => {
+      if (deadline.current === null) return
+      const s = Math.max(0, Math.ceil((deadline.current - Date.now()) / 1000))
+      setLeft(s)
+      if (s <= 0 && phase === 'asking' && !timeUpFired.current) { timeUpFired.current = true; void load() }
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    const sub = AppState.addEventListener('change', (st) => { if (st === 'active') tick() })
+    return () => { clearInterval(id); sub.remove() }
+  }, [phase, load])
 
   const submit = async (choice: number | null) => {
     if (!q || phase !== 'asking') return

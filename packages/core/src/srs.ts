@@ -39,11 +39,15 @@ export function expectedMs(questionChars: number, optionsChars: number): number 
 /**
  * Cavabı FSRS qiymətinə çevirir. Test sualında tələbə özünü qiymətləndirmir,
  * ona görə doğruluq və cavab sürətindən istifadə edirik.
+ * İlk görüşdə (kart yoxdur / New / reps=0) sürətli cavab təxmin ola bilər — Easy yox, Good verilir.
  */
-export function gradeFromAnswer(a: { correct: boolean; ms: number; expectedMs: number }): Grade {
+export function gradeFromAnswer(a: { correct: boolean; ms: number; expectedMs: number }, card?: SrsCard): Grade {
   if (!a.correct) return Rating.Again
   if (a.ms > a.expectedMs * 1.6) return Rating.Hard
-  if (a.ms < a.expectedMs * 0.4) return Rating.Easy
+  if (a.ms < a.expectedMs * 0.4) {
+    const firstReview = !card || card.state === State.New || card.reps === 0
+    return firstReview ? Rating.Good : Rating.Easy
+  }
   return Rating.Good
 }
 

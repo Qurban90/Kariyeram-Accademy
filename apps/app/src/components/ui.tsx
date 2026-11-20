@@ -3,7 +3,7 @@
  * Vizual qayda: səthlər sakit və tünddür, qızılı yalnız seçimi və növbəti addımı göstərir (bax theme.ts).
  */
 import { router } from 'expo-router'
-import { useState, type ReactNode } from 'react'
+import { useRef, useState, type ComponentRef, type ReactNode } from 'react'
 import {
   ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions,
   type StyleProp, type TextInputProps, type TextStyle, type ViewStyle,
@@ -305,6 +305,34 @@ export function Field({ label, error, hint, style, onFocus, onBlur, ...rest }: T
   )
 }
 
+/** 6 xanalı təsdiq kodu: görünən xanalar, üstündə şəffaf həqiqi giriş (testID orada qalır — SMS avtodoldurma və testlər işləyir). */
+export function OtpInput({ value, onChange, onSubmit, label, error, autoFocus, testID }: {
+  value: string; onChange: (v: string) => void; onSubmit?: () => void; label: string; error?: boolean; autoFocus?: boolean; testID?: string
+}) {
+  const colors = usePalette()
+  const s = useSheet(makeS)
+  const ref = useRef<ComponentRef<typeof TextInput>>(null)
+  const [focused, setFocused] = useState(false)
+  const active = Math.min(value.length, 5)
+  return (
+    <Pressable accessible={false} onPress={() => ref.current?.focus()} style={s.otpRow}>
+      <TextInput
+        ref={ref} testID={testID} value={value} accessibilityLabel={label}
+        onChangeText={(v) => onChange(v.replace(/\D/g, '').slice(0, 6))}
+        keyboardType="number-pad" autoComplete="one-time-code" textContentType="oneTimeCode" maxLength={6}
+        onSubmitEditing={onSubmit} autoFocus={autoFocus} caretHidden
+        onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+        style={s.otpHidden}
+      />
+      {Array.from({ length: 6 }, (_, i) => (
+        <View key={i} style={[s.otpCell, focused && i === active && s.otpCellOn, error && { borderColor: colors.bad }]}>
+          <Text style={s.otpDigit}>{value[i] ?? ''}</Text>
+        </View>
+      ))}
+    </Pressable>
+  )
+}
+
 export function ErrorBox({ message, onRetry }: { message: string | null | undefined; onRetry?: () => void }) {
   const colors = usePalette()
   const s = useSheet(makeS)
@@ -389,10 +417,10 @@ const makeS = (colors: Palette) => {
   headerTitle: { flex: 1, color: colors.ivory, fontFamily: type.display, fontSize: 19, textAlign: 'center' },
   sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, flexWrap: 'wrap' },
 
-  card: { backgroundColor: colors.surface, backgroundImage: f.sheen, boxShadow: f.cardShadow, borderRadius: radius.lg, padding: space.lg + 2, borderWidth: 1, borderColor: colors.line, gap: space.sm },
+  card: { backgroundColor: colors.surface, boxShadow: f.cardShadow, borderRadius: radius.lg, padding: space.lg + 2, borderWidth: 1, borderColor: colors.line, gap: space.sm },
   cardGold: { borderColor: colors.goldLine, backgroundImage: f.beam },
   cardPressed: { backgroundColor: colors.surfaceHi, transform: [{ scale: 0.992 }] },
-  group: { backgroundColor: colors.surface, backgroundImage: f.sheen, boxShadow: f.cardShadow, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.line, overflow: 'hidden' },
+  group: { backgroundColor: colors.surface, boxShadow: f.cardShadow, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, overflow: 'hidden' },
   groupLine: { height: 1, backgroundColor: colors.line, marginLeft: space.lg },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.md + 2, minHeight: touch + 16 },
   rowIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.goldWash },
@@ -434,13 +462,19 @@ const makeS = (colors: Palette) => {
   boxOn: { backgroundColor: colors.gold, borderColor: colors.gold },
 
   label: { color: colors.ivoryDim, fontSize: font.small, fontWeight: '500' },
-  input: { minHeight: touch + 8, borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: colors.nightDeep, color: colors.ivory, borderRadius: radius.md, paddingHorizontal: space.lg, fontSize: 17, fontFamily: type.body, outlineWidth: 0 },
+  input: { minHeight: touch + 8, borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: colors.nightDeep, color: colors.ivory, borderRadius: radius.sm + 2, paddingHorizontal: space.lg, fontSize: 17, fontFamily: type.body, outlineWidth: 0 },
   inputFocus: { borderColor: colors.gold, boxShadow: f.focusRing },
   err: { color: colors.bad, fontSize: font.small },
   hint: { color: colors.ivoryFaint, fontSize: font.tiny },
   errBox: { flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: colors.badWash, borderColor: 'rgba(236,130,114,0.4)', borderWidth: 1, borderRadius: radius.md, padding: space.md },
 
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', borderWidth: 1, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4 },
   bar: { height: 6, borderRadius: radius.pill, backgroundColor: colors.line, overflow: 'hidden' },
+
+  otpRow: { flexDirection: 'row', gap: space.sm },
+  otpHidden: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0, fontSize: 17 },
+  otpCell: { flex: 1, height: 60, borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: colors.nightDeep, borderRadius: radius.sm + 2, alignItems: 'center', justifyContent: 'center' },
+  otpCellOn: { borderColor: colors.gold, boxShadow: f.focusRing },
+  otpDigit: { color: colors.ivory, fontSize: 24, fontFamily: type.semibold, fontVariant: ['tabular-nums'] },
 })
 }

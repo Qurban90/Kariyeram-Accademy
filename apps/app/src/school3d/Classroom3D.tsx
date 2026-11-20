@@ -12,7 +12,7 @@ import { Loading } from '../components/ui'
 import type { Peer } from '../live/useLiveRoom'
 import { useVideoTexture } from '../live/videoTexture'
 import { classroomSeat, CLASS_PER_ROW } from './layout'
-import { Avatar, Boxes, type BoxPart } from './parts'
+import { Avatar, Boxes, SeatedCrowd, type BoxPart } from './parts'
 import { mat, useSurfaces, type SurfaceKey } from './textures'
 
 const NEEDED: SurfaceKey[] = ['planks', 'plaster', 'grain', 'darkGrain', 'ceiling', 'board', 'cork', 'window']
@@ -118,6 +118,18 @@ export function Classroom3D({ peers, raised, capacity }: { peers: Peer[]; raised
   const maxSeat = Math.max(0, ...seated.map((p) => p.seat!))
   const total = Math.min(Math.max(12, Math.ceil((maxSeat + 1) / CLASS_PER_ROW) * CLASS_PER_ROW), Math.max(capacity, maxSeat), 60)
   const bySeat = useMemo(() => new Map(seated.map((p) => [p.seat!, p])), [seated])
+  // Detallı avatarlar limitlənir (hər biri ~15 mesh): mən, danışanlar və əl qaldıranlar həmişə detallıdır,
+  // qalan yerlər sıra ilə dolur; artıq qalan tələbələr instanced "kütlə" kimi çəkilir (2 çəkiliş çağırışı).
+  const DETAILED_MAX = 24
+  const detailed = useMemo(() => {
+    const prio = (p: Peer) => (p.isLocal ? 0 : p.speaking ? 1 : raised.has(p.identity) ? 2 : 3)
+    const sorted = [...seated].sort((a, b) => prio(a) - prio(b) || a.seat! - b.seat!)
+    return new Set(sorted.slice(0, DETAILED_MAX).map((p) => p.identity))
+  }, [seated, raised])
+  const crowd = useMemo(() => seated.filter((p) => !detailed.has(p.identity)).map((p) => {
+    const pos = classroomSeat(p.seat!)
+    return { id: p.identity, x: pos.x, z: pos.z + 0.2 }
+  }), [seated, detailed])
   const rows = Math.ceil(total / CLASS_PER_ROW)
   // Otaq kameranın arxasına qədər uzanır (dar ekranda kamera geri çəkilir).
   const depth = 6 + rows * 1.5 + 14
@@ -133,7 +145,7 @@ export function Classroom3D({ peers, raised, capacity }: { peers: Peer[]; raised
       {Array.from({ length: total }, (_, i) => {
         const seat = i + 1
         const peer = bySeat.get(seat)
-        if (!peer) return null
+        if (!peer || !detailed.has(peer.identity)) return null
         const pos = classroomSeat(seat)
         return (
           <group key={peer.identity} position={[pos.x, 0, pos.z + 0.2]}>
@@ -141,6 +153,7 @@ export function Classroom3D({ peers, raised, capacity }: { peers: Peer[]; raised
           </group>
         )
       })}
+      <SeatedCrowd people={crowd} />
     </Canvas>
   )
 }

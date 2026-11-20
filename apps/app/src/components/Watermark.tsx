@@ -11,8 +11,8 @@ export function Watermark({ value }: { value: string | number | null | undefined
   const palette = usePalette()
   if (value === null || value === undefined || value === '') return null
   const label = `№ ${value}`
-  const rows = Array.from({ length: 9 })
-  const ink = palette === roomColors ? 'rgba(34,27,17,0.06)' : 'rgba(241,236,224,0.07)'
+  const rows = Array.from({ length: 12 })
+  const ink = palette === roomColors ? 'rgba(34,27,17,0.12)' : 'rgba(241,236,224,0.13)'
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" aria-hidden>
       <View style={st.rot}>

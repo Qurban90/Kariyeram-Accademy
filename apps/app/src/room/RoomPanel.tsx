@@ -4,11 +4,12 @@
  */
 import { router } from 'expo-router'
 import { useMemo, useState } from 'react'
-import { StyleSheet, View } from 'react-native'
-import { Button, Card, Chip, ErrorBox, Group, H, Icon, ListRow, Loading, P, Section, SelectRow, usePalette, type IconName } from '../components/ui'
+import { Linking, StyleSheet, View } from 'react-native'
+import { Button, Card, Chip, ErrorBox, Group, H, Icon, Loading, P, Section, SelectRow, usePalette, type IconName } from '../components/ui'
 import { t } from '../i18n/az'
 import { api, ApiFailure, type Mode } from '../lib/api'
-import { hasAccess, useEnrollments, useLibrary, useTopics } from '../lib/queries'
+import { config } from '../config'
+import { hasAccess, useEnrollments, useTopics } from '../lib/queries'
 import { space } from '../theme'
 
 const SIZES = [10, 20, 30, 50] as const
@@ -23,7 +24,6 @@ export function RoomPanel({ subject }: { subject: string }) {
   const colors = usePalette()
   const topics = useTopics(subject)
   const enr = useEnrollments()
-  const shelf = useLibrary(subject)
   const [mode, setMode] = useState<Mode>('topic')
   const [size, setSize] = useState<number>(10)
   const [picked, setPicked] = useState<Set<string>>(new Set())
@@ -36,11 +36,6 @@ export function RoomPanel({ subject }: { subject: string }) {
   if (topics.isLoading) return <Loading />
 
   const toggle = (id: string) => setPicked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n })
-
-  const openItem = (id: string, kind: 'text' | 'pdf', title: string) => {
-    setErr(null)
-    router.push({ pathname: '/library/[id]', params: kind === 'pdf' ? { id, kind, title } : { id } })
-  }
 
   const start = async () => {
     setErr(null)
@@ -107,24 +102,22 @@ export function RoomPanel({ subject }: { subject: string }) {
       <ErrorBox message={err} />
       <Button testID="start-test" label={t.room.start} onPress={start} loading={busy} />
 
-      <Section title={t.library.shelf}>
-        {(shelf.data ?? []).length === 0 ? <P dim small>{t.library.empty}</P> : (
-          <Group>
-            {(shelf.data ?? []).map((it, i) => {
-              const can = !!access || it.free
-              return (
-                <View key={it.id} style={!can ? { opacity: 0.5 } : undefined}>
-                  <ListRow testID={`shelf-${i}`} icon={it.kind === 'pdf' ? 'file' : 'bookOpen'} title={it.title}
-                    sub={`${it.kind === 'pdf' ? t.library.pdf : t.library.text}${it.free && !access ? ` · ${t.library.free}` : ''}${!can ? ` · ${t.library.locked}` : ''}`}
-                    onPress={can ? () => openItem(it.id, it.kind, it.title) : undefined}
-                    right={!can ? <Icon name="lock" size={18} color={colors.ivoryFaint} /> : undefined} />
-                </View>
-              )
-            })}
-          </Group>
-        )}
-      </Section>
-      {(shelf.data ?? []).some((x) => x.kind === 'pdf') && <P dim small>{t.library.pdfNote}</P>}
+      {/* Materiallar tətbiqdə paylanmır: izah canlı dərsdə, PDF yalnız kurs tələbələrinə göndərilir. */}
+      <Card tone="gold" testID="room-contact">
+        <View style={st.contactHead}>
+          <Icon name="phone" size={20} color={colors.gold} />
+          <H level={3}>{t.contact.title}</H>
+        </View>
+        <P dim small>{t.contact.lead}</P>
+        <P style={st.phone}>{config.contactPhoneDisplay}</P>
+        <View style={st.contactRow}>
+          <Button testID="room-call" small icon="phone" label={t.contact.call} style={{ flex: 1 }}
+            onPress={() => void Linking.openURL(`tel:${config.contactPhone}`)} />
+          <Button testID="room-live" small icon="screen" variant="ghost" label={t.contact.live} style={{ flex: 1 }}
+            onPress={() => router.push('/live')} />
+        </View>
+        <P dim small>{t.contact.free}</P>
+      </Card>
     </View>
   )
 }
@@ -133,4 +126,7 @@ const st = StyleSheet.create({
   note: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm },
   modes: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
   mode: { flexBasis: '47%', flexGrow: 1, minWidth: 150 },
+  contactHead: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  contactRow: { flexDirection: 'row', gap: space.md, flexWrap: 'wrap' },
+  phone: { fontSize: 20, fontWeight: '700', letterSpacing: 0.5 },
 })

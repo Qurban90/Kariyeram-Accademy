@@ -19,6 +19,7 @@ Migrasiyalar (`supabase/migrations`), ardıcıllıqla:
 | `20261104000012_admin.sql` | `is_admin`, dayandırılmış müəllim `is_staff` deyil; `admin_find_users` (maskalı əlaqə), `admin_suspend/unsuspend`, `admin_set_role` (yalnız tələbə ↔ müəllim), `admin_audit` (açar-dəst səhifələmə) |
 | `20261104000014_pdf_stamp.sql` | PDF limiti 15 MB (bucket), `library_open`-a tələbə üçün gündə 200 açılış limiti |
 | `20261104000015_staff_mfa.sql` | `app_config.staff_mfa_required`, `_staff_aal_ok()`, sual bankında məhdudlaşdırıcı RLS siyasəti (aal2), `admin_set_config` yeni parametrlə |
+| `20261120000001_security_hardening.sql` | `test_sessions.total` sütunu + sütun-səviyyəli SELECT (seed/question_ids klientə bağlı), `answers` klient oxunuşu bağlı, `private.perm_secret` ilə server variant permutasiyası, `answers.server_ms` (viewed_at-dan), MFA defolt açıq (fail-closed), dayandırma yoxlamaları (library/board/client_event), `staff_library_delete` yalnız yaradan/admin, `live_set_role` only_host_audio-ya uyğun, `srs_apply` (CAS), yol prefiksi dəqiq müqayisə, qlobal kod limiti |
 | `20261104000013_scale.sql` | Çatışmayan xarici açar indeksləri, `maintenance_cleanup` (saxlama siyasəti, pg_cron ilə gündəlik), `app_config` (minimum versiya, texniki iş), `admin_set_config` |
 
 ## Prinsiplər

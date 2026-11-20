@@ -7,6 +7,7 @@ import { suspendedGate } from '../_shared/admin.ts'
 import { cachedConfig, configGate } from '../_shared/config.ts'
 import { mfaGate } from '../_shared/mfa.ts'
 import { deleteAuthUser, getAppConfig, getUser, restDb, restStorage, setAuthBan } from '../_shared/supabase.ts'
+import { corsHeaders, MAX_BODY, MAX_BODY_LIBRARY, readBody } from '../_shared/http.ts'
 
 const env = (k: string) => Deno.env.get(k) ?? ''
 const supa = { url: env('SUPABASE_URL'), serviceKey: env('SUPABASE_SERVICE_ROLE_KEY') }
@@ -20,28 +21,14 @@ const storage = restStorage(supa, 'library')
 // İstehsalda 30 s; lokal testlərdə qısa (APP_CONFIG_TTL_MS), ki dəyişiklik dərhal yoxlanılsın.
 const appConfig = cachedConfig(() => getAppConfig(supa), Number(env('APP_CONFIG_TTL_MS')) || 30_000)
 
-const MAX_BODY = 64 * 1024
-/** Mətn konspekti (200 000 simvola qədər) üçün yeganə istisna. */
-const MAX_BODY_LIBRARY = 900 * 1024
 const origins = env('APP_ORIGINS').split(',').map((s) => s.trim()).filter(Boolean)
-
-function cors(req: Request): Record<string, string> {
-  const o = req.headers.get('origin') ?? ''
-  return {
-    'Access-Control-Allow-Origin': origins.length === 0 ? '*' : origins.includes(o) ? o : origins[0]!,
-    'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-client-info, x-request-id, x-app-version',
-    'Access-Control-Expose-Headers': 'x-request-id, content-disposition',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    Vary: 'Origin',
-  }
-}
 
 const log = (level: 'info' | 'warn' | 'error', msg: string, data: Record<string, unknown>) =>
   console.log(JSON.stringify({ level, msg, ...data, at: new Date().toISOString() }))
 
 Deno.serve(async (req) => {
   const rid = req.headers.get('x-request-id')?.slice(0, 64) || crypto.randomUUID()
-  const headers = { ...cors(req), 'content-type': 'application/json', 'x-request-id': rid, 'cache-control': 'no-store' }
+  const headers = { ...corsHeaders(req.headers.get('origin') ?? '', origins), 'content-type': 'application/json', 'x-request-id': rid, 'cache-control': 'no-store' }
   const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers })
   if (req.method === 'OPTIONS') return new Response(null, { headers })
   if (req.method !== 'POST') return reply({ error: 'method' }, 405)
@@ -58,14 +45,15 @@ Deno.serve(async (req) => {
   const userId = user.id
   // Admin tərəfindən dayandırılmış hesab: yalnız ixrac və silinmə (DB də öz yoxlamasını edir, bu birinci qatdır).
   if (suspendedGate(route, user.bannedUntil)) return reply({ error: 'suspended', requestId: rid }, 403)
-  // Müəllim/admin iki mərhələli qoruma (R-11).
-  const mfa = mfaGate(route, user, cfg.staffMfaRequired === true)
+  // Müəllim/admin iki mərhələli qoruma (R-11). Naməlum konfiqurasiyada fail-closed: məcburi sayılır.
+  const mfa = mfaGate(route, user, cfg.staffMfaRequired !== false)
   if (mfa) return reply({ error: mfa.code, requestId: rid }, mfa.status)
 
   const started = Date.now()
   try {
-    const raw = await req.text()
-    if (raw.length > (route === 'staff/library/add' ? MAX_BODY_LIBRARY : MAX_BODY)) return reply({ error: 'too_large' }, 413)
+    // Gövdə limiti tam buferləmədən ƏVVƏL yoxlanılır (content-length), sonra axında sayılır.
+    const raw = await readBody(req, route === 'staff/library/add' ? MAX_BODY_LIBRARY : MAX_BODY)
+    if (raw === null) return reply({ error: 'too_large' }, 413)
     const body = raw ? JSON.parse(raw) : {}
     const ctx: Ctx = { db, userId, live, admin, storage, log: (msg, data) => log('error', msg, { rid, ...data }) }
     const out = await dispatch(route, ctx, body)

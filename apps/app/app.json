@@ -3,7 +3,7 @@
     "name": "Karyeram Accademy",
     "slug": "karyeram-accademy",
     "scheme": "karyeram",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "default",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/icon.png",
@@ -44,8 +44,7 @@
       "expo-font",
       "expo-sharing",
       "@livekit/react-native-expo-plugin",
-      "@config-plugins/react-native-webrtc",
-      "expo-web-browser"
+      "@config-plugins/react-native-webrtc"
     ],
     "experiments": {
       "typedRoutes": false

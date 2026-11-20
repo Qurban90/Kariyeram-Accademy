@@ -13,7 +13,7 @@ import { Badge, Bar, Button, Card, Chip, ErrorBox, Group, H, Icon, ListRow, Load
 import { t } from '../src/i18n/az'
 import { useAuth } from '../src/lib/auth'
 import { hasAccess, useActiveSession, useEnrollments, useLiveSessions, useSubjects, useTopics } from '../src/lib/queries'
-import { colors, space } from '../src/theme'
+import { colors, font, space } from '../src/theme'
 
 const native = Platform.OS !== 'web'
 /** Yoxlama rejimində ekranın açıldığı hissələr (son izə görə hansı hissədə dayandığı bilinir). */
@@ -66,7 +66,7 @@ export default function Hall() {
   const liveNow = (live.data ?? []).filter((s) => s.state === 'live').length
   const first = profile?.display_name?.split(' ')[0] || ''
 
-  const resumeTotal = active.data?.question_ids.length ?? 0
+  const resumeTotal = active.data?.total ?? 0
   // Telefonda 2, enli ekranda 4 qapı bir sırada; sıranı görünməz doldurucular tamamlayır.
   const basis = cols === 4 ? '22%' : '47%'
   const n = subjects.data?.length ?? 0
@@ -131,7 +131,7 @@ export default function Hall() {
       ) : null}
       {show(2) ? (
         <View style={{ gap: space.xs }}>
-          <H>{t.hall.greeting(first)}</H>
+          <H style={st.greet}>{t.hall.greeting(first)}</H>
           <P dim>{t.hall.lead}</P>
         </View>
       ) : null}
@@ -189,6 +189,7 @@ export default function Hall() {
 
 const st = StyleSheet.create({
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, flexWrap: 'wrap', paddingBottom: space.sm },
+  greet: { fontSize: font.display, lineHeight: 42, letterSpacing: -0.5 },
   resumeHead: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   resumeIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.goldWash },
   corridor: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.lg, rowGap: space.xl },

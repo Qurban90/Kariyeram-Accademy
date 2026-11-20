@@ -19,7 +19,7 @@ import { hallPlan, roomPlan, Walker, type Desk, type PickFn } from './walk'
 const StudyRoom = lazy(() => import('./StudyRoom').then((m) => ({ default: m.StudyRoom })))
 const HallWalk = lazy(() => import('./Auditorium').then((m) => ({ default: m.HallWalk })))
 
-export function Room3D({ kind = 'room', roomNo, name, active, children, onExit, onSimple, onFail }: {
+export function Room3D({ kind = 'room', roomNo, name, active, children, onExit, onSimple, onFail, auto, seatNo, onLesson, onTest }: {
   /** 'room': fənn sinfi (partalar); 'hall': oxu zalı (pilləli auditoriya). */
   kind?: 'room' | 'hall'
   roomNo: string; name: string
@@ -28,6 +28,11 @@ export function Room3D({ kind = 'room', roomNo, name, active, children, onExit, 
   /** Pəncərənin içi. */
   children: ReactNode
   onExit: () => void; onSimple: () => void; onFail: () => void
+  /** Avtomatik rejim: özü partaya oturur, partada iki seçim göstərir (dərs / test). */
+  auto?: boolean
+  seatNo?: number
+  onLesson?: () => void
+  onTest?: () => void
 }) {
   const hall = kind === 'hall'
   const plan = useMemo(() => (hall ? hallPlan() : roomPlan()), [hall])
@@ -41,6 +46,7 @@ export function Room3D({ kind = 'room', roomNo, name, active, children, onExit, 
   const [win, setWin] = useState(false)
   const [menu, setMenu] = useState(false)
   const [exitOpen, setExitOpen] = useState(false)
+  const [look, setLook] = useState(false)
   const [low, setLow] = useState(Platform.OS !== 'web')
   const guard = use3dGuard()
   const [coach, setCoach] = useState(true)
@@ -57,7 +63,13 @@ export function Room3D({ kind = 'room', roomNo, name, active, children, onExit, 
     entered.current = true
     later(6000, guard.settle)
     setVeil(false)
-    walker.walkTo([plan.start], plan.start.yaw, () => setBusy(false), Walker.DOOR_SPEED)
+    walker.walkTo([plan.start], plan.start.yaw, () => {
+      setBusy(false)
+      if (auto) {
+        const d = plan.seats[((seatNo ?? 1) - 1) % plan.seats.length]
+        if (d) sitAt(d)
+      }
+    }, Walker.DOOR_SPEED)
   }
 
   const seatOf = (id: string | null): Desk | null => (id?.startsWith('desk:') ? plan.seats.find((d) => d.no === Number(id.slice(5))) ?? null : null)
@@ -66,7 +78,7 @@ export function Room3D({ kind = 'room', roomNo, name, active, children, onExit, 
   const sitAt = (d: Desk) => {
     if (walker.mode !== 'walk' || busy) return
     setMenu(false); setBusy(true)
-    walker.walkTo(plan.route(walker, d), undefined, () => walker.sit(plan.seatAt(d), () => { setSeat(d); setBusy(false); setWin(true) }))
+    walker.walkTo(plan.route(walker, d), undefined, () => walker.sit(plan.seatAt(d), () => { setSeat(d); setBusy(false); if (!auto) setWin(true) }))
   }
   const closest = () => plan.seats.reduce((a, b) => (Math.hypot(b.x - walker.x, b.z - walker.z) < Math.hypot(a.x - walker.x, a.z - walker.z) ? b : a))
   const standUp = (then?: () => void) => {
@@ -131,8 +143,8 @@ export function Room3D({ kind = 'room', roomNo, name, active, children, onExit, 
           </Suspense>
         </GLBoundary>
       </View>
-      <WalkPad walker={walker} onTap={onTap} enabled={active && !win && !menu} testID="room-pad" />
-      {!win ? (
+      <WalkPad walker={walker} onTap={onTap} enabled={active && !win && !menu && (!auto || (!!seat && look))} testID="room-pad" />
+      {!win && !auto ? (
         <Hud menuTestID="room-menu-open" hint={hint} onMenu={() => setMenu(true)} toast={toast} showStick={coach && !finePointer && !seat && !busy}>
           {busy ? null : seat ? (<>
             <HudButton testID="stand-up" ghost icon="stairs" label={t.walk.stand} onPress={() => standUp()} />
@@ -147,9 +159,20 @@ export function Room3D({ kind = 'room', roomNo, name, active, children, onExit, 
         </Hud>
       ) : null}
 
-      <DeskWindow visible={win} keep={!!seat} kicker={`${hall ? t.hall.live : t.walk.room(roomNo)}${seat ? ` · ${seatLabel(seat.no)}` : ''}`} title={name} onClose={() => setWin(false)}>
-        {children}
-      </DeskWindow>
+      {auto && seat && !look ? (
+        <DeskChoices seatLabel={seatLabel(seat.no)} onLesson={onLesson} onTest={onTest} onLook={() => setLook(true)} />
+      ) : null}
+      {auto && seat && look ? (
+        <View style={st.reopen} pointerEvents="box-none">
+          <Button testID="desk-choices" small icon="book" label={t.cine.choices} onPress={() => setLook(false)} />
+        </View>
+      ) : null}
+
+      {!auto ? (
+        <DeskWindow visible={win} keep={!!seat} kicker={`${hall ? t.hall.live : t.walk.room(roomNo)}${seat ? ` · ${seatLabel(seat.no)}` : ''}`} title={name} onClose={() => setWin(false)}>
+          {children}
+        </DeskWindow>
+      ) : null}
 
       <Sheet visible={menu} onClose={() => setMenu(false)} title={hall ? name : `${roomNo} · ${name}`} testID="room-menu">
         <P dim small>{hall ? t.walk.hallMenuLead : t.walk.roomMenuLead}</P>
@@ -212,9 +235,38 @@ function WindowBody({ kicker, title, onClose, bottom, children }: { kicker: stri
   )
 }
 
+/** Avtomatik rejimdə partanın üstündəki iki seçim: dərsin izahı / test. Klikləyəndə tam ekran açılır (sinif gizlənir). */
+function DeskChoices({ seatLabel, onLesson, onTest, onLook }: { seatLabel: string; onLesson?: () => void; onTest?: () => void; onLook: () => void }) {
+  const ins = useSafeAreaInsets()
+  return (
+    <View style={[st.choices, { paddingBottom: ins.bottom + space.md }]} testID="desk-choices-panel">
+      <View style={st.choicesHead}>
+        <Icon name="door" size={16} color={night.gold} />
+        <Text style={st.choicesSeat}>{seatLabel}</Text>
+        <Text style={st.choicesTitle}>{t.cine.choices}</Text>
+      </View>
+      <View style={st.choicesRow}>
+        <Button testID="desk-lesson" icon="book" label={t.cine.lesson} onPress={() => onLesson?.()} style={{ flex: 1 }} />
+        <Button testID="desk-test" icon="timer" variant="ghost" label={t.cine.test} onPress={() => onTest?.()} style={{ flex: 1 }} />
+      </View>
+      <Button testID="desk-look" small variant="quiet" icon="compass" label={t.cine.look} onPress={onLook} />
+    </View>
+  )
+}
+
 const st = StyleSheet.create({
   wrap: { flex: 1, backgroundColor: night.nightDeep },
   row: { flexDirection: 'row', gap: 12 },
+  reopen: { position: 'absolute', left: 0, right: 0, bottom: space.xl, alignItems: 'center' },
+  choices: {
+    position: 'absolute', left: 0, right: 0, bottom: 0, gap: space.md, paddingHorizontal: space.lg, paddingTop: space.lg,
+    backgroundColor: 'rgba(11,10,9,0.86)', borderTopWidth: 1, borderTopColor: night.goldLine,
+    borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl,
+  },
+  choicesHead: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  choicesSeat: { color: night.goldBright, fontSize: font.tiny, fontWeight: '700', letterSpacing: 0.6 },
+  choicesTitle: { color: night.ivory, fontFamily: type.display, fontSize: font.h3, flex: 1 },
+  choicesRow: { flexDirection: 'row', gap: space.md, flexWrap: 'wrap' },
   scrim: { backgroundImage: 'linear-gradient(180deg, rgba(0,0,0,0) 12%, rgba(0,0,0,0.5) 100%)' },
   // Taxta çərçivə: sinifdəki lövhənin çərçivəsi ilə eyni ağac.
   frame: {

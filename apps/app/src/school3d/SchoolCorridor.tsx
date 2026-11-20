@@ -169,6 +169,9 @@ export function SchoolCorridor({ doors, selected, hallLive, walker, targets, onN
   const len = corridorLength(doors.length)
   const L = len + 8, zc = -len / 2 + 2
   const lights = useMemo(() => Array.from({ length: Math.ceil(len / 4.5) + 1 }, (_, i) => 1.5 - i * 4.5), [len])
+  // Hər işıq bütün səhnənin şeyderinə düşür: nöqtəvi işıqların sayı məhdudlaşdırılır (maks 6, yüngül rejimdə 3).
+  // Tavandakı emissiv disklər hər 4.5 m-də qalır — görünüş dəyişmir, yük azalır.
+  const lightStride = Math.max(1, Math.ceil(lights.length / (low ? 3 : 6)))
   const paintings = useMemo(() => {
     const pairs = Math.ceil(doors.length / 2)
     return Array.from({ length: pairs }, (_, i) => -3 - i * DOOR_SPACING - DOOR_SPACING / 2).filter((z) => z > -len + 1.5)
@@ -197,7 +200,7 @@ export function SchoolCorridor({ doors, selected, hallLive, walker, targets, onN
       <hemisphereLight args={['#fff4dc', '#4a3624', 0.5]} />
       {lights.map((z, i) => (
         <group key={z}>
-          {!low || i % 2 === 0 ? <pointLight position={[0, H - 0.35, z]} intensity={low ? 7 : 4.5} distance={low ? 12 : 8} decay={1.5} color="#ffeccc" /> : null}
+          {i % lightStride === 0 ? <pointLight position={[0, H - 0.35, z]} intensity={low ? 9 : 6} distance={low ? 16 : 11} decay={1.5} color="#ffeccc" /> : null}
           <mesh position={[0, H - 0.01, z]} rotation={[Math.PI / 2, 0, 0]}><circleGeometry args={[0.28, 24]} /><meshStandardMaterial color="#fffbe8" emissive="#fff0c4" emissiveIntensity={1.4} side={THREE.DoubleSide} /></mesh>
         </group>
       ))}

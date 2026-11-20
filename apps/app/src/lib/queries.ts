@@ -1,5 +1,6 @@
 /** Birbaşa (RLS ilə qorunan) oxumalar. Suallar burada YOXDUR: onlar yalnız Edge API-dən gəlir. */
 import { useQuery } from '@tanstack/react-query'
+import { config } from '../config'
 import { supabase } from './supabase'
 
 export interface Subject { id: string; name: string; sort: number }
@@ -40,7 +41,11 @@ export const useEnrollments = () => useQuery({
 })
 
 export function hasAccess(enr: Enrollment[] | undefined, subject: string, now = Date.now()): Enrollment | undefined {
-  return enr?.find((e) => e.subject_id === subject && Date.parse(e.access_until) > now)
+  const real = enr?.find((e) => e.subject_id === subject && Date.parse(e.access_until) > now)
+  if (real) return real
+  // İlkin pulsuz mərhələ: hamı bütün mövzulara girə bilər (abunə yenə canlı/material üçündür).
+  if (config.freeAccess) return { subject_id: subject, access_until: new Date(now + 86400_000).toISOString() }
+  return undefined
 }
 
 export const useLiveSessions = () => useQuery({
@@ -68,14 +73,15 @@ export const useVenues = () => useQuery({
   queryFn: () => rows<Venue[]>(supabase.from('venues').select('id, name, kind, subject_id, capacity, door_label, owner_id').order('sort')),
 })
 
-export interface ActiveSession { id: string; subject_id: string; mode: string; cursor: number; question_ids: string[]; started_at: string; time_limit_s: number | null }
+export interface ActiveSession { id: string; subject_id: string; mode: string; cursor: number; total: number; started_at: string; time_limit_s: number | null }
 
-/** Yarımçıq test (tətbiq bağlanıbsa belə kursor serverdədir). Server eyni anda yalnız bir aktiv sessiya saxlayır. */
+/** Yarımçıq test (tətbiq bağlanıbsa belə kursor serverdədir). Server eyni anda yalnız bir aktiv sessiya saxlayır.
+ * `total` server sütunudur: sual ID-ləri və toxum klientə verilmir (bank qorunması). */
 export const useActiveSession = () => useQuery({
   queryKey: ['active-session'],
   queryFn: async () => {
     const { data, error } = await supabase.from('test_sessions')
-      .select('id, subject_id, mode, cursor, question_ids, started_at, time_limit_s')
+      .select('id, subject_id, mode, cursor, total, started_at, time_limit_s')
       .eq('state', 'active').order('started_at', { ascending: false }).limit(1)
     if (error) throw new Error(error.message)
     return ((data ?? [])[0] as ActiveSession | undefined) ?? null

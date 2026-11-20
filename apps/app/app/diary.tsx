@@ -59,7 +59,7 @@ export default function Diary() {
       {weak.length === 0 ? <P dim>{t.diary.weakEmpty}</P> : weak.map((w) => (
         <View key={w.topicId} style={{ gap: 4 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <P small>{w.name}</P><P small dim>{w.missRate}% səhv/boş · {w.total} sual</P>
+            <P small>{w.name}</P><P small dim>{t.diary.missStat(w.missRate, w.total)}</P>
           </View>
           <Bar value={w.missRate} color={w.missRate > 40 ? colors.bad : colors.warn} />
         </View>
@@ -84,7 +84,7 @@ export default function Diary() {
               )}
               {e.kind === 'grade' && p.grade !== undefined && <Text style={{ color: colors.gold, fontFamily: font.serif, fontSize: font.h2 + 2 }}>{String(p.grade)}</Text>}
             </View>
-            {e.kind === 'test' && typeof p.correct === 'number' && <P dim small>{p.correct}/{p.total} düz</P>}
+            {e.kind === 'test' && typeof p.correct === 'number' && <P dim small>{t.diary.correctOf(p.correct, p.total ?? 0)}</P>}
             {p.text ? <P small>{p.text}</P> : null}
           </Card>
         )

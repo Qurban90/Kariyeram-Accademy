@@ -33,4 +33,16 @@ describe('tətbiq konfiqurasiyası', () => {
     const failing = cachedConfig(async () => { throw new Error('x') })
     expect(await failing()).toEqual(OPEN)
   })
+  it('fail-closed: naməlum konfiqurasiyada staff MFA məcburidir', async () => {
+    expect(OPEN.staffMfaRequired).toBe(true)
+    const failing = cachedConfig(async () => { throw new Error('db down') })
+    expect((await failing()).staffMfaRequired).toBe(true)
+    // Son məlum dəyər qorunur: admin açıq söndürübsə, xəta zamanı da söndürülmüş qalır.
+    let t = 0
+    const load = vi.fn(async () => ({ ...OPEN, staffMfaRequired: false }))
+    const get = cachedConfig(load, 1000, () => t)
+    await get()
+    t = 1500; load.mockRejectedValueOnce(new Error('db down'))
+    expect((await get()).staffMfaRequired).toBe(false)
+  })
 })

@@ -1,7 +1,26 @@
 name: Android APK
 # Pilot üçün quraşdırıla bilən APK yığır (mağazasız). Əl ilə işə salınır; nəticə "pilot" buraxılışına əlavə olunur.
+#
+# build_type seçimi (workflow_dispatch):
+#   pilot (defolt) — R8/minify SÖNDÜRÜLÜR (ilk yığım məhz R8 addımında dayanmışdı), debug imza ilə də işləyir.
+#   store          — R8/minify AÇIQ + proguard qaydaları (.github/android/proguard-rules.pro prebuild layihəsinə
+#                    əlavə olunur), mütləq release imzası tələb olunur, AAB də yığılır (Play Store üçün).
+#
+# Lazım olan sirlər (repo sahibi: Settings → Secrets and variables → Actions):
+#   ANDROID_KEYSTORE_BASE64   — release keystore faylının base64-ü (base64 -w0 release.keystore)
+#   ANDROID_KEYSTORE_PASSWORD — keystore parolu
+#   ANDROID_KEY_ALIAS         — açarın alias-ı
+#   ANDROID_KEY_PASSWORD      — açarın parolu
+# Sirlər varsa: assembleRelease düzgün release imzalı APK verir.
+# Sirlər yoxdursa: pilot əvvəlki kimi DEBUG imzalı yığılır (log-da açıq xəbərdarlıq); store isə rədd olunur.
 on:
   workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Yığım növü: pilot (debug imza, minify yox) / store (release imza, R8 açıq, AAB)'
+        type: choice
+        options: [pilot, store]
+        default: pilot
   push:
     branches: [karyeram/foundation]
     paths: ['.github/workflows/android-apk.yml']
@@ -20,6 +39,8 @@ jobs:
       EXPO_PUBLIC_AUTH_METHODS: ${{ vars.AUTH_METHODS || 'email' }}
       # Diaqnostika izlərində yığımı tanımaq üçün (sirr deyil).
       EXPO_PUBLIC_BUILD: ${{ github.sha }}
+      # push hadisəsində input boşdur → pilot.
+      BUILD_TYPE: ${{ inputs.build_type || 'pilot' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -35,29 +56,68 @@ jobs:
       - name: Native layihəni yarat (expo prebuild)
         working-directory: apps/app
         run: npx expo prebuild --platform android --no-install
-      # Pilot APK-da kod kiçiltməsi (R8) söndürülür: ilk yığım məhz R8 addımında dayanmışdı və kiçiltmə pilot üçün
-      # lazım deyil. Mağaza buraxılışından əvvəl R8 yenidən yandırılıb qaydaları (proguard) düzəldilməlidir.
-      - name: Kod kiçiltməsini söndür
-        working-directory: apps/app/android
+      - name: Release keystore-u aç (sirlər varsa)
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          f=app/build.gradle; [[ -f app/build.gradle.kts ]] && f=app/build.gradle.kts
-          sed -i -E 's/^(\s*)minifyEnabled .*/\1minifyEnabled false/; s/^(\s*)shrinkResources .*/\1shrinkResources false/; s/^(\s*)isMinifyEnabled = .*/\1isMinifyEnabled = false/; s/^(\s*)isShrinkResources = .*/\1isShrinkResources = false/' "$f"
-          grep -nE 'minifyEnabled|shrinkResources|isMinifyEnabled|isShrinkResources' "$f" || true
+          if [[ -n "$KS_B64" && -n "$KS_PASS" && -n "$KEY_ALIAS" && -n "$KEY_PASS" ]]; then
+            printf '%s' "$KS_B64" | base64 -d > apps/app/android/app/release.keystore
+            [[ -s apps/app/android/app/release.keystore ]] || { echo "::error::ANDROID_KEYSTORE_BASE64 boş fayl verdi"; exit 1; }
+            # Parol/alias səhvdirsə burada uduzmaq Gradle-nin ortasında uduzmaqdan yaxşıdır (dəyərlər çap olunmur).
+            keytool -list -keystore apps/app/android/app/release.keystore -storepass "$KS_PASS" -alias "$KEY_ALIAS" >/dev/null \
+              || { echo "::error::keystore parolu və ya alias səhvdir (ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS)"; exit 1; }
+            echo "ANDROID_SIGNED=1" >> "$GITHUB_ENV"
+            echo "Release imzası aktivdir."
+          else
+            echo "ANDROID_SIGNED=0" >> "$GITHUB_ENV"
+            if [[ "$BUILD_TYPE" == "store" ]]; then
+              echo "::error::store yığımı üçün ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD sirləri lazımdır."
+              exit 1
+            fi
+            echo "::warning::ANDROID_KEYSTORE_* sirləri yoxdur: APK DEBUG imza ilə yığılır (yalnız pilot sınaq üçün; mağazaya və ya yeniləmə zəncirinə yararsızdır)."
+          fi
+      # Pilot: minify söndürülür (əvvəlki sed addımının əvəzi). Store: minify açılır + release imzası qoşulur.
+      # Parollar build.gradle-ə yazılmır — System.getenv(...) ilə Gradle addımının env-indən oxunur.
+      - name: Gradle imza və minify konfiqurasiyası
+        run: node .github/scripts/android-signing.mjs "$BUILD_TYPE" "${ANDROID_SIGNED:-0}"
+      - name: Store proguard qaydalarını əlavə et
+        if: env.BUILD_TYPE == 'store'
+        run: |
+          # Yaradılan layihənin defolt qaydaları saxlanılır, bizimkilər əlavə olunur.
+          cat .github/android/proguard-rules.pro >> apps/app/android/app/proguard-rules.pro
       - uses: gradle/actions/setup-gradle@v4
       - name: APK yığ
         working-directory: apps/app/android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a,armeabi-v7a --no-daemon
+      - name: AAB yığ (yalnız store)
+        if: env.BUILD_TYPE == 'store'
+        working-directory: apps/app/android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew bundleRelease -PreactNativeArchitectures=arm64-v8a,armeabi-v7a --no-daemon
       - name: APK-nı adlandır
         run: |
           mkdir -p out
-          cp apps/app/android/app/build/outputs/apk/release/app-release.apk "out/karyeram-accademy-pilot.apk"
+          cp apps/app/android/app/build/outputs/apk/release/app-release.apk "out/karyeram-accademy-${BUILD_TYPE}.apk"
+          if [[ "$BUILD_TYPE" == "store" ]]; then
+            cp apps/app/android/app/build/outputs/bundle/release/app-release.aab "out/karyeram-accademy-store.aab"
+          fi
           ls -la out
       - uses: actions/upload-artifact@v4
         with:
-          name: karyeram-accademy-apk
-          path: out/*.apk
+          name: karyeram-accademy-apk-${{ env.BUILD_TYPE }}
+          path: out/*
       - name: "\"pilot\" buraxılışına əlavə et"
-        if: env.KARYERAM_REAL_BACKEND == '1' && github.event_name == 'workflow_dispatch'
+        if: env.KARYERAM_REAL_BACKEND == '1' && github.event_name == 'workflow_dispatch' && env.BUILD_TYPE == 'pilot'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

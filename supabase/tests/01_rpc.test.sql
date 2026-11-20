@@ -181,7 +181,9 @@ do $$ begin
 exception when insufficient_privilege then raise notice 'ok: RPC-lər yalnız server (service_role) üçündür';
 end $$;
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000c', true);
-select tests.ok((select count(*) from public.questions) = 13, 'RLS: müəllim sualları görür');
+-- staff_mfa_required defolt TRUE: müəllim sual bankını aal2 ilə oxuyur.
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000c","aal":"aal2"}', true);
+select tests.ok((select count(*) from public.questions) = 13, 'RLS: müəllim sualları görür (aal2)');
 reset role;
 
 rollback;

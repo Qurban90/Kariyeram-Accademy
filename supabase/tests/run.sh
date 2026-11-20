@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # DB testləri. DATABASE_URL verilibsə ona qoşulur (CI), yoxsa lokal Postgres klasteri açır.
 set -euo pipefail
+# Fayllar UTF-8-dir; Windows-da psql defolt olaraq konsol kod səhifəsini seçə bilər
+# və Azərbaycan hərfləri bazada zədələnər. Həmişə UTF-8 müştəri kodlaşdırması.
+export PGCLIENTENCODING="${PGCLIENTENCODING:-UTF8}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
 MIG="$ROOT/migrations"

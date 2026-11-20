@@ -75,12 +75,12 @@ Native tətbiq açılış mərhələlərinin adını və tutulmayan JS xətasın
 | R-05 | SMS provayderi qoşulmayıb, SMS dəyəri və çatdırılma | Orta | Yüksək | **Yüksək** | Provayder seçimi (müdir), sınaq, e-poçt alternativ kimi qalır |
 | R-06 | IP səviyyəsində rate limit yoxdur | Orta | Orta | Orta | Supabase/edge limitləri ölçülməli, lazım olsa WAF |
 | R-07 | Yük testi yalnız lokal edilib (PERF-001..003, bax PERFORMANCE.md) | Yüksək | Orta | Orta | k6 skriptləri, LiveKit Cloud yük testi |
-| R-08 | `APP_ORIGINS` boşdursa CORS `*` | Orta | Aşağı | Aşağı | İstehsalda mütləq təyin edilməli (DEPLOYMENT.md). Token olmadan API işləmir |
+| R-08 | ~~`APP_ORIGINS` boşdursa CORS `*`~~ | Orta | Aşağı | **Bağlanıb (2026-11-20)** | `APP_ORIGINS` təyin olunmayıbsa `Access-Control-Allow-Origin` başlığı heç göndərilmir (native tətbiq CORS istəmir); naməlum origin də cavabsız qalır. Veb üçün istehsalda `APP_ORIGINS` təyin edilməlidir (DEPLOYMENT.md) |
 | R-09 | Veb versiyada ekran qoruması yoxdur | Yüksək | Orta | Orta | Vebdə yalnız su nişanı; istəyə görə test vebdə bağlana bilər |
 | R-10 | Asılılıq zəiflikləri (npm) | Orta | Orta | Orta | 2026-11-04 `npm audit --omit=dev`: 6 orta (glob/minimatch, Expo build alətlərində, işləyən tətbiqdə deyil). Avtomatik düzəliş Expo-nu köhnə versiyaya endirir, ona görə Expo yeniləmələri izlənir. Dependabot (plan) |
 | R-12 | Vebdə sessiya tokeni `localStorage`-dadır (XSS olarsa oğurlana bilər) | Aşağı | Yüksək | Orta | Üçüncü tərəf skript yoxdur; istehsalda CSP başlığı; native-də SecureStore |
 | R-13 | PDF konspekt endirilib yayıla bilər | Orta | Orta | Aşağı | **Azaldılıb (2026-11-04):** fayla birbaşa ünvan verilmir; server hər açılışda hər səhifəyə və metadataya tələbə nömrəsi və tarixi yazır (sızan nüsxənin mənbəyi görünür). Qalan risk: su nişanını PDF redaktoru ilə silmək mümkündür (gizli, görünməz nişan — plan) |
-| R-11 | Müəllim/admin hesabının ələ keçirilməsi | Aşağı | Yüksək | Aşağı | **Azaldılıb (2026-11-04):** TOTP MFA. `admin/*` həmişə aal2; MFA qoşmuş müəllimin `staff/*` marşrutları və sual bankının birbaşa oxunması (RLS) aal2; admin hamı üçün məcburi edə bilər. Admin digər adminlərə toxuna bilmir, hər əməliyyat audit-dədir. Qalan: bərpa kodları yoxdur (telefon itərsə admin faktoru DB-dən silməlidir) |
+| R-11 | Müəllim/admin hesabının ələ keçirilməsi | Aşağı | Yüksək | Aşağı | **Azaldılıb (2026-11-04, gücləndirilib 2026-11-20):** TOTP MFA. `admin/*` həmişə aal2; `staff_mfa_required` **defolt açıqdır** və konfiqurasiya oxunmasa belə fail-closed (true) qalır — bütün müəllimlərin `staff/*` marşrutları və sual bankının birbaşa oxunması (RLS) aal2 tələb edir; yalnız admin söndürə bilər. Admin digər adminlərə toxuna bilmir, hər əməliyyat audit-dədir. Qalan: bərpa kodları yoxdur (telefon itərsə admin faktoru DB-dən silməlidir) |
 | R-14 | Dayandırılmış istifadəçi PostgREST ilə öz məlumatını oxumağa davam edir (JWT yerli yoxlanır, ≤ 1 saat) | Orta | Aşağı | Aşağı | Yazma əməliyyatlarının hamısı Edge API-dən keçir və dərhal bağlanır; yalnız öz məlumatı oxunur |
 
 ## 5. Sirlər
@@ -88,6 +88,7 @@ Native tətbiq açılış mərhələlərinin adını və tutulmayan JS xətasın
 | Sir | Harada | Kim görür |
 | --- | --- | --- |
 | `SUPABASE_SERVICE_ROLE_KEY` | Edge Function mühiti (Supabase avtomatik verir) | Yalnız server |
+| Variant permutasiya sirri | DB: `private.perm_secret` (sxemə heç bir klient rolunun icazəsi yoxdur; yalnız `_perm` SECURITY DEFINER oxuyur) | Yalnız server |
 | `LIVEKIT_API_KEY/SECRET` | `supabase secrets set` | Yalnız server |
 | SMS provayder tokeni | Supabase Auth ayarları | Yalnız Supabase |
 | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Tətbiq paketi | **İctimai** (sir deyil, RLS qoruyur) |

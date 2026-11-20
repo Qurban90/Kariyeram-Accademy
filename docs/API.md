@@ -62,8 +62,8 @@
 1. **Texniki iş rejimi** (`app_config.maintenance`): `503 maintenance` (+ `message`). İstisna: `admin/*`, `account/export`, `account/delete`.
 2. **Minimum versiya**: klient `x-app-version` başlığı göndərir (app.json `version`). `app_config.min_version`-dan köhnədirsə və ya başlıq yoxdursa `426 upgrade_required`. İstisna: `account/export`, `account/delete`.
 3. **JWT**: GoTrue `/auth/v1/user` (silinmiş, çıxış etmiş və ya **qadağan olunmuş** istifadəçi `401`).
-4. **MFA** (aal JWT claim-dən): `admin/*` həmişə `aal2`; `staff/*` və `live/create` — istifadəçi TOTP qoşubsa və ya `app_config.staff_mfa_required` açıqdırsa `aal2`. Əks halda `403 mfa_required`.
-5. Konfiqurasiya izolyatda 30 saniyə keşlənir; oxuna bilməsə son məlum dəyər, o da yoxdursa bloklanmır.
+4. **MFA** (aal JWT claim-dən): `admin/*` həmişə `aal2`; `staff/*` və `live/create` — `app_config.staff_mfa_required` **defolt açıqdır** (fail-closed): istifadəçi TOTP qoşubsa və ya məcburiyyət açıqdırsa `aal2`. Yalnız admin açıq şəkildə söndürə bilər. Əks halda `403 mfa_required`.
+5. Konfiqurasiya izolyatda 30 saniyə keşlənir; oxuna bilməsə son məlum dəyər saxlanılır, o da yoxdursa `staffMfaRequired: true` (fail-closed), qalan sahələr açıq defoltla.
 
 ## Xəta kodları və HTTP statusu
 
@@ -89,4 +89,4 @@
 
 ## Birbaşa (RLS ilə) oxunan cədvəllər
 
-Tətbiq bunları Supabase klienti ilə oxuyur: `subjects`, `topics`, `profiles` (özü), `enrollments` (özü), `diary_entries` (özü), `consents` (özü), `legal_documents`, `venues`, `live_sessions` (icazəli olanlar), `live_participants`, `live_chat` (iştirakçılar), `live_hands` (özü və ya host). `questions` tələbə üçün bağlıdır.
+Tətbiq bunları Supabase klienti ilə oxuyur: `subjects`, `topics`, `profiles` (özü), `enrollments` (özü), `diary_entries` (özü), `consents` (özü), `legal_documents`, `venues`, `live_sessions` (icazəli olanlar), `live_participants`, `live_chat` (iştirakçılar), `live_hands` (özü və ya host), `test_sessions` (yalnız öz sətirləri və yalnız açıq sütunlar: `id, student_id, mode, subject_id, cursor, state, time_limit_s, started_at, finished_at, result, total`). `questions` tələbə üçün bağlıdır; `answers` klientə tam bağlıdır (baxış yalnız `session/review` RPC ilə); `test_sessions.seed` və `question_ids` sütun-səviyyəli GRANT ilə bağlıdır — sessiya uzunluğu üçün `total` oxunur.

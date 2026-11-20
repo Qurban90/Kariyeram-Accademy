@@ -62,13 +62,17 @@ export default function LiveRoom() {
     },
   })
 
-  // Qoşulma: server icazəni yoxlayır və LiveKit tokeni verir.
+  // Qoşulma: server icazəni yoxlayır və LiveKit tokeni verir. Token bitəndə hook təzə tokenlə avtomatik qayıdır.
   const doJoin = useCallback(async () => {
     setJoinErr(null)
     try {
       const j = await api.liveJoin(id)
       setJoin(j); setOnlyHost(j.onlyHostAudio); setChatOn(j.chatEnabled)
-      await lk.connect(j.url, j.token)
+      await lk.connect(j.url, j.token, async () => {
+        const fresh = await api.liveJoin(id)
+        setJoin(fresh); setOnlyHost(fresh.onlyHostAudio); setChatOn(fresh.chatEnabled)
+        return { url: fresh.url, token: fresh.token }
+      })
     } catch (e) {
       setJoinErr(e instanceof ApiFailure ? e.message : String(e))
     }

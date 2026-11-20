@@ -1,7 +1,10 @@
 name: CI
+# Təkrar istifadə olunan workflow: deploy-backend.yml və deploy-web.yml bunu `needs` kimi çağırır,
+# beləliklə heç bir deploy yoxlamalar keçmədən işə düşmür. push/PR-da da müstəqil işləyir.
 on:
   push:
   pull_request:
+  workflow_call:
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -31,6 +34,36 @@ jobs:
         env:
           EXPO_PUBLIC_SUPABASE_URL: https://example.invalid
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
+
+  e2e-smoke:
+    # Tam E2E (tests/e2e/run.sh) lokal Supabase + LiveKit dev serveri tələb edir — CI-də çox ağırdır.
+    # Lokal işə salma: supabase start && npx supabase functions serve && (LiveKit dev) && bash tests/e2e/run.sh
+    # Burada yalnız: Playwright brauzeri quraşdırılır, E2E skriptinin sintaksisi və real Chromium
+    # başlatması yoxlanır ki, "playwright yoxdur / skript sınmışdır" sinfi xəta deploy-a keçməsin.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: E2E skriptinin sintaksis yoxlaması
+        run: node --check tests/e2e/web.e2e.mjs
+      - name: Chromium tüstü yoxlaması (brauzer açılır, səhifə yüklənir)
+        run: |
+          node --input-type=module -e "
+            import { chromium } from 'playwright';
+            const b = await chromium.launch();
+            const p = await b.newPage();
+            await p.goto('about:blank');
+            await p.setContent('<h1>ok</h1>');
+            if (await p.textContent('h1') !== 'ok') throw new Error('səhifə render olunmadı');
+            await b.close();
+            console.log('Playwright Chromium tüstü yoxlaması keçdi.');
+          "
 
   secrets:
     # SEC-007: repoya sir düşməsinin qarşısı. Şəxsi hesab reposu üçün lisenziya tələb olunmur.

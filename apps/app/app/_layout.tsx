@@ -1,5 +1,6 @@
 import { t } from '../src/i18n/az'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClient } from '../src/lib/queryClient'
 import { Fraunces_500Medium } from '@expo-google-fonts/fraunces/500Medium'
 import { Fraunces_500Medium_Italic } from '@expo-google-fonts/fraunces/500Medium_Italic'
 import { Fraunces_600SemiBold } from '@expo-google-fonts/fraunces/600SemiBold'
@@ -16,25 +17,15 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { Button, ErrorBox, H, Loading, P, Screen } from '../src/components/ui'
 import { configError } from '../src/config'
 import { AuthProvider, useAuth } from '../src/lib/auth'
-import { ApiFailure } from '../src/lib/api'
 import { checkAppConfig, useAppStatus } from '../src/lib/appStatus'
 import { MfaChallenge, useMfaState } from '../src/components/Mfa'
 import { crumb, installCrashCapture, useCrash } from '../src/lib/diag'
+import { setNavSegment } from '../src/lib/nav'
 import { colors } from '../src/theme'
 
 // Tutulmayan JS xətası tətbiqi bağlamasın: qeydə alınır və xəta ekranı göstərilir (yalnız native).
 installCrashCapture()
 crumb('app_start')
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 30_000,
-      // İcazə/razılıq xətalarını təkrar etmək mənasızdır.
-      retry: (n, e) => !(e instanceof ApiFailure && e.status >= 400 && e.status < 500) && n < 2,
-    },
-  },
-})
 
 const PUBLIC = new Set(['sign-in'])
 
@@ -45,6 +36,7 @@ function Gate() {
   const mfa = useMfaState(session ? `${session.user.id}:${session.access_token.slice(-16)}` : null)
   const segments = useSegments()
   const first = segments[0] ?? ''
+  setNavSegment(first)
   const app = useAppStatus()
   useEffect(() => {
     void checkAppConfig()
@@ -60,11 +52,17 @@ function Gate() {
 
   useEffect(() => {
     if (!ready) return
-    if (!session) { if (!PUBLIC.has(first)) router.replace('/sign-in'); return }
-    if (!profile) return
-    if (!profile.onboarded_at) { if (first !== 'onboarding') router.replace('/onboarding'); return }
-    // Onboarding-ə yenilənmiş şərtlər üçün (consent_required) qayıtmaq mümkündür, ona görə oradan avtomatik çıxarmırıq.
-    if (PUBLIC.has(first)) router.replace('/')
+    let want: string | null = null
+    if (!session) { if (!PUBLIC.has(first)) want = '/sign-in' }
+    else if (profile && !profile.onboarded_at) { if (first !== 'onboarding') want = '/onboarding' }
+    else if (profile && PUBLIC.has(first)) want = '/'
+    if (!want) return
+    // Android-də react-native-screens fragment yarışının qarşısını almaq üçün replace render commit-indən sonra gedir.
+    const id = setTimeout(() => {
+      crumb('nav', want!)
+      try { router.replace(want!) } catch { /* naviqasiya xətası tətbiqi bağlamasın */ }
+    }, 30)
+    return () => clearTimeout(id)
   }, [ready, session, profile, first])
 
   // Admin texniki iş rejimində də daxil olur (rejimi Admin otağından söndürmək üçün); yeniləmə tələbi hamıya aiddir.
@@ -89,6 +87,12 @@ function Gate() {
       </Screen>
     )
   }
+  // Marşrut hədəflə uyğun deyilsə Stack qurulmur: səhv ekranın bir anlıq açılıb bağlanması (və Android-də
+  // screens fragment çöküşü) baş vermir. Yönləndirmə yuxarıdaki effect-dədir.
+  const routeOk = !session
+    ? PUBLIC.has(first)
+    : !!profile && (!profile.onboarded_at ? first === 'onboarding' : !PUBLIC.has(first))
+  if (!routeOk) return <Loading />
   return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.board }, animation: 'slide_from_right' }} />
 }
 

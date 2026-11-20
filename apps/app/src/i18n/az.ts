@@ -180,6 +180,7 @@ export const t = {
     weak: 'Səhvlər harada çoxdur', weakEmpty: 'Zəif mövzu tapmaq üçün ən azı 5 cavab lazımdır.',
     grade: 'Qiymət', note: 'Qeyd', test: 'Test',
     streak: (n: number) => `${n} gün ardıcıl`, streakNone: 'Bu gün test işləyin, seriya başlasın', medals: 'Medallar', noMedals: 'İlk medal: 7 gün ardıcıl işləyin və ya bir mövzuda 50 sualda 90%-ə çatın.', correctTotal: (n: number) => `${n} düz cavab`,
+    missStat: (rate: number, total: number) => `${rate}% səhv/boş · ${total} sual`, correctOf: (c: number, total: number) => `${c}/${total} düz`,
   },
   live: {
     title: 'Oxu zalı', upcoming: 'Planlaşdırılmış dərslər', none: 'Hazırda planlaşdırılmış canlı dərs yoxdur.',
@@ -285,5 +286,20 @@ export const t = {
     delete: 'Hesabı sil', deleteWarn: 'Hesab silinəndə ad, əlaqə, test tarixçəsi və gündəlik silinir. Bu geri qaytarılmır. Audit qeydləri şəxsi məlumatsız saxlanılır.',
     deleteType: 'Təsdiq üçün SİL yazın', deleteBtn: 'Hesabı birdəfəlik sil',
     board: 'Şərəf lövhəsində görün', signOut: 'Çıxış', signOutAll: 'Bütün cihazlardan çıx', device: 'Bu cihaz', deviceNote: 'Hesab eyni anda yalnız bir cihazda aktiv olur.',
+  },
+  cine: {
+    skip: 'Keç', entering: 'Məktəbə girirsən…', corridor: 'Dəhlizlə otağına gedirsən…', seating: 'Partana oturursan…',
+    look: 'Ətrafa bax', choices: 'Nə etmək istəyirsən?', lesson: 'Dərsin izahı', lessonSub: 'Mövzular və canlı dərs',
+    test: 'Testi yazmaq istəyirəm', testSub: 'Sual seç və başla', auto: 'Avtomatik giriş', manual: 'Özüm gəzim',
+    exterior: 'Kursun binası', seated: 'Partandasın',
+  },
+  contact: {
+    title: 'Material və izah', lead: 'Dərslərin PDF və izahları yalnız kurs tələbələrinə göndərilir. Canlı dərsə qoşulub materialları əldə etmək üçün kursa yazıl.',
+    call: 'Zəng et', enroll: 'Kursa yazıl', phone: '010 375 85 93', free: 'Hazırda tətbiq pulsuzdur — hamı girə bilər.',
+    live: 'Canlı dərsə qoşul',
+  },
+  lesson: {
+    title: 'Dərsin izahı', lead: 'Mövzular sadə siyahıda. İzah canlı dərsdə verilir; materiallar kurs tələbələrinə göndərilir.',
+    topicLive: 'Bu mövzu canlı dərsdə izah olunur.', open: 'Mövzuya bax', empty: 'Mövzu yoxdur.',
   },
 } as const

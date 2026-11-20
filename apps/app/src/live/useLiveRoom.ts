@@ -47,6 +47,9 @@ export function useLiveRoom() {
   const roomRef = useRef<Room | null>(null)
   const metaCache = useRef(new Map<string, PeerMeta>())
   const [state, setState] = useState<LiveRoomState>(initial)
+  // Token vaxtı bitəndə avtomatik yenidən qoşulma: serverdən təzə token alan funksiya (çağırışçı verir).
+  const rejoinRef = useRef<(() => Promise<{ url: string; token: string }>) | null>(null)
+  const autoTried = useRef(false)
 
   const snapshot = useCallback((status?: Status) => {
     const room = roomRef.current
@@ -74,8 +77,9 @@ export function useLiveRoom() {
     }))
   }, [])
 
-  const connect = useCallback(async (url: string, token: string) => {
+  const connect = useCallback(async (url: string, token: string, rejoin?: () => Promise<{ url: string; token: string }>): Promise<void> => {
     if (roomRef.current) return
+    if (rejoin) rejoinRef.current = rejoin
     setupLiveKit()
     setState({ ...initial, status: 'connecting' })
     const room = new Room({ adaptiveStream: true, dynacast: true, disconnectOnPageLeave: true })
@@ -105,15 +109,39 @@ export function useLiveRoom() {
         const status: Status = reason === DisconnectReason.PARTICIPANT_REMOVED ? 'removed'
           : reason === DisconnectReason.ROOM_DELETED ? 'ended'
           : reason === DisconnectReason.CLIENT_INITIATED ? 'idle' : 'error'
+        // Token müddəti bitibsə (uzun dərs, şəbəkə qopması): bir dəfə təzə tokenlə avtomatik qayıt.
+        if (status === 'error' && rejoinRef.current && !autoTried.current) {
+          autoTried.current = true
+          setState((s) => ({ ...s, status: 'reconnecting', error: null }))
+          void (async () => {
+            try {
+              const c = await rejoinRef.current!()
+              await connect(c.url, c.token)
+            } catch {
+              setState({ ...initial, status: 'error', error: t.system.disconnected })
+            }
+          })()
+          return
+        }
         setState((s) => ({ ...s, status, error: status === 'error' ? t.system.disconnected : null }))
       })
     try {
       await startAudioSession()
       await room.connect(url, token, { autoSubscribe: true })
+      autoTried.current = false
       snapshot('connected')
     } catch (e) {
       roomRef.current = null
       await stopAudioSession().catch(() => {})
+      // İlk qoşulma tokenə görə uğursuz olduysa bir dəfə təzə tokenlə yoxla.
+      if (rejoinRef.current && !autoTried.current) {
+        autoTried.current = true
+        try {
+          const c = await rejoinRef.current()
+          await connect(c.url, c.token)
+          return
+        } catch { /* aşağıdakı xəta ekranı */ }
+      }
       setState({ ...initial, status: 'error', error: t.system.liveConnectFailed((e as Error).message) })
     }
   }, [snapshot])

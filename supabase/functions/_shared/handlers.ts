@@ -35,7 +35,14 @@ interface CandidateRow {
 
 const SIZES = new Set([10, 20, 30, 50, 100])
 
-export async function startSession(db: Db, student: string, b: StartBody, now = new Date(), seed = Math.floor(Math.random() * 2 ** 31)) {
+/** Kriptoqrafik təsadüfi 31-bit toxum (Math.random proqnozlaşdırıla bilər). Testlər üçün inyeksiya olunur. */
+export function randomSeed(): number {
+  const a = new Uint32Array(1)
+  crypto.getRandomValues(a)
+  return a[0]! & 0x7fffffff
+}
+
+export async function startSession(db: Db, student: string, b: StartBody, now = new Date(), seed = randomSeed()) {
   if (b.size !== undefined && !SIZES.has(b.size)) throw new ApiError('bad_size')
   const rows = await db.rpc<CandidateRow[]>('candidates', { p_student: student, p_subject: b.subject, p_topic_ids: b.topicIds?.length ? b.topicIds : null })
   const pool: Candidate[] = rows.map((r) => ({
@@ -82,10 +89,19 @@ export async function answer(db: Db, student: string, b: AnswerBody, now = new D
 }
 
 async function updateCard(db: Db, student: string, question: string, correct: boolean, ms: number, chars: number, now: Date) {
-  const rows = await db.rpc<CandidateRow[]>('card_of', { p_student: student, p_question: question })
-  const prev = rows[0]?.card ? fromJSON(rows[0].card) : undefined
-  const grade = gradeFromAnswer({ correct, ms, expectedMs: expectedMs(chars, 0) })
-  await db.rpc('upsert_card', { p_student: student, p_question: question, p_card: toJSON(review(prev, grade, now)), p_last_correct: correct })
+  // Atomik yeniləmə: kart oxunur, TS-də hesablanır və köhnə dəyərlə (CAS) yazılır.
+  // Bu arada başqa yazı olubsa srs_apply false qaytarır → yenidən oxuyub təkrarlayırıq (itkinin qarşısı).
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const rows = await db.rpc<CandidateRow[]>('card_of', { p_student: student, p_question: question })
+    const prevJson = rows[0]?.card ?? null
+    const prev = prevJson ? fromJSON(prevJson) : undefined
+    const grade = gradeFromAnswer({ correct, ms, expectedMs: expectedMs(chars, 0) }, prev)
+    const applied = await db.rpc<boolean>('srs_apply', {
+      p_student: student, p_question: question, p_card: toJSON(review(prev, grade, now)), p_last_correct: correct, p_prev: prevJson,
+    })
+    if (applied) return
+  }
+  // Nadir hal: 3 dəfə ardıcıl toqquşma. Kart növbəti cavabda yenilənəcək; cavabın özü artıq qəbul olunub.
 }
 
 export async function finish(db: Db, student: string, b: { session: string }, now = new Date()) {

@@ -6,6 +6,8 @@ import type { Session } from '@supabase/supabase-js'
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { AppState, Platform } from 'react-native'
 import { supabase } from './supabase'
+import { queryClient } from './queryClient'
+import { crumb } from './diag'
 
 export interface Profile {
   id: string
@@ -56,11 +58,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(data.session)
       await loadProfile(data.session)
       if (alive) setReady(true)
+    }).catch(() => {
+      // SecureStore/Keystore oxunuşu uğursuz ola bilər: sonsuz yükləmə ekranı əvəzinə girişə keç.
+      if (!alive) return
+      crumb('session_restore_fail')
+      setSession(null)
+      setReady(true)
     })
     const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s)
       // TOKEN_REFRESHED zamanı profili yenidən oxumağa ehtiyac yoxdur.
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') void loadProfile(s)
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') void loadProfile(s).catch(() => {})
+      // Çıxışda keşi təmizlə: növbəti istifadəçi əvvəlkinin gündəlik/nəticələrini görməsin.
+      if (event === 'SIGNED_OUT') { queryClient.clear(); setProfile(null); setProfileError(null) }
     })
     return () => { alive = false; sub.subscription.unsubscribe() }
   }, [loadProfile])
@@ -81,6 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut: async () => {
       // Yalnız bu cihazdan çıxış; server tərəfdə refresh token ləğv olunur.
       await supabase.auth.signOut({ scope: 'local' })
+      queryClient.clear()
       setProfile(null)
     },
   }), [ready, session, profile, profileError, loadProfile])

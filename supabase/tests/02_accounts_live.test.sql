@@ -104,7 +104,10 @@ begin
   perform tests.ok(jsonb_array_length(r->'hands') = 2 and r->'hands'->0->>'user_id' = a::text, 'host növbəni sıra ilə görür');
   perform tests.ok(public.live_set_role(a, s, b, 'speaker')->>'error' = 'forbidden', 'tələbə söz verə bilmir');
   r := public.live_set_role(c, s, a, 'speaker');
-  perform tests.ok(r->>'role' = 'speaker' and (r->>'can_publish')::boolean, 'host A-ya söz verdi');
+  perform tests.ok(r->>'role' = 'speaker' and not (r->>'can_publish')::boolean, '"yalnız host danışır" ikən speaker yayım edə bilmir');
+  perform public.live_settings(c, s, false, null);
+  r := public.live_set_role(c, s, a, 'speaker');
+  perform tests.ok(r->>'role' = 'speaker' and (r->>'can_publish')::boolean, 'host A-ya söz verdi (səs açıq)');
   perform tests.ok((select resolution from public.live_hands where session_id = s and user_id = a order by id desc limit 1) = 'granted', 'əl "verildi" kimi bağlandı');
   perform tests.ok(jsonb_array_length(public.live_hands_queue(c, s)->'hands') = 1, 'növbədə B qaldı');
   perform tests.ok(public.live_set_role(c, s, c, 'audience')->>'error' = 'bad_target', 'host özünü dəyişmir');

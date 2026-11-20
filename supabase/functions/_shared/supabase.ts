@@ -72,7 +72,8 @@ export async function getAppConfig(cfg: SupaConfig): Promise<{ minVersion: strin
   const rows = (await r.json()) as { min_version: string; maintenance: boolean; message: string | null; staff_mfa_required: boolean }[]
   const c = rows[0]
   if (!c) throw new Error('app_config: empty')
-  return { minVersion: c.min_version, maintenance: c.maintenance, message: c.message, staffMfaRequired: c.staff_mfa_required === true }
+  // Fail-closed: sütun yoxdursa və ya null-dursa MFA məcburi sayılır; yalnız açıq `false` söndürür.
+  return { minVersion: c.min_version, maintenance: c.maintenance, message: c.message, staffMfaRequired: c.staff_mfa_required !== false }
 }
 
 /** GoTrue qadağası: yeni giriş və token yeniləmə bloklanır. hours = null qadağanı götürür. */

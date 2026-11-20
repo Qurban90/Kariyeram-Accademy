@@ -28,6 +28,42 @@ export function Boxes({ parts, material, cast = true, receive = true }: { parts:
   return <instancedMesh key={parts.length} ref={ref} args={[unitBox, material, parts.length]} castShadow={cast} receiveShadow={receive} />
 }
 
+/**
+ * Kütləvi oturma: böyük sinifdə detallı avatarlar limitlənir, qalan tələbələr 2 çəkiliş çağırışı ilə
+ * (gövdə + baş InstancedMesh, rəng hər nüsxədə) çəkilir. 60 nəfərlik sinif zəif telefonda da axıcı qalır.
+ */
+const crowdTorso = new THREE.CapsuleGeometry(0.17, 0.3, 4, 8)
+const crowdHead = new THREE.SphereGeometry(0.13, 10, 8)
+const crowdMat = new THREE.MeshStandardMaterial({ roughness: 0.85 })
+
+export function SeatedCrowd({ people }: { people: { id: string; x: number; z: number }[] }) {
+  const torso = useRef<THREE.InstancedMesh>(null)
+  const head = useRef<THREE.InstancedMesh>(null)
+  useLayoutEffect(() => {
+    const mx = new THREE.Matrix4(), q = new THREE.Quaternion(), pos = new THREE.Vector3(), sc = new THREE.Vector3(1, 1, 1), col = new THREE.Color()
+    people.forEach((p, i) => {
+      const pal = paletteFor(p.id)
+      torso.current?.setMatrixAt(i, mx.compose(pos.set(p.x, 0.84, p.z), q, sc))
+      torso.current?.setColorAt(i, col.set(pal.shirt))
+      head.current?.setMatrixAt(i, mx.compose(pos.set(p.x, 1.28, p.z), q, sc))
+      head.current?.setColorAt(i, col.set(pal.skin))
+    })
+    for (const m of [torso.current, head.current]) {
+      if (!m) continue
+      m.instanceMatrix.needsUpdate = true
+      if (m.instanceColor) m.instanceColor.needsUpdate = true
+      m.computeBoundingSphere()
+    }
+  }, [people])
+  if (people.length === 0) return null
+  return (
+    <>
+      <instancedMesh key={`t${people.length}`} ref={torso} args={[crowdTorso, crowdMat, people.length]} />
+      <instancedMesh key={`h${people.length}`} ref={head} args={[crowdHead, crowdMat, people.length]} />
+    </>
+  )
+}
+
 /** Avatarın pozası: oturan tələbə və ya ayaq üstə müəllim. Avatar -Z istiqamətinə baxır. */
 export function Avatar({ id, speaking, hand, me, host, standing }: {
   id: string; speaking: boolean; hand: boolean; me?: boolean; host?: boolean; standing?: boolean

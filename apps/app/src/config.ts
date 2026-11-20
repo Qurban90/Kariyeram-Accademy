@@ -18,6 +18,11 @@ export const config = {
   appVersion: Constants.expoConfig?.version ?? '0.0.0',
   /** Sorğu vaxt limiti (ms). */
   requestTimeoutMs: 15_000,
+  /** İlkin mərhələdə tətbiq pulsuzdur: bütün mövzular hamıya açıq (server də icazə verir). */
+  freeAccess: (process.env.EXPO_PUBLIC_FREE_ACCESS ?? '1') !== '0',
+  /** Müəllimin əlaqə nömrəsi (material və kurs üçün). */
+  contactPhone: process.env.EXPO_PUBLIC_CONTACT_PHONE ?? '0103758593',
+  contactPhoneDisplay: process.env.EXPO_PUBLIC_CONTACT_PHONE_DISPLAY ?? '010 375 85 93',
 } as const
 
 export const configError = !url || !anonKey

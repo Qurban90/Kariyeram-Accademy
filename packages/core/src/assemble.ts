@@ -114,7 +114,7 @@ export function assemble(pool: Candidate[], req: AssembleRequest, now: Date, see
   }
 
   if (req.mode === 'mixed') {
-    const topics = req.topicIds.filter((t) => pool.some((q) => q.topicId === t))
+    const topics = [...new Set(req.topicIds)].filter((t) => pool.some((q) => q.topicId === t))
     // Zəif mövzular daha çox pay alır: w = 1 + (1 - mənimsəmə)
     const weights = topics.map((t) => 1 + (1 - topicMastery(pool, t, now)))
     const caps = topics.map((t) => pool.filter((q) => q.topicId === t).length)
@@ -127,15 +127,21 @@ export function assemble(pool: Candidate[], req: AssembleRequest, now: Date, see
   }
 
   // exam: blueprint üzrə kvota, aralıqlı təkrar nəzərə alınmır, sıra təsadüfidir.
-  const bp = req.blueprint.filter((b) => b.share > 0)
+  // Təkrarlanan topicId-lər birləşdirilir (paylar toplanır) və seçilən ID-lər qlobal təkrarsızdır.
+  const shares = new Map<ID, number>()
+  for (const b of req.blueprint) if (b.share > 0) shares.set(b.topicId, (shares.get(b.topicId) ?? 0) + b.share)
+  const bp = [...shares].map(([topicId, share]) => ({ topicId, share }))
   const caps = bp.map((b) => pool.filter((q) => q.topicId === b.topicId).length)
   const quota = allocate(req.size, bp.map((b) => b.share), caps)
   const picked: ID[] = []
+  const used = new Set<ID>()
   bp.forEach((b, i) => {
-    const inTopic = shuffle(pool.filter((q) => q.topicId === b.topicId), rand)
+    const inTopic = shuffle(pool.filter((q) => q.topicId === b.topicId && !used.has(q.id)), rand)
     const want = quota[i] ?? 0
     if (!req.levelMix) {
-      picked.push(...inTopic.slice(0, want).map((q) => q.id))
+      const take = inTopic.slice(0, want)
+      take.forEach((q) => used.add(q.id))
+      picked.push(...take.map((q) => q.id))
       return
     }
     const levels: Level[] = [1, 2, 3]
@@ -144,6 +150,7 @@ export function assemble(pool: Candidate[], req: AssembleRequest, now: Date, see
     const chosen = new Set<ID>()
     levels.forEach((l, k) => inTopic.filter((q) => (q.level ?? 2) === l).slice(0, lq[k] ?? 0).forEach((q) => chosen.add(q.id)))
     for (const q of inTopic) if (chosen.size < want) chosen.add(q.id)
+    chosen.forEach((id) => used.add(id))
     picked.push(...chosen)
   })
   return shuffle(picked, rand)

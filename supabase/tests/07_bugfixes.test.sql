@@ -69,6 +69,8 @@ do $$
 declare v_n int; v_ok boolean := false;
 begin
   perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000007a2', true);
+  -- staff_mfa_required defolt TRUE: müəllim sual bankını aal2 ilə oxuyur.
+  perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000007a2","aal":"aal2"}', true);
   set local role authenticated;
   select count(*) into v_n from public.questions where id = '70000000-0000-0000-0000-0000000000f1';
   begin

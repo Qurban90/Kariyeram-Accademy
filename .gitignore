@@ -24,3 +24,6 @@ supabase/.branches/
 supabase/.temp/
 tests/e2e/screenshots/
 apps/app/dist/
+
+# Lokal AI köməkçi konfiqurasiyası/skill-ləri repoya yazılmır
+.claude/

@@ -33,7 +33,7 @@ export async function signHS256(payload: Record<string, unknown>, secret: string
 
 export class JwtError extends Error {}
 
-/** İmzanı sabit vaxtda yoxlayır (crypto.subtle.verify), alg=HS256 məcburidir, exp/nbf yoxlanır. */
+/** İmzanı sabit vaxtda yoxlayır (crypto.subtle.verify), alg=HS256 məcburidir, exp tələb olunur, nbf yoxlanır. */
 export async function verifyHS256(token: string, secret: string, nowSec = Math.floor(Date.now() / 1000)): Promise<Record<string, unknown>> {
   const parts = token.split('.')
   if (parts.length !== 3) throw new JwtError('malformed')
@@ -49,7 +49,9 @@ export async function verifyHS256(token: string, secret: string, nowSec = Math.f
   if (header.alg !== 'HS256') throw new JwtError('bad_alg')
   const ok = await crypto.subtle.verify('HMAC', await hmacKey(secret), b64urlDecode(s), enc.encode(`${h}.${p}`))
   if (!ok) throw new JwtError('bad_signature')
-  if (typeof payload.exp === 'number' && nowSec >= payload.exp + 10) throw new JwtError('expired')
+  // exp olmayan token ömürlük etibarlı sayıla bilər — rədd edilir.
+  if (typeof payload.exp !== 'number' || !Number.isFinite(payload.exp)) throw new JwtError('missing_exp')
+  if (nowSec >= payload.exp + 10) throw new JwtError('expired')
   if (typeof payload.nbf === 'number' && nowSec < payload.nbf - 10) throw new JwtError('not_yet_valid')
   return payload
 }

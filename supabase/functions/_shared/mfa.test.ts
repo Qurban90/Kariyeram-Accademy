@@ -23,4 +23,9 @@ describe('MFA qapısı', () => {
     expect(mfaGate('answer', { aal: 'aal1', hasMfa: true }, true)).toBeNull()
     expect(mfaGate('account/export', { aal: 'aal1', hasMfa: true }, true)).toBeNull()
   })
+  it('defolt fail-closed: staffMfaRequired verilməyəndə məcburi sayılır', () => {
+    expect(mfaGate('staff/codes', { aal: 'aal1', hasMfa: false })).toMatchObject({ code: 'mfa_required', status: 403 })
+    expect(mfaGate('staff/codes', { aal: 'aal2', hasMfa: false })).toBeNull()
+    expect(mfaGate('answer', { aal: 'aal1', hasMfa: false })).toBeNull()
+  })
 })

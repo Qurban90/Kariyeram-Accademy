@@ -25,12 +25,21 @@ describe('srs (FSRS)', () => {
     const r2 = retrievability(c, new Date(c.due.getTime() + 30 * DAY)) ?? 0
     expect(r1).toBeGreaterThan(r2)
   })
-  it('cavabdan qiymət: səhv=Again, yavaş=Hard, çox tez=Easy', () => {
+  it('cavabdan qiymət: səhv=Again, yavaş=Hard, çox tez=Easy (təkrarda)', () => {
     const e = expectedMs(200, 200)
+    const seen = review(review(undefined, Rating.Good, NOW), Rating.Good, new Date(NOW.getTime() + DAY))
     expect(gradeFromAnswer({ correct: false, ms: 1000, expectedMs: e })).toBe(Rating.Again)
     expect(gradeFromAnswer({ correct: true, ms: e * 2, expectedMs: e })).toBe(Rating.Hard)
-    expect(gradeFromAnswer({ correct: true, ms: e * 0.3, expectedMs: e })).toBe(Rating.Easy)
+    expect(gradeFromAnswer({ correct: true, ms: e * 0.3, expectedMs: e }, seen)).toBe(Rating.Easy)
     expect(gradeFromAnswer({ correct: true, ms: e, expectedMs: e })).toBe(Rating.Good)
+  })
+  it('ilk görüşdə sürətli cavab Easy vermir (təxmin ola bilər)', () => {
+    const e = expectedMs(200, 200)
+    const fast = { correct: true, ms: e * 0.2, expectedMs: e }
+    expect(gradeFromAnswer(fast)).toBe(Rating.Good)
+    expect(gradeFromAnswer(fast, newCard(NOW))).toBe(Rating.Good)
+    const once = review(undefined, Rating.Good, NOW)
+    expect(gradeFromAnswer(fast, once)).toBe(Rating.Easy)
   })
   it('JSON-a və geri çevirmə itkisizdir', () => {
     const c = review(undefined, Rating.Good, NOW)
@@ -94,6 +103,20 @@ describe('assemble', () => {
     expect(a.filter((id) => id.startsWith('konst')).length).toBe(20)
     expect(assemble(p, req, NOW, 42)).toEqual(a)
     expect(assemble(p, req, NOW, 43)).not.toEqual(a)
+  })
+  it('exam: təkrarlanan topicId eyni sualı iki dəfə seçmir', () => {
+    const p = pool()
+    const dup = { mode: 'exam' as const, size: 30, blueprint: [{ topicId: 'konst', share: 1 }, { topicId: 'konst', share: 1 }, { topicId: 'excel', share: 1 }], levelMix: { 1: 1, 2: 1, 3: 1 } }
+    const a = assemble(p, dup, NOW, 42)
+    expect(new Set(a).size).toBe(a.length)
+    expect(a).toHaveLength(30)
+    const noMix = assemble(p, { mode: 'exam', size: 25, blueprint: [{ topicId: 'konst', share: 1 }, { topicId: 'konst', share: 1 }] }, NOW, 7)
+    expect(new Set(noMix).size).toBe(noMix.length)
+    expect(noMix.length).toBeLessThanOrEqual(20) // mövzuda cəmi 20 sual var
+  })
+  it('mixed: təkrarlanan topicId kvotanı şişirtmir', () => {
+    const ids = assemble(pool(), { mode: 'mixed', topicIds: ['excel', 'excel', 'fonetika'], size: 30 }, NOW, 1)
+    expect(new Set(ids).size).toBe(30)
   })
   it('topic: vaxtı keçmiş sual birinci gəlir', () => {
     const p = pool().filter((q) => q.topicId === 'konst')
@@ -175,6 +198,15 @@ describe('antiAbuse', () => {
     const b = new TokenBucket(3, 1, 0)
     expect([b.take(0), b.take(0), b.take(0), b.take(0)]).toEqual([true, true, true, false])
     expect(b.take(1500)).toBe(true)
+  })
+  it('token bucket: saat geriyə gedəndə mənfi token yaranmır', () => {
+    const b = new TokenBucket(3, 1, 0)
+    expect(b.take(1000)).toBe(true)
+    expect(b.take(1000)).toBe(true)
+    expect(b.take(1000)).toBe(true)
+    expect(b.take(500)).toBe(false) // geriyə sıçrayış: token əlavə olunmur, limit qalır
+    expect(b.take(1000)).toBe(false)
+    expect(b.take(2000)).toBe(true) // 1 san irəli: 1 token bərpa
   })
   it('çox sürətli cavablar şübhəlidir', () => {
     expect(paceSuspicion(Array(20).fill(800))).toBe(true)

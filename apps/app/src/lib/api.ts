@@ -7,6 +7,7 @@ import { config } from '../config'
 import { errorText } from '../i18n/az'
 import { setAppStatus } from './appStatus'
 import { getDeviceId } from './device'
+import { getNavSegment } from './nav'
 import { supabase } from './supabase'
 
 export class ApiFailure extends Error {
@@ -24,42 +25,62 @@ export class ApiFailure extends Error {
 const RETRY_ONCE = new Set(['answer', 'session/start'])
 const IDEMPOTENT = new Set(['question/next', 'session/finish', 'session/review', 'live/hands', 'live/attendance', 'account/export', 'account/consent', 'device/claim', 'board', 'staff/analysis'])
 
+/** Etibarlı token: vaxtı bitməyə 30 saniyə qalıbsa əvvəlcədən yenilənir (fon vəziyyətindən qayıdışda köhnə token getmir). */
+async function freshToken(): Promise<string> {
+  const { data } = await supabase.auth.getSession()
+  const s = data.session
+  if (s?.expires_at && s.expires_at * 1000 - Date.now() < 30_000) {
+    const r = await supabase.auth.refreshSession().catch(() => null)
+    if (r?.data.session) return r.data.session.access_token
+  }
+  if (!s?.access_token) throw new ApiFailure('unauthorized', 401)
+  return s.access_token
+}
+
 /** Sorğu: auth başlıqları, vaxt limiti, xəta kodunun ApiFailure-a çevrilməsi. Uğurlu cavabı (Response) qaytarır. */
 async function request(route: string, body: Record<string, unknown>): Promise<Response> {
-  const { data } = await supabase.auth.getSession()
-  const token = data.session?.access_token
-  if (!token) throw new ApiFailure('unauthorized', 401)
-  const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), config.requestTimeoutMs)
-  let res: Response
-  try {
-    res = await fetch(`${config.apiBase}/${route}`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', authorization: `Bearer ${token}`, apikey: config.supabaseAnonKey, 'x-app-version': config.appVersion },
-      body: JSON.stringify(body),
-      signal: ctrl.signal,
-    })
-  } catch (e) {
-    throw new ApiFailure((e as Error).name === 'AbortError' ? 'timeout' : 'network', 0)
-  } finally {
-    clearTimeout(timer)
+  for (let attempt = 0; ; attempt++) {
+    const token = await freshToken()
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), config.requestTimeoutMs)
+    let res: Response
+    try {
+      res = await fetch(`${config.apiBase}/${route}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${token}`, apikey: config.supabaseAnonKey, 'x-app-version': config.appVersion },
+        body: JSON.stringify(body),
+        signal: ctrl.signal,
+      })
+    } catch (e) {
+      throw new ApiFailure((e as Error).name === 'AbortError' ? 'timeout' : 'network', 0)
+    } finally {
+      clearTimeout(timer)
+    }
+    // 401: token serverdə etibarsızdır — bir dəfə yenilə və təkrarla; alınmırsa çıxış (Gate girişə aparır).
+    if (res.status === 401 && attempt === 0) {
+      const r = await supabase.auth.refreshSession().catch(() => null)
+      if (r?.data.session) continue
+      await supabase.auth.signOut({ scope: 'local' }).catch(() => {})
+      throw new ApiFailure('unauthorized', 401)
+    }
+    if (!res.ok) {
+      let json: Record<string, unknown> = {}
+      try { json = (await res.json()) as Record<string, unknown> } catch { /* boş cavab */ }
+      const code = typeof json.error === 'string' ? json.error : res.status === 401 ? 'unauthorized' : 'internal'
+      // Yeni şərt versiyası: razılıq səhifəsinə yönləndir — amma testin ortasında yox (test bitəndə server yenə bildirir).
+      if (code === 'consent_required' && getNavSegment() !== 'test') setTimeout(() => router.replace('/onboarding'), 0)
+      // Texniki iş və ya köhnə versiya: bütün tətbiq üçün ümumi ekran (Gate göstərir).
+      if (code === 'maintenance' || code === 'upgrade_required') setAppStatus({ kind: code, message: typeof json.message === 'string' ? json.message : null })
+      throw new ApiFailure(code, res.status, typeof json.requestId === 'string' ? json.requestId : undefined)
+    }
+    return res
   }
-  if (!res.ok) {
-    let json: Record<string, unknown> = {}
-    try { json = (await res.json()) as Record<string, unknown> } catch { /* boş cavab */ }
-    const code = typeof json.error === 'string' ? json.error : res.status === 401 ? 'unauthorized' : 'internal'
-    // Yeni şərt versiyası dərc olunubsa, istənilən ekrandan razılıq səhifəsinə yönləndiririk.
-    if (code === 'consent_required') setTimeout(() => router.replace('/onboarding'), 0)
-    // Texniki iş və ya köhnə versiya: bütün tətbiq üçün ümumi ekran (Gate göstərir).
-    if (code === 'maintenance' || code === 'upgrade_required') setAppStatus({ kind: code, message: typeof json.message === 'string' ? json.message : null })
-    throw new ApiFailure(code, res.status, typeof json.requestId === 'string' ? json.requestId : undefined)
-  }
-  return res
 }
 
 async function once<T>(route: string, body: Record<string, unknown>): Promise<T> {
   const res = await request(route, body)
-  try { return (await res.json()) as T } catch { return {} as T }
+  // Zədəli JSON "uğurlu boş cavab" kimi qəbul edilmir: xəta atılır ki, təkrar/yoxlama işə düşsün.
+  try { return (await res.json()) as T } catch { throw new ApiFailure('internal', 500) }
 }
 
 /** Fayl cavabı (su nişanlı PDF). Təkrar cəhd yoxdur: hər çağırış audit-ə yazılır. */

@@ -20,7 +20,7 @@ export function jwtClaims(jwt: string): Record<string, unknown> {
 
 const STAFF = (route: string) => route.startsWith('staff/') || route === 'live/create'
 
-export function mfaGate(route: string, u: { aal: string; hasMfa: boolean }, staffMfaRequired: boolean): ApiError | null {
+export function mfaGate(route: string, u: { aal: string; hasMfa: boolean }, staffMfaRequired = true): ApiError | null {
   if (u.aal === 'aal2') return null
   if (route.startsWith('admin/')) return new ApiError('mfa_required', 403)
   if (STAFF(route) && (u.hasMfa || staffMfaRequired)) return new ApiError('mfa_required', 403)

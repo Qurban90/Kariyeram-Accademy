@@ -7,8 +7,10 @@ export class TokenBucket {
     this.last = now
   }
   take(now: number, cost = 1): boolean {
-    this.tokens = Math.min(this.capacity, this.tokens + ((now - this.last) / 1000) * this.refillPerSec)
-    this.last = now
+    // Saat geriyə gedərsə (NTP düzəlişi) mənfi token yaranmır: an son an kimi qəbul edilir.
+    const t = Math.max(now, this.last)
+    this.tokens = Math.min(this.capacity, this.tokens + ((t - this.last) / 1000) * this.refillPerSec)
+    this.last = t
     if (this.tokens < cost) return false
     this.tokens -= cost
     return true

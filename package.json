@@ -17,8 +17,9 @@
   },
   "devDependencies": {
     "pdf-lib": "1.17.1",
+    "playwright": "^1.65.1",
     "supabase": "^3.0.0",
-    "typescript": "^5.9.3",
+    "typescript": "~6.0.3",
     "vitest": "^5.1.0"
   }
 }

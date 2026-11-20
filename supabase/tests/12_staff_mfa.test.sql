@@ -27,6 +27,10 @@ begin
 end $$;
 
 do $$ begin
+  perform tests.ok((select staff_mfa_required from public.app_config where id), 'defolt: staff MFA məcburidir (fail-closed)');
+  perform tests.ok(pg_temp.visible('aal1') = 0, 'defolt vəziyyətdə faktorsuz müəllim aal1 ilə görmür');
+  -- Admin açıq söndürür: köhnə (faktor əsaslı) davranış yoxlanılır.
+  perform public.admin_set_config('00000000-0000-0000-0000-0000000012a2', null, null, null, false);
   perform tests.ok(pg_temp.visible('aal1') = 1, 'faktor yoxdur, məcburi deyil: müəllim aal1 ilə oxuyur');
   insert into auth.mfa_factors (user_id, status) values ('00000000-0000-0000-0000-0000000012a1', 'unverified');
   perform tests.ok(pg_temp.visible('aal1') = 1, 'təsdiqlənməmiş faktor tələb yaratmır');

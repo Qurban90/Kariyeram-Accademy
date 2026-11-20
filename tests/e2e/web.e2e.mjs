@@ -8,13 +8,15 @@ import { createReadStream, existsSync, mkdirSync, statSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { extname, join, resolve } from 'node:path'
 import { createRequire } from 'node:module'
+import { fileURLToPath } from 'node:url'
 
 import { totp } from '../util/totp.mjs'
 
 const require = createRequire(import.meta.url)
 const { chromium } = require('playwright')
 
-const ROOT = resolve(new URL('../..', import.meta.url).pathname)
+// fileURLToPath: Windows-da URL.pathname "/C:/..." qaytarır və resolve səhv işləyir.
+const ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)))
 const DIST = join(ROOT, 'apps/app/dist')
 const SHOTS = process.env.SHOTS_DIR || join(ROOT, 'tests/e2e/screenshots')
 const DB = process.env.DB_URL

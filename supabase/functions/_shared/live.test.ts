@@ -32,6 +32,14 @@ describe('jwt', () => {
     await expect(verifyHS256(tampered, 'k', 900)).rejects.toThrow('bad_signature')
     await expect(verifyHS256('a.b', 'k')).rejects.toThrow('malformed')
   })
+  it('exp olmayan və ya pozuq exp-li token rədd edilir', async () => {
+    const noExp = await signHS256({ sub: 'x' }, 'k')
+    await expect(verifyHS256(noExp, 'k', 900)).rejects.toThrow('missing_exp')
+    const badExp = await signHS256({ sub: 'x', exp: '1000' }, 'k')
+    await expect(verifyHS256(badExp, 'k', 900)).rejects.toThrow('missing_exp')
+    const nanExp = await signHS256({ sub: 'x', exp: null }, 'k')
+    await expect(verifyHS256(nanExp, 'k', 900)).rejects.toThrow('missing_exp')
+  })
 })
 
 describe('livekit', () => {

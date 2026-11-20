@@ -24,7 +24,7 @@ export class GLBoundary extends Component<{ onFail: (e: Error) => void; children
 
 export interface DoorInfo { key: string; number: string; title: string; status?: string }
 
-export function Corridor3D({ doors, hallLive, active, greeting, resume, onEnter, onGo, onSimple, onFail }: {
+export function Corridor3D({ doors, hallLive, active, greeting, resume, onEnter, onGo, onSimple, onFail, auto, autoTarget }: {
   doors: DoorInfo[]; hallLive: boolean
   /** Ekran fokusdadır (başqa səhifə açıq olanda çəkiliş dayanır). */
   active: boolean
@@ -35,6 +35,9 @@ export function Corridor3D({ doors, hallLive, active, greeting, resume, onEnter,
   /** Sadə (2D) görünüşə keçid. */
   onSimple: () => void
   onFail: () => void
+  /** Avtomatik rejim: joystik yoxdur, tələbə özü hədəf qapıya yeriyir (kinematik giriş). */
+  auto?: boolean
+  autoTarget?: string
 }) {
   const n = doors.length
   const walker = useMemo(() => { const w = corridorWalk(n); return new Walker(CORRIDOR_START, w.areas, w.blocks) }, [n])
@@ -53,6 +56,7 @@ export function Corridor3D({ doors, hallLive, active, greeting, resume, onEnter,
   const later = (ms: number, f: () => void) => { timers.current.push(setTimeout(f, ms)) }
   /** Tələbənin içinə keçdiyi qapı (otaqdan qayıdanda həmin qapıdan çıxır). */
   const inside = useRef<string | null>(null)
+  const autoFired = useRef(false)
   useEffect(() => { const id = setTimeout(() => setCoach(false), 7000); return () => { clearTimeout(id); timers.current.forEach(clearTimeout) } }, [])
   // Otaqdan qayıdanda: tələbə qapının o tayındadır, qapı açıqdır; dəhlizə çıxır və qapı arxasınca bağlanır.
   useEffect(() => {
@@ -106,13 +110,13 @@ export function Corridor3D({ doors, hallLive, active, greeting, resume, onEnter,
         <GLBoundary onFail={onFail}>
           <Suspense fallback={<Loading label={t.walk.building} />}>
             {!guard.armed ? <Loading label={t.walk.building} /> : <SchoolCorridor doors={doors.map((d) => ({ key: d.key, label: d.number }))} selected={selected} hallLive={hallLive}
-              walker={walker} targets={targets} onNear={setNear} pick={pick} low={low} active={active} onReady={() => { crumb('gl_first_frame'); if (inside.current === null) setVeil(false); later(6000, () => { crumb('gl_stable'); guard.settle() }) }}
+              walker={walker} targets={targets} onNear={setNear} pick={pick} low={low} active={active} onReady={() => { crumb('gl_first_frame'); if (inside.current === null) setVeil(false); later(6000, () => { crumb('gl_stable'); guard.settle() }); if (auto && autoTarget != null && !autoFired.current) { autoFired.current = true; later(500, () => go(autoTarget)) } }}
               onSlow={() => { setLow(true); showToast(t.walk.lowAuto) }} />}
           </Suspense>
         </GLBoundary>
       </View>
-      <WalkPad walker={walker} onTap={onTap} enabled={active && !menu} testID="walk-pad" />
-      <Hud hint={finePointer ? t.walk.hintKeys : t.walk.hintTouch} onMenu={() => setMenu(true)} toast={toast} showStick={coach && !finePointer}>
+      <WalkPad walker={walker} onTap={onTap} enabled={active && !menu && !auto} testID="walk-pad" />
+      <Hud hint={finePointer ? t.walk.hintKeys : t.walk.hintTouch} onMenu={() => setMenu(true)} toast={toast} showStick={coach && !finePointer && !auto}>
         {resume ? <HudButton testID="resume-test" ghost icon="stairs" sub={resume.sub} label={t.hall.resumeBtn} onPress={resume.onPress} /> : null}
         {cta ? <HudButton testID="hud-main" icon={cta.icon} sub={cta.sub} label={cta.label} onPress={() => near && go(near)} /> : null}
       </Hud>

@@ -7,7 +7,12 @@ permissions:
   contents: read
 concurrency: deploy-backend
 jobs:
+  # Deploy-dan əvvəl CI-nin eyni yoxlamaları (typecheck, vitest, SQL testləri, veb build, gitleaks).
+  checks:
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
   deploy:
+    needs: checks
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:

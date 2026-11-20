@@ -1,12 +1,13 @@
 /**
  * Tətbiq konfiqurasiyası (public.app_config): texniki iş rejimi və minimum klient versiyası.
  * Hər API sorğusunda oxumamaq üçün izolyat daxilində 30 saniyəlik keş; eyni anda gələn sorğular bir yükləməni paylaşır.
- * Konfiqurasiya oxuna bilməsə son məlum dəyər, o da yoxdursa "açıq" (bloklamır) qaytarılır: konfiqurasiya xətası bütün tələbələri kəsməsin.
+ * Konfiqurasiya oxuna bilməsə son məlum dəyər qaytarılır; o da yoxdursa tələbə axını bloklanmır (OPEN),
+ * amma staff MFA fail-CLOSED işləyir: naməlum vəziyyətdə məcburi sayılır (staffMfaRequired: true).
  */
 import { ApiError } from './errors.ts'
 
 export interface AppConfig { minVersion: string; maintenance: boolean; message: string | null; staffMfaRequired?: boolean }
-export const OPEN: AppConfig = { minVersion: '0.0.0', maintenance: false, message: null }
+export const OPEN: AppConfig = { minVersion: '0.0.0', maintenance: false, message: null, staffMfaRequired: true }
 
 export function cachedConfig(load: () => Promise<AppConfig>, ttlMs = 30_000, now: () => number = Date.now) {
   let value: AppConfig | null = null
