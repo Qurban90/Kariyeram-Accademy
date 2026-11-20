@@ -30,6 +30,8 @@ fi
 
 run_sql -f "$HERE/00_supabase_stub.sql" >/dev/null
 for f in "$MIG"/*.sql; do run_sql -f "$f" >/dev/null; done
+# Köhnə testlər abunə qaydasını yoxlayır: pulsuz mərhələ bayrağı söndürülür (14_free_access onu ayrıca yoxlayır).
+run_sql -c "update public.app_config set free_access = false" >/dev/null
 for t in "$HERE"/*.test.sql; do
   echo "== $(basename "$t")"
   run_sql -f "$t" 2>&1 | sed -n 's/^.*NOTICE:  //p; /FAIL/p; /BÜTÜN/p; /ERROR/p'

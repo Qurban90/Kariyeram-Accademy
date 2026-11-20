@@ -1,6 +1,5 @@
 /** Birbaşa (RLS ilə qorunan) oxumalar. Suallar burada YOXDUR: onlar yalnız Edge API-dən gəlir. */
 import { useQuery } from '@tanstack/react-query'
-import { config } from '../config'
 import { supabase } from './supabase'
 
 export interface Subject { id: string; name: string; sort: number }
@@ -35,16 +34,28 @@ export const useTopics = (subject?: string) => useQuery({
   },
 })
 
+/** Pulsuz mərhələ (app_config.free_access): server bütün mövzuları açır. Bayraq abunələrlə birlikdə oxunur ki,
+ * `hasAccess` çağırılanda artıq məlum olsun. Oxuna bilməsə (köhnə server) abunə qaydası qüvvədədir. */
+let freeAll = false
+export const isFreeAccess = () => freeAll
+
 export const useEnrollments = () => useQuery({
   queryKey: ['enrollments'],
-  queryFn: () => rows<Enrollment[]>(supabase.from('enrollments').select('subject_id, access_until')),
+  queryFn: async () => {
+    const [list, cfg] = await Promise.all([
+      rows<Enrollment[]>(supabase.from('enrollments').select('subject_id, access_until')),
+      supabase.from('app_config').select('free_access').limit(1).maybeSingle(),
+    ])
+    freeAll = !cfg.error && (cfg.data as { free_access?: boolean } | null)?.free_access === true
+    return list
+  },
 })
 
 export function hasAccess(enr: Enrollment[] | undefined, subject: string, now = Date.now()): Enrollment | undefined {
   const real = enr?.find((e) => e.subject_id === subject && Date.parse(e.access_until) > now)
   if (real) return real
-  // İlkin pulsuz mərhələ: hamı bütün mövzulara girə bilər (abunə yenə canlı/material üçündür).
-  if (config.freeAccess) return { subject_id: subject, access_until: new Date(now + 86400_000).toISOString() }
+  // Pulsuz mərhələ: hamı bütün mövzulara girir (server də eyni bayrağı yoxlayır; canlı dərs abunəli qalır).
+  if (freeAll) return { subject_id: subject, access_until: new Date(now + 86400_000).toISOString() }
   return undefined
 }
 
