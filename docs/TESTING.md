@@ -1,14 +1,14 @@
 # Testlər
 
-Nəticələr uydurulmur: aşağıdakı rəqəmlər son işə salınmanın çıxışıdır (2026-11-12, bu repoda, lokal mühitdə; yük testi 2026-11-04).
+Nəticələr uydurulmur: aşağıdakı rəqəmlər son işə salınmanın çıxışıdır (2026-11-21, bu repoda, lokal mühitdə; inteqrasiya 2026-11-15; yük testi 2026-11-04).
 
 | Qat | Əmr | Nəyi yoxlayır | Son nəticə |
 | --- | --- | --- | --- |
-| Vahid (Vitest) | `npm test` | Alqoritmlər, API handler-ləri, router validasiyası, JWT/LiveKit/webhook, IDOR, telefon, canlı zal modeli, sual idxalı (CSV), medallar | 104/104 keçdi (19 fayl) |
+| Vahid (Vitest) | `npm test` | Alqoritmlər, API handler-ləri, router validasiyası, JWT/LiveKit/webhook, IDOR, telefon, canlı zal modeli, sual idxalı (CSV), medallar | 147/147 keçdi (22 fayl) |
 | Tip yoxlaması | `npm run typecheck` | `packages/core` və `apps/app` (native fayllar daxil) | Xətasız |
-| DB (psql) | `npm run db:test` | Sxem, RLS, bütün RPC-lər, limitlər, canlı dərs qaydaları, silinmə | 12 fayl, hamısı keçdi (277 yoxlama) |
+| DB (psql) | `npm run db:test` | Sxem, RLS, bütün RPC-lər, limitlər, canlı dərs qaydaları, silinmə | 14 fayl, hamısı keçdi (334 yoxlama) |
 | İnteqrasiya | `npm run test:int` | Real Supabase (GoTrue, PostgREST, Edge Runtime), real LiveKit, Mailpit | 11/11 keçdi |
-| Veb E2E (Playwright) | `npm run test:e2e` | Build olunmuş tətbiq brauzerdə, real stekə qarşı: telefon OTP, razılıq, test, gündəlik, kabinet, şərəf lövhəsi, yarımçıq testə qayıtma, 3D məktəb (joystiklə gəzinti və baxış, qapının yanında "Daxil ol", sinfə giriş, partaya oturma, pəncərə, partaya toxunuşla seçim, ayağa qalxma, qapıdan yeriyərək giriş və çıxış), 3D oxu zalı (pilləli auditoriya: yuxarıdan giriş, yerə oturma, dərslərin pəncərəsi, aşağı sıraya eniş, çıxış), canlı 3D sinif (müəllimin uzaq videosu lövhədə, əl qaldıran avatar), konspekt şkafı (mətn + PDF, imzalı URL, imzasız giriş rədd), ikinci giriş üsulu (e-poçt bağlama və onunla giriş), müəllim otağı (dərc, kod yaratma və ləğvi, gündəliyə qiymət, sual analizi, davamiyyət, bütün cihazlardan çıxış → tələbədə aktivləşmə), canlı zal (müəllim + tələbə), Realtime chat, hesab silmə | 33/33 addım keçdi |
+| Veb E2E (Playwright) | `npm run test:e2e` | Build olunmuş tətbiq brauzerdə, real stekə qarşı: telefon OTP, razılıq, test, gündəlik, kabinet, şərəf lövhəsi, yarımçıq testə qayıtma, 3D məktəb (joystiklə gəzinti və baxış, qapının yanında "Daxil ol", sinfə giriş, partaya oturma, pəncərə, partaya toxunuşla seçim, ayağa qalxma, qapıdan yeriyərək giriş və çıxış), 3D oxu zalı (pilləli auditoriya: yuxarıdan giriş, yerə oturma, dərslərin pəncərəsi, aşağı sıraya eniş, çıxış), canlı 3D sinif (müəllimin uzaq videosu lövhədə, əl qaldıran avatar), konspekt şkafı (mətn + PDF, imzalı URL, imzasız giriş rədd), ikinci giriş üsulu (e-poçt bağlama və onunla giriş), müəllim otağı (dərc, kod yaratma və ləğvi, gündəliyə qiymət, sual analizi, davamiyyət, bütün cihazlardan çıxış → tələbədə aktivləşmə), canlı zal (müəllim + tələbə), Realtime chat, hesab silmə | 34/34 addım keçdi (2.5D səhnə addımı daxil) |
 | Native (iOS/Android) | — | — | **İşə salınmayıb** (bu mühitdə SDK yoxdur) |
 | Yük testi (lokal) | `node tests/load/load.mjs` | Real axın, 20–150 virtual tələbə | 100 tələbə: 100/100; 150 eyni anda: 100/150 (bax PERFORMANCE.md) |
 

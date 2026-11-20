@@ -85,6 +85,9 @@ Prioritet: M (Must), S (Should), C (Could).
 | NFR-010 | Native tətbiq çökəndə bərpa və diaqnostika: tutulmayan JS xətasında xəta ekranı; əsas ekran açılmayanda mərhələli açılış və ən sadə ekran; mərhələ izləri serverin jurnalında | M | Şəxsi məlumat göndərilmir | Yazılıb, telefonda yoxlanmayıb |
 | FR-053 | 3D-də qapıdan keçid: qapı açılanda arxasındakı məkan görünür, tələbə qapıdan yeriyib keçir (girişdə və çıxışda), kəsilmə yumşaq pərdə ilə örtülür | M | Yüngül rejimdə də işləyir | Hazır vebdə (E2E) |
 | FR-054 | Oxu zalı pilləli auditoriyadır (126 yer): yuxarıdan giriş, keçidlərlə eniş, istədiyin yerə oturma, pəncərədə dərslərin siyahısı; zaldakı canlı dərsin 3D görünüşü də auditoriyadır | M | Sadə görünüşdə siyahı səhifəsi | Hazır vebdə (vahid testlər + E2E) |
+| FR-055 | 2.5D avtomatik məktəb səhnəsi (defolt): bina girişi (bir dəfə, "Keç"), dəhliz, fənnə toxunanda qapıya yeriyib girmə, sinifdə müəllim və tələbələr, adı yazılmış partaya avtomatik oturma, partada iki seçim; məqsədə 3 toxunuş | M | WebGL-siz; azaldılmış hərəkətdə animasiyasız; sadə görünüş və 3D gəzinti menyuda | Hazır vebdə (vahid testlər + E2E). Native-də yoxlanmayıb (ADR 0009) |
+| FR-056 | Pulsuz mərhələ: bütün mövzular və mətn izahları hamıya açıq; canlı dərs və PDF abunəli qalır; bayraq `app_config.free_access`, server yoxlayır | M | Admin söndürəndə abunə qaydası qayıdır | Hazır (DB testi + E2E) |
+| FR-057 | Akademiyanın reklamı: dərs, test və otaq səhifələrində və partadakı stikerdə kursa yazılma (zəng, WhatsApp); PDF materiallar tətbiqdə paylanmır | M | Nömrə `EXPO_PUBLIC_CONTACT_PHONE` | Hazır (E2E: PDF tələbə siyahısında yoxdur) |
 | FR-051 | İştirakçını çıxarmaq/bloklamaq | M | Host/admin | Hazır (API + UI) |
 
 ### Motivasiya

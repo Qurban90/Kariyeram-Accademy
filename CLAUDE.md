@@ -62,13 +62,15 @@ npm run db:test
 - E2E `testID`-lərə bağlıdır: mövcud `testID`-ləri dəyişmə, yeni interaktiv elementə `testID` ver.
 - Hər interaktiv element: `accessibilityRole`, etiket, ən azı 44 px toxunma sahəsi. Kontrast WCAG AA.
 
-## 3D məktəb (defolt görünüş, ADR 0008)
+## Məktəb səhnəsi (defolt: 2.5D, ADR 0009; 3D gəzinti seçimdir, ADR 0008)
 
-- Tələbə joystiklə dəhlizdə gəzir, qapıdan sinfə girir, istədiyi partaya oturur, pəncərə partada açılır. Kod: `apps/app/src/school3d/` (`walk.ts` saf məntiq, `Corridor3D`/`SchoolCorridor` dəhliz, `Room3D` oturulan məkan (sinif `StudyRoom`, oxu zalı `Auditorium`), `walls.tsx` qapı yeri açıq divarlar, `WalkPad` giriş, `Hud` düymələr və keçid pərdəsi).
-- Qapıdan keçid portal olmamalıdır: qapı açılanda arxasında o tayın öz interyeri çəkilir və tələbə qapıdan yeriyib keçir. Yeni məkan əlavə edəndə bu qaydanı saxla.
-- Telefonda (native) defolt sadə görünüşdür: 3D real Android-də donub, səbəb tapılana qədər yalnız sınaq düyməsi ilə açılır və donarsa özü söndürülür (`use3dGuard`). Native 3D-ni real cihazda yoxlamadan defolt etmə.
-- Sadə (2D) görünüş həmişə işlək qalmalıdır (`src/lib/view3d.ts`): WebGL açılmayan cihaz və ekran oxuyucusu üçün yeganə yoldur. Yeni funksiya hər iki görünüşdə əlçatan olmalıdır.
-- 3D-də şəkil və şrift faylı yüklənmir (prosedur teksturalar, `texgen.ts`); mətn ekran üstü qatda (HUD) göstərilir.
+- Defolt 2.5D səhnədir (`apps/app/src/scene/`): WebGL yoxdur, SVG qatlar + transform kamerası (`plan.ts` saf riyaziyyat və testlər, `Stage.tsx` qat və yazı, `Exterior` bina girişi, `Corridor` dəhliz, `DoorFront` qapının açılması, `Classroom` sinif, `DeskView` partanın üstü). Müdirin tələbi: maksimum avtomatik, məqsədə 3 toxunuş.
+- Axın: bina girişi (açılışda bir dəfə, "Keç") → dəhliz → fənnə toxunuş → özü sinfə girir və adı yazılmış partaya oturur → partada iki seçim (Dərsin izahı / Testi yazmaq istəyirəm) → tam ekran.
+- Qapıdan keçid portal olmamalıdır: qapı açılır, arxada o tayın işığı görünür və növbəti səhnə eyni işıqla başlayır.
+- Hərəkət yalnız transform və şəffaflıqdır (native driver). Azaldılmış hərəkətdə və ekran oxuyucusunda səhnə animasiyasız son vəziyyətə keçir.
+- Görünüş üç rejimlidir (`src/lib/view3d.ts`): `scene`, `3d` (joystik, `src/school3d/`, yalnız vebdə menyuda), `simple`. Sadə görünüş həmişə işlək qalmalıdır; yeni funksiya hər görünüşdə əlçatan olmalıdır.
+- Native 3D real Android-də donub: real cihazda yoxlamadan native-də 3D-ni defolt etmə.
+- Səhnədə şəkil və şrift faylı yüklənmir; rənglər `theme.ts`-dəki `scene` palitrasıdır. PDF materiallar tələbəyə göstərilmir (kurs materialıdır).
 
 ## Dizayn sistemi (dəyişmə, genişləndir)
 
