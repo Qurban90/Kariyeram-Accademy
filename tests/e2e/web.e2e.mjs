@@ -68,9 +68,14 @@ const HOST_DB = '994500000002'
 // Təmiz başlanğıc
 sql(`delete from auth.users where phone in ('${PHONE_DB}', '${HOST_DB}')`)
 sql(`delete from public.library_items where title like 'E2E:%'`)
+// Köhnə addımlar abunə qaydasını yoxlayır: pulsuz mərhələ bayrağı söndürülür (səhnə addımında ayrıca yoxlanır).
+sql(`update public.app_config set free_access = false`)
+// Staff MFA defolt məcburidir (20261120000001). E2E müəllimi TOTP qoşmur; MFA qaydası DB testlərində (12, 13) yoxlanır.
+sql(`update public.app_config set staff_mfa_required = false`)
 sql(`delete from public.questions q where q.stem = '[E2E] Yoxlama sualı' and not exists (select 1 from public.answers a where a.question_id = q.id)`)
 
-const browser = await chromium.launch({ args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--autoplay-policy=no-user-gesture-required'] })
+// PW_CHROMIUM: Playwright-in öz brauzeri yüklənməyən mühitdə hazır Chromium yolu.
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM || undefined, args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--autoplay-policy=no-user-gesture-required'] })
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, locale: 'az-AZ', acceptDownloads: true })
 // Tətbiq defolt olaraq 3D məktəblə açılır. Köhnə addımlar sadə (2D) görünüşdə gedir; 3D ayrıca addımda yoxlanır.
 const simpleView = () => { try { if (localStorage.getItem('karyeram.view3d') === null) localStorage.setItem('karyeram.view3d', '0') } catch { /* yaddaş yoxdur */ } }
@@ -280,6 +285,47 @@ try {
     await tid('hud-menu').click()
     await tid('toggle-3d').click() // növbəti addımlar üçün sadə görünüşə qayıt (seçim yadda saxlanılır)
     await tid('door-informatika').waitFor({ timeout: 10000 })
+  })
+
+  await step('2.5D məktəb: giriş, dəhliz, sinfə avtomatik oturma, partadan 2 toxunuşla test', async () => {
+    sql(`update public.app_config set free_access = true`)
+    await page.evaluate(() => localStorage.setItem('karyeram.view3d', 's'))
+    await page.goto(`http://127.0.0.1:${PORT}/`)
+    await tid('scene-exterior').waitFor({ timeout: 20000 }) // bina: avtomatik giriş
+    await page.waitForTimeout(1500)
+    await shot('04c-bina')
+    await tid('scene-corridor').waitFor({ timeout: 15000 }) // giriş özü dəhlizə çatır
+    await page.waitForTimeout(1500)
+    await shot('04d-dehliz')
+    await tid('room-door-informatika').click() // 1-ci toxunuş
+    await page.waitForURL('**/room/informatika', { timeout: 15000 })
+    await tid('scene-classroom').waitFor({ timeout: 15000 })
+    await page.waitForTimeout(1200)
+    await shot('04e-sinif')
+    await tid('desk-view').waitFor({ timeout: 15000 }) // özü partaya oturur
+    await page.waitForTimeout(700)
+    await shot('04f-parta')
+    expect(/Test Tələbə/.test(await tid('desk-view').innerText()), 'partada tələbənin adı yoxdur')
+    await tid('desk-test').click() // 2-ci toxunuş
+    await page.waitForURL('**/practice/informatika', { timeout: 10000 })
+    await tid('ptopic-2').waitFor()
+    // Pulsuz mərhələ: ödənişli mövzu da açıqdır və server testi başladır.
+    await tid('ptopic-2').click() // 3-cü toxunuş: test başlayır
+    await page.waitForURL('**/test/**', { timeout: 15000 })
+    await tid('opt-0').waitFor({ timeout: 15000 })
+    expect(sql(`select count(*) from public.test_sessions s join auth.users u on u.id = s.student_id where u.phone = '${PHONE_DB}' and s.state = 'active'`) === '1', 'test sessiyası yaranmadı')
+    await page.goBack()
+    await page.goBack()
+    await tid('desk-view').waitFor({ timeout: 15000 }) // qayıdanda yenə öz partasındadır
+    await tid('desk-lesson').click()
+    await page.waitForURL('**/lesson/informatika', { timeout: 10000 })
+    await tid('lesson-promo').waitFor()
+    await shot('04g-dersin-izahi')
+    sql(`update public.app_config set free_access = false`)
+    sql(`update public.test_sessions s set state = 'abandoned' from auth.users u where u.id = s.student_id and u.phone = '${PHONE_DB}' and s.state = 'active'`)
+    await page.evaluate(() => localStorage.setItem('karyeram.view3d', '0'))
+    await page.goto(`http://127.0.0.1:${PORT}/`)
+    await tid('door-informatika').waitFor({ timeout: 20000 })
   })
 
   await step('fənn otağı: pulsuz mövzu açıq, ödənişli bağlı', async () => {
@@ -570,7 +616,10 @@ try {
     expect(sql(`select count(*) from public.library_items where title like 'E2E:%'`) === '2', 'şkafa yazılmadı')
 
     const sp = await ctx.newPage()
-    await sp.goto(`http://127.0.0.1:${PORT}/room/informatika`)
+    // Yazılı izah "Dərsin izahı" səhifəsindədir; PDF (kurs materialı) tələbəyə siyahıda göstərilmir.
+    await sp.goto(`http://127.0.0.1:${PORT}/lesson/informatika`)
+    await sp.getByText('E2E: Say sistemləri konspekti').waitFor({ timeout: 15000 })
+    expect(await sp.getByText('E2E: PDF konspekt').count() === 0, 'PDF tələbəyə siyahıda göstərilir')
     await sp.getByText('E2E: Say sistemləri konspekti').click()
     await sp.getByTestId('library-body').getByText('Onaltılıqda A=10, F=15.').waitFor({ timeout: 15000 })
     expect(await sp.getByText(/№ \d+/).count() > 0, 'konspektdə su nişanı yoxdur')
@@ -578,9 +627,11 @@ try {
     // PDF: tətbiqin içində açılır; server faylı tələbə nömrəsi ilə möhürləyib göndərir, birbaşa fayl ünvanı verilmir.
     const signed = []
     sp.on('request', (r) => { if (r.url().includes('/storage/v1/object/')) signed.push(r.url()) })
+    // PDF-in özü (abunəli tələbə üçün) serverdə möhürlənir: birbaşa ünvanla açılır.
+    const pdfId = sql(`select id from public.library_items where title = 'E2E: PDF konspekt'`)
     const [resp] = await Promise.all([
       sp.waitForResponse((r) => r.url().endsWith('/functions/v1/api/library/pdf'), { timeout: 20000 }),
-      sp.getByText('E2E: PDF konspekt').click(),
+      sp.goto(`http://127.0.0.1:${PORT}/library/${pdfId}?kind=pdf`),
     ])
     expect(resp.status() === 200 && resp.headers()['content-type'] === 'application/pdf', 'PDF cavabı deyil: ' + resp.status())
     const { PDFDocument } = require('pdf-lib')
