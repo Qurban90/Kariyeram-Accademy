@@ -4,11 +4,11 @@
  */
 import { router } from 'expo-router'
 import { useMemo, useState } from 'react'
-import { Linking, StyleSheet, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { Button, Card, Chip, ErrorBox, Group, H, Icon, Loading, P, Section, SelectRow, usePalette, type IconName } from '../components/ui'
 import { t } from '../i18n/az'
 import { api, ApiFailure, type Mode } from '../lib/api'
-import { config } from '../config'
+import { Promo } from '../components/Promo'
 import { hasAccess, useEnrollments, useTopics } from '../lib/queries'
 import { space } from '../theme'
 
@@ -102,22 +102,8 @@ export function RoomPanel({ subject }: { subject: string }) {
       <ErrorBox message={err} />
       <Button testID="start-test" label={t.room.start} onPress={start} loading={busy} />
 
-      {/* Materiallar tətbiqdə paylanmır: izah canlı dərsdə, PDF yalnız kurs tələbələrinə göndərilir. */}
-      <Card tone="gold" testID="room-contact">
-        <View style={st.contactHead}>
-          <Icon name="phone" size={20} color={colors.gold} />
-          <H level={3}>{t.contact.title}</H>
-        </View>
-        <P dim small>{t.contact.lead}</P>
-        <P style={st.phone}>{config.contactPhoneDisplay}</P>
-        <View style={st.contactRow}>
-          <Button testID="room-call" small icon="phone" label={t.contact.call} style={{ flex: 1 }}
-            onPress={() => void Linking.openURL(`tel:${config.contactPhone}`)} />
-          <Button testID="room-live" small icon="screen" variant="ghost" label={t.contact.live} style={{ flex: 1 }}
-            onPress={() => router.push('/live')} />
-        </View>
-        <P dim small>{t.contact.free}</P>
-      </Card>
+      {/* Materiallar tətbiqdə paylanmır: izah canlı dərsdə, PDF yalnız kurs tələbələrinə verilir. */}
+      <Promo testID="room-promo" />
     </View>
   )
 }
@@ -126,7 +112,4 @@ const st = StyleSheet.create({
   note: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm },
   modes: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
   mode: { flexBasis: '47%', flexGrow: 1, minWidth: 150 },
-  contactHead: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  contactRow: { flexDirection: 'row', gap: space.md, flexWrap: 'wrap' },
-  phone: { fontSize: 20, fontWeight: '700', letterSpacing: 0.5 },
 })

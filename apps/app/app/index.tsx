@@ -6,7 +6,8 @@ import { Lockup } from '../src/components/Brand'
 import { Door, DoorSpacer } from '../src/components/Door'
 import { Corridor3D } from '../src/school3d/Corridor3D'
 import { crumb, hallAttempt, hallReset, hallStable } from '../src/lib/diag'
-import { take3dFallback, useView3d } from '../src/lib/view3d'
+import { take3dFallback, useViewMode } from '../src/lib/view3d'
+import { SchoolScene } from '../src/scene/SchoolScene'
 import { SafeHall } from '../src/components/SafeHall'
 import { StatusBar } from 'expo-status-bar'
 import { Badge, Bar, Button, Card, Chip, ErrorBox, Group, H, Icon, ListRow, Loading, P, Screen, Section } from '../src/components/ui'
@@ -26,11 +27,13 @@ export default function Hall() {
   const enr = useEnrollments()
   const live = useLiveSessions()
   const active = useActiveSession()
-  const [view3d, setView] = useView3d()
+  const [mode, setMode] = useViewMode()
+  const view3d = mode === null ? null : mode === '3d'
+  const setView = (v: boolean, persist = true) => setMode(v ? '3d' : 'simple', persist)
   const [glErr, setGlErr] = useState<string | null>(null)
   const [focused, setFocused] = useState(true)
   // Əvvəlki açılışda 3D yarımçıq qalıbsa (donma) tətbiq sadə görünüşə qayıdıb: bir dəfə bildiririk.
-  useEffect(() => { if (view3d === false && take3dFallback()) setGlErr(t.hall.gl3dFailed) }, [view3d])
+  useEffect(() => { if (mode !== null && mode !== '3d' && take3dFallback()) setGlErr(t.hall.gl3dFailed) }, [mode])
   const { width } = useWindowDimensions()
   const cols = width >= 700 ? 4 : 2
 
@@ -93,6 +96,27 @@ export default function Hall() {
           { key: 'profile', title: t.hall.profile, sub: t.hall.profileSub, onPress: () => router.push('/profile') },
         ]}
         onRetryFull={() => { void hallReset().then(() => setFails(null)) }} />
+    )
+  }
+
+  // 2.5D məktəb (defolt): avtomatik giriş, dəhliz, bir toxunuşla sinfə.
+  if (mode === 'scene' && !staged) {
+    const resumeLabel = active.data
+      ? t.scene.resume(subjects.data?.find((s) => s.id === active.data!.subject_id)?.name ?? active.data.subject_id, active.data.cursor, resumeTotal)
+      : ''
+    return (
+      <>
+        <StatusBar style="light" />
+        <SchoolScene
+          doors={(subjects.data ?? []).map((s, i) => {
+            const subLive = (live.data ?? []).some((x) => x.state === 'live' && x.subject_id === s.id)
+            return { key: s.id, number: String(101 + i), title: s.name, status: subLive ? t.scene.liveNow(1) : hasAccess(enr.data, s.id) ? t.hall.open : undefined, live: subLive }
+          })}
+          hallLive={liveNow} hallTitle={t.hall.live} active={focused && onboarded}
+          resume={resume ? { label: resumeLabel, onPress: resume } : null}
+          onEnter={(k) => (k === 'hall' ? router.push('/live') : router.push({ pathname: '/room/[subject]', params: { subject: k } }))}
+        />
+      </>
     )
   }
 

@@ -173,3 +173,22 @@ export function resolveFont(family: string | undefined, weight: Weight, italic?:
     : (w >= 700 ? type.bold : w >= 600 ? type.semibold : w >= 500 ? type.medium : type.body)
   return { fontFamily, fontWeight: 'normal', fontStyle: 'normal' }
 }
+
+/**
+ * 2.5D məktəb səhnəsinin rəngləri (bina, dəhliz, sinif). Gecə: soyuq göy və isti fənər işığı;
+ * içəri: lampa işığında isti divar, ceviz taxta, yaşıl yazı lövhəsi. Yalnız illüstrasiya üçündür, mətn rəngi deyil.
+ */
+export const scene = {
+  skyTop: '#070A14', skyMid: '#111626', skyLow: '#2A2117', star: '#F3E9D6', moon: '#F6EDE0',
+  stone: '#2B241C', stoneLit: '#3A3024', stoneDark: '#1A1511', cornice: '#463A2C', column: '#3C3226',
+  glass: '#FFD98C', glassDim: '#5A4630', glassOff: '#1E1913', warm: '#FFC768', warmCore: '#FFF1CF',
+  ground: '#120F0C', path: '#2A2219', leaf: '#0A0C0A', post: '#15120F',
+  plaster: '#3B3127', plasterLit: '#5A4A38', plasterDark: '#241D16', wainscot: '#2E2017', rail: '#6B4426',
+  floor: '#3A2A1C', floorLine: 'rgba(0,0,0,0.28)', ceiling: '#2A231C', lamp: '#FFE7B0', doorLeaf: '#4A2F1B', doorFrame: '#2A1A0E',
+  sign: '#1E1712', signText: '#F6EDE0', live: '#EF6351',
+  roomWall: '#EFE4CF', roomWallShade: '#D9C9AC', roomFloor: '#8A6744', roomFloorDark: '#6E5034', roomCeiling: '#F6EEDF',
+  board: '#22362E', boardRim: '#6B4426', chalk: '#F2EEE3', desk: '#9A6B40', deskTop: '#B27D4B', deskDark: '#5E3E22', chair: '#4A3423',
+  inkDim: '#5A4F3F', stickyInk: '#3E3424', spine: '#7A4B3A',
+  suit: '#33424F', trousers: '#2A2A33', shirt: '#F2EEE3', skin: '#D9A982', hairDark: '#3A2A1E', white: '#FFFDF5', mine: '#FFD27A',
+  window: '#1B2436', windowLit: '#2E3B57', paper: '#FFFDF6', paperShade: '#EDE4D2', sticky: '#F7DC74', stickyShade: '#E9C64E', ink: '#221B11',
+} as const

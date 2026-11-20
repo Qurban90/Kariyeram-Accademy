@@ -152,6 +152,7 @@ export const t = {
     hallMenuLead: 'Yer seçmək üçün ona yaxınlaş və ya üstünə toxun.',
   },
   room: {
+    freeNow: 'Hazırda bütün mövzular pulsuzdur',
     topics: 'Mövzular', free: 'Pulsuz', locked: 'Kod tələb olunur',
     topicTest: 'Mövzu testi', topicTestSub: 'Seçdiyin mövzulardan, səhvlərə üstünlük verilir',
     mixed: 'Qarışıq test', mixedSub: 'Zəif mövzular daha çox pay alır',
@@ -287,19 +288,34 @@ export const t = {
     deleteType: 'Təsdiq üçün SİL yazın', deleteBtn: 'Hesabı birdəfəlik sil',
     board: 'Şərəf lövhəsində görün', signOut: 'Çıxış', signOutAll: 'Bütün cihazlardan çıx', device: 'Bu cihaz', deviceNote: 'Hesab eyni anda yalnız bir cihazda aktiv olur.',
   },
-  cine: {
-    skip: 'Keç', entering: 'Məktəbə girirsən…', corridor: 'Dəhlizlə otağına gedirsən…', seating: 'Partana oturursan…',
-    look: 'Ətrafa bax', choices: 'Nə etmək istəyirsən?', lesson: 'Dərsin izahı', lessonSub: 'Mövzular və canlı dərs',
-    test: 'Testi yazmaq istəyirəm', testSub: 'Sual seç və başla', auto: 'Avtomatik giriş', manual: 'Özüm gəzim',
-    exterior: 'Kursun binası', seated: 'Partandasın',
+  scene: {
+    tagline: 'Dövlət qulluğu və magistraturaya hazırlıq',
+    skip: 'Keç', menu: 'Menyu', replay: 'Girişi yenidən göstər',
+    ask: 'Hansı sinfə girirsən?', hallSub: 'Canlı dərslər', liveNow: (n: number) => (n === 1 ? 'İndi canlı dərs var' : `İndi ${n} canlı dərs`),
+    leave: 'Sinifdən çıx', seat: (n: number) => `Parta ${n}`, seatIn: (n: number, room: string, subject: string) => `${subject}, otaq ${room}, parta ${n}`,
+    lesson: 'Dərsin izahı', lessonSub: 'Mövzular sadə dillə',
+    test: 'Testi yazmaq istəyirəm', testSub: 'Mövzunu seç, test başlasın',
+    simple: 'Sadə görünüş', simpleSub: 'Animasiyasız siyahı', walk3d: '3D gəzinti', walk3dSub: 'Dəhlizdə özün gəz (sınaq)',
+    scene: 'Məktəb səhnəsi', sceneSub: 'Binadan girib partana otur',
+    resume: (subject: string, n: number, total: number) => `Yarımçıq test: ${subject}, ${n} / ${total}`,
   },
-  contact: {
-    title: 'Material və izah', lead: 'Dərslərin PDF və izahları yalnız kurs tələbələrinə göndərilir. Canlı dərsə qoşulub materialları əldə etmək üçün kursa yazıl.',
-    call: 'Zəng et', enroll: 'Kursa yazıl', phone: '010 375 85 93', free: 'Hazırda tətbiq pulsuzdur — hamı girə bilər.',
-    live: 'Canlı dərsə qoşul',
+  promo: {
+    title: 'Canlı dərsə qoşul',
+    lead: 'Tətbiq hamıya pulsuzdur. Dərs materialları və canlı dərslər isə kurs tələbələri üçündür: kursa yazıl, müəllimlə canlı oxu.',
+    call: 'Zəng et', write: 'WhatsApp', free: 'Qanunvericilik, Azərbaycan dili, Məntiq, Dünyagörüşü və İnformatika üzrə qruplar.',
+    sticky: 'Kursa yazıl', stickySub: 'Materiallar və canlı dərs kurs tələbələrinə verilir.',
+    waText: 'Salam! Karyeram Accademy kursuna yazılmaq istəyirəm.',
   },
+  practice: {
+    title: 'Test', lead: 'Mövzuya toxun, test dərhal başlasın.', size: 'Sual sayı', topics: 'Mövzular',
+    more: 'Başqa test növləri', starting: 'Test hazırlanır…',
+  },
+
+
   lesson: {
-    title: 'Dərsin izahı', lead: 'Mövzular sadə siyahıda. İzah canlı dərsdə verilir; materiallar kurs tələbələrinə göndərilir.',
-    topicLive: 'Bu mövzu canlı dərsdə izah olunur.', open: 'Mövzuya bax', empty: 'Mövzu yoxdur.',
+    title: 'Dərsin izahı', lead: 'Mövzuya toxun: yazılı izahı varsa açılır, yoxdursa həmin mövzudan dərhal test yaza bilərsən.',
+    topicLive: 'İzah canlı dərsdə', read: 'Yazılı izahı oxu', empty: 'Mövzu yoxdur.',
+    liveOnly: 'Bu mövzunun izahı canlı dərsdə verilir. İndi bu mövzudan test yazıb özünü yoxlaya bilərsən.',
+    testThis: 'Bu mövzudan test yaz', toLive: 'Canlı dərslərə bax', general: 'Ümumi izahlar',
   },
 } as const

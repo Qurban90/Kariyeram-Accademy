@@ -4,7 +4,7 @@ import { supabase } from './supabase'
 
 export interface Subject { id: string; name: string; sort: number }
 export interface Topic { id: string; subject_id: string; name: string; sort: number; free: boolean }
-export interface Enrollment { subject_id: string; access_until: string }
+export interface Enrollment { subject_id: string; access_until: string; /** Pulsuz mərhələnin verdiyi giriş (abunə deyil). */ free?: boolean }
 export interface LiveSession {
   id: string; title: string; description: string; starts_at: string; ends_at: string
   state: 'scheduled' | 'live' | 'ended' | 'cancelled'; access: 'enrolled' | 'invite' | 'public'
@@ -55,7 +55,7 @@ export function hasAccess(enr: Enrollment[] | undefined, subject: string, now = 
   const real = enr?.find((e) => e.subject_id === subject && Date.parse(e.access_until) > now)
   if (real) return real
   // Pulsuz mərhələ: hamı bütün mövzulara girir (server də eyni bayrağı yoxlayır; canlı dərs abunəli qalır).
-  if (freeAll) return { subject_id: subject, access_until: new Date(now + 86400_000).toISOString() }
+  if (freeAll) return { subject_id: subject, access_until: new Date(now + 86400_000).toISOString(), free: true }
   return undefined
 }
 

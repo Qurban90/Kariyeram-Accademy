@@ -1,67 +1,84 @@
-/** Dərsin izahı (tam ekran): mövzular sadə siyahıda, izah canlı dərsdə. PDF tətbiqdə yoxdur —
- * materiallar yalnız kurs tələbələrinə göndərilir; əlaqə üçün müəllimin nömrəsi və canlı dərsə qoşulma. */
+/**
+ * Dərsin izahı (partadakı dəftər): fənnin mövzuları sadə siyahıda. Mövzunun mətn izahı (konspekt) varsa açılır;
+ * yoxdursa izahın canlı dərsdə verildiyi deyilir və həmin mövzudan dərhal test yazmaq təklif olunur.
+ * PDF materiallar tətbiqdə paylanmır: onlar kurs tələbələrinə verilir (aşağıdakı reklam bloku).
+ */
 import { router, useLocalSearchParams } from 'expo-router'
-import { Linking, StyleSheet, View } from 'react-native'
-import { Button, Card, Group, H, Icon, ListRow, Loading, P, RoomTheme, Screen, Section, usePalette } from '../../src/components/ui'
-import { RoomScene } from '../../src/components/RoomScene'
+import { useState } from 'react'
+import { Promo } from '../../src/components/Promo'
+import { Button, ErrorBox, Group, ListRow, Loading, P, RoomTheme, Screen, Section, Sheet } from '../../src/components/ui'
 import { t } from '../../src/i18n/az'
-import { config } from '../../src/config'
-import { useLiveSessions, useSubjects, useTopics } from '../../src/lib/queries'
-import { space } from '../../src/theme'
+import { api, ApiFailure } from '../../src/lib/api'
+import { useLibrary, useSubjects, useTopics, type Topic } from '../../src/lib/queries'
 
-export default function Lesson() {
+function LessonInner() {
   const { subject } = useLocalSearchParams<{ subject: string }>()
   const subjects = useSubjects()
   const topics = useTopics(subject)
-  const live = useLiveSessions()
-  const colors = usePalette()
+  const lib = useLibrary(subject)
+  const [picked, setPicked] = useState<Topic | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
   const name = subjects.data?.find((s) => s.id === subject)?.name ?? ''
-  const idx = (subjects.data ?? []).findIndex((s) => s.id === subject)
-  const roomNo = idx >= 0 ? String(101 + idx) : ''
-  const hasLive = (live.data ?? []).some((s) => s.state === 'live' && (s.subject_id === subject || s.subject_id === null))
 
-  if (subjects.isLoading || topics.isLoading) return <Screen><Loading /></Screen>
+  if (subjects.isLoading || topics.isLoading) return <Screen back title={t.lesson.title}><Loading /></Screen>
+
+  const textOf = (topicId: string) => (lib.data ?? []).find((i) => i.kind === 'text' && i.topic_id === topicId)
+  // Mövzuya bağlı olmayan yazılı izahlar (fənn üzrə ümumi). PDF-lər tətbiqdə göstərilmir: kurs materialıdır.
+  const general = (lib.data ?? []).filter((i) => i.kind === 'text' && !(topics.data ?? []).some((x) => x.id === i.topic_id))
+  const read = (id: string, title: string) => router.push({ pathname: '/library/[id]', params: { id, kind: 'text', title } })
+  const open = (x: Topic) => {
+    const doc = textOf(x.id)
+    if (doc) read(doc.id, doc.title)
+    else { setErr(null); setPicked(x) }
+  }
+  const test = async () => {
+    if (!picked) return
+    setBusy(true); setErr(null)
+    try {
+      const r = await api.start({ subject, mode: 'topic', topicIds: [picked.id], size: 10 })
+      setPicked(null)
+      router.push({ pathname: '/test/[session]', params: { session: r.session_id, subject, from: 'room' } })
+    } catch (e) {
+      setErr(e instanceof ApiFailure ? e.message : String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
-    <RoomTheme>
-      <Screen back title={t.lesson.title}>
-        <RoomScene number={roomNo || undefined} name={name} />
-        <P dim>{t.lesson.lead}</P>
-
-        <Section title={t.room.topics}>
-          {(topics.data ?? []).length === 0 ? <P dim small>{t.lesson.empty}</P> : (
-            <Group>
-              {(topics.data ?? []).map((x, i) => (
-                <ListRow key={x.id} testID={`lesson-topic-${i}`} icon="bookOpen" title={x.name}
-                  sub={hasLive ? t.lesson.topicLive : t.lesson.open}
-                  onPress={() => router.push('/live')} />
-              ))}
-            </Group>
-          )}
+    <Screen back title={name ? `${t.lesson.title}: ${name}` : t.lesson.title}>
+      <P dim>{t.lesson.lead}</P>
+      <ErrorBox message={topics.error ? (topics.error as Error).message : null} onRetry={() => topics.refetch()} />
+      <Section title={t.room.topics}>
+        {(topics.data ?? []).length === 0 ? <P dim small>{t.lesson.empty}</P> : (
+          <Group>
+            {(topics.data ?? []).map((x, i) => (
+              <ListRow key={x.id} testID={`lesson-topic-${i}`} icon={textOf(x.id) ? 'bookOpen' : 'screen'} title={x.name}
+                sub={textOf(x.id) ? t.lesson.read : t.lesson.topicLive} onPress={() => open(x)} />
+            ))}
+          </Group>
+        )}
+      </Section>
+      {general.length ? (
+        <Section title={t.lesson.general}>
+          <Group>
+            {general.map((d, i) => <ListRow key={d.id} testID={`lesson-doc-${i}`} icon="bookOpen" title={d.title} sub={t.lesson.read} onPress={() => read(d.id, d.title)} />)}
+          </Group>
         </Section>
+      ) : null}
+      <Promo testID="lesson-promo" />
 
-        <Card tone="gold" testID="lesson-contact">
-          <View style={st.head}>
-            <Icon name="phone" size={20} color={colors.gold} />
-            <H level={3}>{t.contact.title}</H>
-          </View>
-          <P dim small>{t.contact.lead}</P>
-          <P style={st.phone}>{config.contactPhoneDisplay}</P>
-          <View style={st.row}>
-            <Button testID="lesson-call" icon="phone" label={t.contact.call} style={{ flex: 1 }}
-              onPress={() => void Linking.openURL(`tel:${config.contactPhone}`)} />
-            <Button testID="lesson-live" icon="screen" variant="ghost" label={hasLive ? t.contact.live : t.contact.enroll} style={{ flex: 1 }}
-              onPress={() => router.push('/live')} />
-          </View>
-          <P dim small>{t.contact.free}</P>
-        </Card>
-      </Screen>
-    </RoomTheme>
+      <Sheet visible={!!picked} onClose={() => setPicked(null)} title={picked?.name ?? ''} testID="lesson-topic-sheet">
+        <P dim>{t.lesson.liveOnly}</P>
+        <ErrorBox message={err} />
+        <Button testID="lesson-topic-test" icon="timer" label={t.lesson.testThis} loading={busy} onPress={() => void test()} />
+        <Button testID="lesson-topic-live" icon="screen" variant="ghost" label={t.lesson.toLive} onPress={() => { setPicked(null); router.push('/live') }} />
+      </Sheet>
+    </Screen>
   )
 }
 
-const st = StyleSheet.create({
-  head: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  phone: { fontSize: 22, fontWeight: '700', letterSpacing: 0.5 },
-  row: { flexDirection: 'row', gap: space.md, flexWrap: 'wrap' },
-})
+export default function Lesson() {
+  return <RoomTheme><LessonInner /></RoomTheme>
+}
